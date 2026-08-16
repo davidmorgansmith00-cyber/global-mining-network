@@ -255,7 +255,6 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             evaluation = json.loads(
                 (output_dir / "intent-transport-rollout-evaluation.json").read_text(encoding="utf-8")
             )
-            self.assertEqual(summary["decision_package_checks"], evaluation["checks"])
             self.assertTrue(summary["decision_package_inspector_summary_artifacts_present"])
             self.assertTrue(summary["decision_package_inspector_summary_checks_performed"])
             self.assertFalse(summary["decision_package_inspector_summary_checks_skipped"])

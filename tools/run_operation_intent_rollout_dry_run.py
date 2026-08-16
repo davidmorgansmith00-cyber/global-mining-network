@@ -279,39 +279,26 @@ def main() -> int:
         inspector_summary_json_path = Path(inspector_summary_json_file)
 
     compact_summary_json_file = str(package_summary.get("compact_summary_json_file", ""))
-    compact_summary_json_payload: dict[str, object] = {}
-    if compact_summary_json_file:
-        compact_summary_path = Path(compact_summary_json_file)
-        if compact_summary_path.exists():
-            compact_summary_json_payload = json.loads(compact_summary_path.read_text(encoding="utf-8"))
 
-    decision_package_verified = bool(
-        package_summary.get("verification_verified", compact_summary_json_payload.get("verified", False))
-    )
+    decision_package_verified = bool(package_summary.get("verification_verified", False))
     decision_package_schema_supported = bool(
-        package_summary.get(
-            "verification_schema_supported",
-            compact_summary_json_payload.get("schema_supported", False),
-        )
+        package_summary.get("verification_schema_supported", False)
     )
 
     decision_package_decision = str(
-        package_summary.get("verification_decision", compact_summary_json_payload.get("decision", ""))
+        package_summary.get("verification_decision", "")
     )
     decision_package_promotion_ready = bool(
-        package_summary.get(
-            "verification_promotion_ready",
-            compact_summary_json_payload.get("promotion_ready", False),
-        )
+        package_summary.get("verification_promotion_ready", False)
     )
     decision_package_passed_checks = int(
-        package_summary.get("verification_passed_checks", compact_summary_json_payload.get("passed_checks", 0))
+        package_summary.get("verification_passed_checks", 0)
     )
     decision_package_total_checks = int(
-        package_summary.get("verification_total_checks", compact_summary_json_payload.get("total_checks", 0))
+        package_summary.get("verification_total_checks", 0)
     )
     decision_package_failed_checks = _normalize_string_list(
-        package_summary.get("verification_failed_checks", compact_summary_json_payload.get("failed_checks", []))
+        package_summary.get("verification_failed_checks", [])
     )
     decision_package_checks = package_summary.get("verification_checks", [])
     if not isinstance(decision_package_checks, list):
