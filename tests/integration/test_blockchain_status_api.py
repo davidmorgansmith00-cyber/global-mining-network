@@ -1155,6 +1155,46 @@ class BlockchainStatusApiTests(unittest.TestCase):
         finally:
             settings.operation_intent_require_header_binding = original_strict_mode
 
+    def test_operation_intents_strict_mode_query_rejections_increment_counter_exactly(self) -> None:
+        _, session_id = self._create_player_session_binding()
+        header_name = settings.operation_intent_session_header
+        original_strict_mode = settings.operation_intent_require_header_binding
+        settings.operation_intent_require_header_binding = True
+
+        try:
+            with TestClient(app) as client:
+                start_response = client.post(
+                    f"/api/v1/blockchain/operations/intents/start?session_id={session_id}",
+                    json={
+                        "operation_id": "op_strict_counter_start",
+                        "base_hashrate_hps": "20",
+                    },
+                )
+                stop_response = client.post(
+                    f"/api/v1/blockchain/operations/intents/stop?session_id={session_id}",
+                    json={"operation_id": "op_strict_counter_stop"},
+                )
+                header_start = client.post(
+                    "/api/v1/blockchain/operations/intents/start",
+                    json={
+                        "operation_id": "op_strict_counter_header",
+                        "base_hashrate_hps": "20",
+                    },
+                    headers={header_name: session_id},
+                )
+                metrics_headers = {settings.maintenance_auth_header: settings.maintenance_auth_token}
+                metrics_response = client.get("/api/v1/blockchain/maintenance/metrics", headers=metrics_headers)
+
+            self.assertEqual(start_response.status_code, 400)
+            self.assertEqual(stop_response.status_code, 400)
+            self.assertEqual(header_start.status_code, 200)
+            self.assertEqual(metrics_response.status_code, 200)
+
+            counters = metrics_response.json().get("operation_intent_transport_requests_total", {})
+            self.assertEqual(counters.get("query_rejected_strict", 0), 2)
+        finally:
+            settings.operation_intent_require_header_binding = original_strict_mode
+
     @unittest.skipUnless(
         os.getenv("GMN_ENABLE_QUERY_SUNSET_TESTS", "0") in {"1", "true", "TRUE"},
         "Query-sunset tests are gated behind GMN_ENABLE_QUERY_SUNSET_TESTS",
