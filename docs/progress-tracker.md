@@ -294,6 +294,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Operation intent dry-run refreshed-inspector mismatch details | Done | Dry-run output now includes `decision_package_inspector_mismatch_details` from refreshed inspector summary JSON for direct diagnostic payload access |
 | Operation intent package inspector artifacts | Done | Decision package builder now emits refreshed inspector summary `.txt`/`.json` artifacts and records them in manifest artifacts and command summary output |
 | Operation intent dry-run inspector reuse path | Done | Dry-run now consumes inspector summary file paths returned by decision package builder instead of running inspector a second time |
+| Operation intent package inspector status fields | Done | Decision package summary output now includes refreshed inspector status fields (`inspector_verified`, `inspector_mismatch_count`, `inspector_mismatch_details`) |
 | Optional CI workflow-dispatch DB baseline rerun | Done | Run `31956249661` succeeded end-to-end (`baseline` and `db-integration` both green); total run window was 67s (`15:38:16Z` to `15:39:23Z`) |
 | Local CI-mirrored full suite baseline | Done | Ran the same test selection as optional `db-integration` locally: `65` tests passed in `35.976s` |
 

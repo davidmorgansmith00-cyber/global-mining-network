@@ -116,6 +116,7 @@ Build the full decision artifact package in one command:
 - Decision-package command output also includes `verification_compact_summary_checks_performed` and `verification_compact_summary_checks_skipped` to make compatibility-path verification behavior explicit.
 - Decision-package command output includes `verification_compact_summary_mismatch_count` and `verification_compact_summary_mismatch_details` for machine-readable compact-summary mismatch diagnostics.
 - Decision-package command output includes `verification_compact_summary_artifacts_present` to distinguish legacy manifests from manifests that include compact summary artifacts.
+- Decision-package command output includes refreshed inspector fields: `inspector_verified`, `inspector_mismatch_count`, and `inspector_mismatch_details`.
 
 Verify generated package integrity:
 - PowerShell: `python tools/verify_operation_intent_decision_package.py --manifest artifacts/operation-intent-decision-package/intent-transport-decision-package-manifest.json`

@@ -300,6 +300,7 @@ def main() -> int:
         ]
     )
     verification_payload = json.loads(verification_path.read_text(encoding="utf-8"))
+    inspector_summary_json_payload = json.loads(inspector_summary_json_path.read_text(encoding="utf-8"))
     summary["verification_verified"] = bool(verification_payload.get("verified", False))
     summary["verification_schema_supported"] = bool(verification_payload.get("schema_supported", False))
     summary["verification_compact_summary_artifacts_present"] = bool(
@@ -316,6 +317,13 @@ def main() -> int:
         compact_summary_mismatch_details = [str(compact_summary_mismatch_details)]
     summary["verification_compact_summary_mismatch_count"] = len(compact_summary_mismatch_details)
     summary["verification_compact_summary_mismatch_details"] = compact_summary_mismatch_details
+    summary["inspector_verified"] = bool(inspector_summary_json_payload.get("verified", False))
+    summary["inspector_mismatch_count"] = int(
+        inspector_summary_json_payload.get("compact_summary_mismatch_count", 0)
+    )
+    summary["inspector_mismatch_details"] = inspector_summary_json_payload.get(
+        "compact_summary_mismatch_details", []
+    )
     print(json.dumps(summary, indent=2, sort_keys=True))
     return 0
 

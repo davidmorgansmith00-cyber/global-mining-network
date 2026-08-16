@@ -538,6 +538,9 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertFalse(summary["verification_compact_summary_checks_skipped"])
             self.assertEqual(summary["verification_compact_summary_mismatch_count"], 0)
             self.assertEqual(summary["verification_compact_summary_mismatch_details"], [])
+            self.assertTrue(summary["inspector_verified"])
+            self.assertEqual(summary["inspector_mismatch_count"], 0)
+            self.assertEqual(summary["inspector_mismatch_details"], [])
 
             self.assertTrue((output_dir / "intent-transport-rollout-bundle.json").exists())
             self.assertTrue((output_dir / "intent-transport-rollout-evaluation.json").exists())
