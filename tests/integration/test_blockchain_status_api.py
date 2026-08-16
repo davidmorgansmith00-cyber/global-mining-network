@@ -1477,6 +1477,54 @@ class BlockchainStatusApiTests(unittest.TestCase):
         self.assertEqual(checkpoint_payload["channel"], "global")
         self.assertEqual(checkpoint_payload["reconnect_cursor"], websocket_payload["reconnect_cursor"])
 
+    def test_checkpoint_get_bootstraps_player_rewards_cursor_without_existing_checkpoint(self) -> None:
+        started_at = datetime(2026, 8, 16, 0, 20, tzinfo=UTC)
+        player_a, session_a = self._create_player_session_binding()
+        player_b, _ = self._create_player_session_binding()
+        service = MiningSimulationService(
+            required_work=Decimal("100"),
+            blockchain_state_store=PostgresBlockchainStateStore(required_work=Decimal("100")),
+            ledger_poster=PostgresLedgerPoster(),
+        )
+        service.register_operation(
+            operation_id="op_checkpoint_player_rewards_a",
+            player_id=player_a,
+            base_hashrate_hps=Decimal("20"),
+            started_at=started_at,
+        )
+        service.register_operation(
+            operation_id="op_checkpoint_player_rewards_b",
+            player_id=player_b,
+            base_hashrate_hps=Decimal("20"),
+            started_at=started_at,
+        )
+        service.process_tick(
+            operation_id="op_checkpoint_player_rewards_a",
+            ended_at=started_at + timedelta(seconds=3),
+        )
+        service.process_tick(
+            operation_id="op_checkpoint_player_rewards_b",
+            ended_at=started_at + timedelta(seconds=5),
+        )
+
+        with TestClient(app) as client:
+            with client.websocket_connect(
+                f"/api/v1/blockchain/network-events/ws?after_sequence=0&limit=50"
+                f"&player_id={player_a}&session_id={session_a}&channel=player_rewards"
+            ) as websocket:
+                websocket_payload = websocket.receive_json()
+
+            checkpoint_response = client.get(
+                f"/api/v1/blockchain/checkpoints/player_rewards?player_id={player_a}&session_id={session_a}"
+            )
+
+        self.assertEqual(checkpoint_response.status_code, 200)
+        checkpoint_payload = checkpoint_response.json()
+        self.assertEqual(checkpoint_payload["player_id"], player_a)
+        self.assertEqual(checkpoint_payload["session_id"], session_a)
+        self.assertEqual(checkpoint_payload["channel"], "player_rewards")
+        self.assertEqual(checkpoint_payload["reconnect_cursor"], websocket_payload["reconnect_cursor"])
+
     def test_checkpoint_endpoints_reject_revoked_session_binding(self) -> None:
         player_id, session_id = self._create_player_session_binding()
 
