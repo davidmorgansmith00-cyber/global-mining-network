@@ -222,7 +222,10 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Operation runtime tick orchestration loop | Done | Added authoritative runtime tick advancement for active operations on status/snapshot/network-events and websocket loop paths |
 | Operation intent reconnect-event coverage | Done | Added integration tests validating operation-intent progression and reconnect-safe network event cursor behavior |
 | Operation intent websocket global-channel coverage | Done | Added integration test asserting operation-intent-driven `network.block_progress.v1` events stream over authenticated `channel=global` websocket sessions |
-| Optional CI workflow-dispatch DB baseline rerun | In Progress | Pushed commit `d4dcb7c` (includes `httpx` in `server/requirements.txt`) and triggered rerun `31956249661`; db-integration job is now executing against updated remote `main` |
+| Operation intent stop-state websocket reconnect coverage | Done | Added integration test asserting no new `network.block_progress.v1` events after stop intent when reconnecting from saved websocket cursor |
+| Operation intent client contract documentation alignment | Done | Updated client-facing docs with session-bound intent contracts (`session_id` query + no client `player_id` payload field) across gameplay plan, ticket map, and client README |
+| Optional CI workflow-dispatch DB baseline rerun | Done | Run `31956249661` succeeded end-to-end (`baseline` and `db-integration` both green); total run window was 67s (`15:38:16Z` to `15:39:23Z`) |
+| Local CI-mirrored full suite baseline | Done | Ran the same test selection as optional `db-integration` locally: `65` tests passed in `35.976s` |
 
 ---
 
@@ -245,9 +248,9 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 ---
 
 ## 10. Next Actions
-1. Record final outcome/runtime for CI run `31956249661` and close or re-open blocker status based on db-integration result.
-2. Add API contract notes for operation-intent `session_id` requirements in client-facing docs to keep request schemas synchronized.
-3. Expand websocket contract assertions for operation stop-state visibility (no new progress after stop across reconnect cursor windows).
+1. Add a small API reference note (request/response examples) for operation intents in docs to reduce integration ambiguity for future client consumers.
+2. Add client smoke coverage asserting operation-intent payload shape excludes `player_id` and includes `session_id` query usage.
+3. Evaluate moving operation-intent session binding from query parameter to standardized auth header/token flow while preserving server-authoritative identity resolution.
 
 ---
 

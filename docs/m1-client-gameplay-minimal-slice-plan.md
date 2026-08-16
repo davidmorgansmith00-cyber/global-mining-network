@@ -55,6 +55,9 @@ The client may not:
 
 5. Operation command shell
 - Provide minimal command UI for operation start/stop intents.
+- Call `POST /api/v1/blockchain/operations/intents/start?session_id=<active_session_id>` with payload `{ "operation_id", "base_hashrate_hps" }`.
+- Call `POST /api/v1/blockchain/operations/intents/stop?session_id=<active_session_id>` with payload `{ "operation_id" }`.
+- Do not send `player_id` in operation-intent payloads; server derives player identity from the active session.
 - Do not show speculative balances as authoritative state.
 
 ## 5. Acceptance Criteria

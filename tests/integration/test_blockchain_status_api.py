@@ -226,6 +226,54 @@ class BlockchainStatusApiTests(unittest.TestCase):
         ]
         self.assertGreaterEqual(len(progress_events), 1)
 
+    def test_operation_stop_prevents_new_progress_events_on_websocket_reconnect(self) -> None:
+        player_id, session_id = self._create_player_session_binding()
+
+        with TestClient(app) as client:
+            started = client.post(
+                f"/api/v1/blockchain/operations/intents/start?session_id={session_id}",
+                json={
+                    "operation_id": "op_ws_stop_1",
+                    "base_hashrate_hps": "30",
+                },
+            )
+            self.assertEqual(started.status_code, 200)
+
+            time.sleep(1.1)
+            with client.websocket_connect(
+                f"/api/v1/blockchain/network-events/ws?after_sequence=0&limit=100"
+                f"&player_id={player_id}&session_id={session_id}&channel=global"
+            ) as websocket:
+                first_payload = websocket.receive_json()
+
+            progress_events = [
+                item for item in first_payload["events"]
+                if item.get("event_type") == "network.block_progress.v1"
+                and item.get("payload", {}).get("operation_id") == "op_ws_stop_1"
+                and item.get("payload", {}).get("player_id") == player_id
+            ]
+            self.assertGreaterEqual(len(progress_events), 1)
+
+            reconnect_cursor = int(first_payload["reconnect_cursor"])
+            stopped = client.post(
+                f"/api/v1/blockchain/operations/intents/stop?session_id={session_id}",
+                json={
+                    "operation_id": "op_ws_stop_1",
+                },
+            )
+            self.assertEqual(stopped.status_code, 200)
+
+            time.sleep(1.1)
+            with client.websocket_connect(
+                f"/api/v1/blockchain/network-events/ws?after_sequence={reconnect_cursor}&limit=100"
+                f"&player_id={player_id}&session_id={session_id}&channel=global"
+            ) as websocket:
+                second_payload = websocket.receive_json()
+
+        self.assertEqual(second_payload["schema_version"], "network.events.v1")
+        self.assertEqual(second_payload["events"], [])
+        self.assertEqual(second_payload["reconnect_cursor"], reconnect_cursor)
+
     def test_cleanup_endpoint_applies_retention_policies(self) -> None:
         player_id, session_id = self._create_player_session_binding()
 

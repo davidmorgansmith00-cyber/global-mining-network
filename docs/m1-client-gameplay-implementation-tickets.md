@@ -76,3 +76,20 @@ Acceptance criteria:
 1. Scene controller coordinates API/websocket interactions via dedicated network service classes.
 2. Contract field names are centralized in one location.
 3. Errors are surfaced through non-authoritative client diagnostics only.
+
+## Ticket GMN-CL-06: Operation Intent Session-Bound Contract Alignment
+Owner: Gameplay Lead
+Priority: P0
+
+Scope:
+- Send operation intents with session-bound query auth:
+  - `POST /api/v1/blockchain/operations/intents/start?session_id=<active_session_id>`
+  - `POST /api/v1/blockchain/operations/intents/stop?session_id=<active_session_id>`
+- Start payload fields are limited to `operation_id` and `base_hashrate_hps`.
+- Stop payload fields are limited to `operation_id`.
+- Client must not send `player_id`; server derives identity from the active session binding.
+
+Acceptance criteria:
+1. Start/stop calls succeed with valid active session IDs and fail with invalid session IDs.
+2. No operation-intent client payload includes `player_id`.
+3. Client request/response diagnostics clearly show session-binding failures without local authoritative fallback.

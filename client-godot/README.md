@@ -17,8 +17,9 @@ Current scaffold:
 
 Operation intent plumbing:
 - `GmnApiClient` now includes non-authoritative start/stop intent pass-through calls:
-	- `POST /api/v1/blockchain/operations/intents/start`
-	- `POST /api/v1/blockchain/operations/intents/stop`
+	- `POST /api/v1/blockchain/operations/intents/start?session_id=<active_session_id>` with payload `{ "operation_id", "base_hashrate_hps" }`
+	- `POST /api/v1/blockchain/operations/intents/stop?session_id=<active_session_id>` with payload `{ "operation_id" }`
+- Client request payloads must not include `player_id`; server derives player identity from active session binding.
 - `GameplayShellController` exposes `send_start_operation_intent(...)` and `send_stop_operation_intent(...)` and does not mutate authoritative progression state locally.
 - `GameplayShellSceneRoot` wires scene-level inputs/buttons and renders request/response status for start/stop intents in `ActionStatusLabel`.
 
