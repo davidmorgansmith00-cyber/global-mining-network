@@ -25,6 +25,7 @@ from domain.mining.contracts import (
     EVENT_MAINTENANCE_STATE_CHANGED,
     EVENT_OPERATION_PAUSE,
     EVENT_OPERATION_RESUME,
+    EVENT_POWER_STATE_CHANGED,
     EVENT_THROTTLE_STATE_CHANGED,
     SimulationBoundaryEvent,
 )
@@ -139,6 +140,39 @@ class MiningSimulationServiceIntegrationTests(unittest.TestCase):
         self.assertEqual(result.contribution_hashes, Decimal("45.000000"))
         self.assertEqual(service.operations["op_a"].current_multiplier, Decimal("0.5"))
         self.assertTrue(service.operations["op_a"].current_paused)
+        self.assertEqual(service.operations["op_a"].last_processed_at, tick_end)
+
+    def test_power_state_boundary_updates_effective_hashrate_multiplier(self) -> None:
+        started_at = datetime(2026, 8, 15, 14, 50, tzinfo=UTC)
+        reduced_power_at = started_at + timedelta(seconds=2)
+        recovered_power_at = started_at + timedelta(seconds=6)
+        tick_end = started_at + timedelta(seconds=10)
+
+        service = MiningSimulationService(required_work=Decimal("1000"))
+        service.register_operation(operation_id="op_a", base_hashrate_hps=Decimal("10"), started_at=started_at)
+        service.apply_boundary_event(
+            SimulationBoundaryEvent(
+                event_type=EVENT_POWER_STATE_CHANGED,
+                player_id="player_a",
+                operation_id="op_a",
+                occurred_at=reduced_power_at,
+                payload={"hashrate_multiplier": "0.6"},
+            )
+        )
+        service.apply_boundary_event(
+            SimulationBoundaryEvent(
+                event_type=EVENT_POWER_STATE_CHANGED,
+                player_id="player_a",
+                operation_id="op_a",
+                occurred_at=recovered_power_at,
+                payload={"hashrate_multiplier": "1.0"},
+            )
+        )
+
+        result = service.process_tick(operation_id="op_a", ended_at=tick_end)
+
+        self.assertEqual(result.contribution_hashes, Decimal("84.000000"))
+        self.assertEqual(service.operations["op_a"].current_multiplier, Decimal("1.0"))
         self.assertEqual(service.operations["op_a"].last_processed_at, tick_end)
 
     def test_atomic_finalization_under_concurrency(self) -> None:

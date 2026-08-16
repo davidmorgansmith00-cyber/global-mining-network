@@ -150,6 +150,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Timestamp progression and boundary application test | Done | Added and passed `tests/integration/test_mining_simulation_service.py::test_operation_last_processed_timestamp_advances_and_boundaries_apply` |
 | Upgrade-boundary multiplier integration test | Done | Added and passed `tests/integration/test_mining_simulation_service.py::test_hardware_upgrade_boundary_updates_effective_hashrate_multiplier` |
 | Throttle and maintenance boundary integration test | Done | Added and passed `tests/integration/test_mining_simulation_service.py::test_throttle_and_maintenance_boundaries_update_multiplier_and_pause_state` |
+| Power-state boundary integration test | Done | Added and passed `tests/integration/test_mining_simulation_service.py::test_power_state_boundary_updates_effective_hashrate_multiplier` |
 | Atomic finalization concurrency test | Done | Added and passed `tests/integration/test_mining_simulation_service.py::test_atomic_finalization_under_concurrency` |
 | DB-backed active/finalized block persistence | Done | Added `server/domain/blockchain/store.py` and migration table coverage |
 | DB-backed ledger posting contract wiring | Done | Added `server/domain/economy/ledger.py` and finalization-to-ledger integration in mining service |
