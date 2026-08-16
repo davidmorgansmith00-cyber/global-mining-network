@@ -239,6 +239,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Operation intent production decision memo template | Done | Added `docs/operation-intents-production-rollout-decision-memo-template.md` mapping helper JSON fields and threshold checks into a standardized go/no-go artifact |
 | Operation intent query-share helper output mapping | Done | Extended metrics helper to emit `query_share_from_deltas` and updated checklist/memo docs to use canonical query-share fields for promotion gates |
 | Operation intent 14-day rollout bundle builder | Done | Added `tools/build_operation_intent_rollout_bundle.py` to combine daily captures into one threshold-oriented bundle (`aggregate` + `threshold_checks`) for decision memo completion |
+| Operation intent decision memo prefill helper | Done | Added `tools/prefill_operation_intent_decision_memo.py` to pre-populate decision draft JSON from rollout bundle values while leaving manual-judgment sections explicit |
 | Optional CI workflow-dispatch DB baseline rerun | Done | Run `31956249661` succeeded end-to-end (`baseline` and `db-integration` both green); total run window was 67s (`15:38:16Z` to `15:39:23Z`) |
 | Local CI-mirrored full suite baseline | Done | Ran the same test selection as optional `db-integration` locally: `65` tests passed in `35.976s` |
 
@@ -265,7 +266,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 ## 10. Next Actions
 1. Execute first deprecation release-note publication and attach communication artifacts to the migration evidence bundle.
 2. Run strict-mode canary with `GMN_ENABLE_QUERY_SUNSET_TESTS=1` in pre-prod and collect daily transport snapshots with `tools/capture_operation_intent_transport_metrics.py`.
-3. Build a 14-day bundle with `tools/build_operation_intent_rollout_bundle.py`, then complete `docs/operation-intents-production-rollout-decision-memo-template.md` from `aggregate` and `threshold_checks` fields and secure final go/no-go approvals.
+3. Build a 14-day bundle with `tools/build_operation_intent_rollout_bundle.py`, prefill memo draft with `tools/prefill_operation_intent_decision_memo.py`, then complete final manual sections and secure go/no-go approvals.
 
 ---
 

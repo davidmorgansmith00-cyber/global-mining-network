@@ -68,6 +68,9 @@ Capture short trend evidence (example: 15 minutes at 60-second interval):
 Build 14-day rollout bundle from daily captures:
 - PowerShell: `python tools/build_operation_intent_rollout_bundle.py --input-glob "artifacts/intent-transport-day*.json" --query-threshold-percent 1.0 --output artifacts/intent-transport-rollout-bundle.json`
 
+Pre-fill production decision memo draft from rollout bundle:
+- PowerShell: `python tools/prefill_operation_intent_decision_memo.py --bundle artifacts/intent-transport-rollout-bundle.json --environment-scope pre-prod-canary --decision-owner backend-oncall --output artifacts/intent-transport-decision-memo-draft.json`
+
 Read computed query share from helper output:
 - Use `query_share_from_deltas.query_share_percent` from the output JSON as the canonical query-share value for promotion gates.
 - Supporting fields:
@@ -81,6 +84,12 @@ Read promotion-gate summary from rollout bundle output:
 - `aggregate.total_query_rejected_strict_delta`
 - `aggregate.max_mismatch_rate_per_minute`
 - `threshold_checks.query_share_window_pass`
+
+Read auto-filled draft memo fields:
+- `threshold_evaluation.query_share_threshold.auto_result`
+- `threshold_evaluation.strict_rejection_stability.auto_result`
+- `threshold_evaluation.mismatch_stability.auto_result` (manual review expected)
+- `final_recommendation.recommended_action` (manual decision required)
 
 ## Owner Checklist
 1. Backend owner approves strict-mode metrics health.

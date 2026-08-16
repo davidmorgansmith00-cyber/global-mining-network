@@ -6,6 +6,11 @@ Date: 2026-08-16
 
 Use this template for the production go or no-go decision after strict-mode canary evidence collection.
 
+Recommended preparation flow:
+1. Build rollout bundle with `tools/build_operation_intent_rollout_bundle.py`.
+2. Generate draft memo JSON with `tools/prefill_operation_intent_decision_memo.py`.
+3. Copy generated values into this template and complete manual-review sections.
+
 ## 1. Decision Summary
 - Decision date:
 - Environment scope:
@@ -22,6 +27,9 @@ Attach files generated from tools/capture_operation_intent_transport_metrics.py:
 
 Attach rollout bundle generated from tools/build_operation_intent_rollout_bundle.py:
 1. Rollout bundle file path:
+
+Attach memo draft generated from tools/prefill_operation_intent_decision_memo.py:
+1. Memo draft JSON file path:
 
 Attach additional evidence:
 1. Strict-mode sunset test run log (GMN_ENABLE_QUERY_SUNSET_TESTS=1)
