@@ -1661,6 +1661,28 @@ class BlockchainStatusApiTests(unittest.TestCase):
         self.assertEqual(put_missing_player.status_code, 422)
         self.assertEqual(put_missing_session.status_code, 422)
 
+    def test_checkpoint_global_endpoints_reject_empty_player_or_session_values(self) -> None:
+        with TestClient(app) as client:
+            get_empty_player = client.get("/api/v1/blockchain/checkpoints/global?player_id=&session_id=session")
+            get_empty_session = client.get("/api/v1/blockchain/checkpoints/global?player_id=player&session_id=")
+            put_empty_player = client.put(
+                "/api/v1/blockchain/checkpoints/global?player_id=&session_id=session",
+                json={"reconnect_cursor": 3},
+            )
+            put_empty_session = client.put(
+                "/api/v1/blockchain/checkpoints/global?player_id=player&session_id=",
+                json={"reconnect_cursor": 3},
+            )
+
+        self.assertEqual(get_empty_player.status_code, 401)
+        self.assertEqual(get_empty_session.status_code, 401)
+        self.assertEqual(put_empty_player.status_code, 401)
+        self.assertEqual(put_empty_session.status_code, 401)
+        self.assertEqual(get_empty_player.json().get("detail"), "Invalid session binding")
+        self.assertEqual(get_empty_session.json().get("detail"), "Invalid session binding")
+        self.assertEqual(put_empty_player.json().get("detail"), "Invalid session binding")
+        self.assertEqual(put_empty_session.json().get("detail"), "Invalid session binding")
+
     def test_checkpoint_player_rewards_endpoints_require_player_and_session_query_parameters(self) -> None:
         with TestClient(app) as client:
             get_missing_player = client.get("/api/v1/blockchain/checkpoints/player_rewards?session_id=session_only")
