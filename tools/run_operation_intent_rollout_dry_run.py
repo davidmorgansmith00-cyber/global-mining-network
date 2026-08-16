@@ -299,6 +299,10 @@ def main() -> int:
     if inspector_summary_json_path.exists():
         inspector_summary_json_payload = json.loads(inspector_summary_json_path.read_text(encoding="utf-8"))
 
+    decision_package_failed_checks = _normalize_string_list(
+        compact_summary_json_payload.get("failed_checks", [])
+    )
+
     inspector_verified = bool(
         package_summary.get("inspector_verified", inspector_summary_json_payload.get("verified", False))
     )
@@ -330,6 +334,7 @@ def main() -> int:
         "decision_package_inspector_summary_json_file": str(inspector_summary_json_path).replace("\\", "/"),
         "decision_package_decision": str(compact_summary_json_payload.get("decision", "")),
         "decision_package_promotion_ready": bool(compact_summary_json_payload.get("promotion_ready", False)),
+        "decision_package_failed_checks": decision_package_failed_checks,
         "decision_package_verified": decision_package_verified,
         "decision_package_schema_supported": decision_package_schema_supported,
         "decision_package_evaluation_matches_memo": bool(

@@ -207,6 +207,7 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertIn("decision_package_inspector_summary_json_file", summary)
             self.assertIn("decision_package_decision", summary)
             self.assertIn("decision_package_promotion_ready", summary)
+            self.assertIn("decision_package_failed_checks", summary)
             self.assertIn("decision_package_verified", summary)
             self.assertIn("decision_package_schema_supported", summary)
             self.assertIn("decision_package_evaluation_matches_memo", summary)
@@ -247,6 +248,8 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertTrue(summary["decision_package_inspector_verified"])
             self.assertEqual(summary["decision_package_inspector_mismatch_count"], 0)
             self.assertEqual(summary["decision_package_inspector_mismatch_details"], [])
+            self.assertIsInstance(summary["decision_package_failed_checks"], list)
+            self.assertGreater(len(summary["decision_package_failed_checks"]), 0)
 
             self.assertTrue((output_dir / "intent-transport-day01.json").exists())
             self.assertTrue((output_dir / "intent-transport-day02.json").exists())
