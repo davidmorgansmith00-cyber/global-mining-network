@@ -502,6 +502,33 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertEqual(memo_draft["decision_summary"]["decision_owner"], "backend-oncall")
             self.assertIn("rollout_gate_evaluation", memo_draft)
 
+    def test_decision_package_builder_can_fail_on_blocked(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            temp_root = Path(tmp)
+            captures_dir = temp_root / "captures"
+            captures_dir.mkdir(parents=True, exist_ok=True)
+
+            self._write_capture_file(
+                captures_dir / "intent-transport-day01.json",
+                finished_at="2026-08-16T00:00:00+00:00",
+                query_delta=20,
+                header_delta=0,
+                dual_match_delta=0,
+                mismatch_delta=1,
+                query_rejected_strict_delta=1,
+            )
+
+            output_dir = temp_root / "decision-package"
+            package_result = self._run(
+                "tools/build_operation_intent_decision_package.py",
+                "--input-glob",
+                str(captures_dir / "intent-transport-day*.json"),
+                "--output-dir",
+                str(output_dir),
+                "--fail-on-blocked",
+            )
+            self.assertEqual(package_result.returncode, 1)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

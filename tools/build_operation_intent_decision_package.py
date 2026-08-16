@@ -52,6 +52,11 @@ def _parse_args() -> argparse.Namespace:
         default="backend-oncall",
         help="Decision owner for memo prefill (default: backend-oncall)",
     )
+    parser.add_argument(
+        "--fail-on-blocked",
+        action="store_true",
+        help="Exit non-zero when rollout gate evaluation is not promotion-ready",
+    )
     return parser.parse_args()
 
 
@@ -98,16 +103,18 @@ def main() -> int:
         ]
     )
 
-    _run_command(
-        [
-            sys.executable,
-            str(root / "tools" / "evaluate_operation_intent_rollout_gate.py"),
-            "--bundle",
-            str(bundle_path),
-            "--output",
-            str(evaluation_path),
-        ]
-    )
+    evaluate_command = [
+        sys.executable,
+        str(root / "tools" / "evaluate_operation_intent_rollout_gate.py"),
+        "--bundle",
+        str(bundle_path),
+        "--output",
+        str(evaluation_path),
+    ]
+    if args.fail_on_blocked:
+        evaluate_command.append("--fail-on-blocked")
+
+    _run_command(evaluate_command)
 
     _run_command(
         [
