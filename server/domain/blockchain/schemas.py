@@ -37,6 +37,16 @@ class PlayerRewardHistoryResponse(BaseModel):
     entries: list[PlayerRewardHistoryItem]
 
 
+class PlayerRewardBalanceItem(BaseModel):
+    player_id: str
+    reward_balance: Decimal
+
+
+class PlayerRewardBalancesResponse(BaseModel):
+    total_reward_balance: Decimal
+    entries: list[PlayerRewardBalanceItem]
+
+
 class NetworkFinalizationSnapshot(BaseModel):
     block_number: int
     required_work: Decimal

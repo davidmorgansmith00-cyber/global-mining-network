@@ -23,10 +23,12 @@ from domain.blockchain.schemas import (
     OperationStopIntentRequest,
     NetworkEventsResponse,
     NetworkSnapshotContract,
+    PlayerRewardBalancesResponse,
     PlayerRewardHistoryResponse,
 )
 from domain.blockchain.store import PostgresBlockchainStateStore
 from domain.economy.ledger import PostgresLedgerPoster
+from domain.economy.read_models import project_player_reward_balances
 from domain.mining.service import MiningSimulationService
 from shared.database import database_is_configured, open_connection
 from shared.logging import get_logger
@@ -250,6 +252,27 @@ def get_player_reward_history(
     recent_limit: int = Query(default=20, ge=1, le=200),
 ) -> PlayerRewardHistoryResponse:
     return service.get_player_reward_history(player_id=player_id, recent_limit=recent_limit)
+
+
+@router.get(
+    "/reward-balances",
+    response_model=PlayerRewardBalancesResponse,
+    status_code=status.HTTP_200_OK,
+)
+def get_player_reward_balances() -> PlayerRewardBalancesResponse:
+    entries = project_player_reward_balances()
+    total = sum((entry.reward_balance for entry in entries), Decimal("0"))
+    serialized_entries = [
+        {
+            "player_id": entry.player_id,
+            "reward_balance": entry.reward_balance,
+        }
+        for entry in entries
+    ]
+    return PlayerRewardBalancesResponse(
+        total_reward_balance=total,
+        entries=serialized_entries,
+    )
 
 
 @router.get(

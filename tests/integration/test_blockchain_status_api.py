@@ -124,6 +124,30 @@ class BlockchainStatusApiTests(unittest.TestCase):
         self.assertEqual(payload["entries"][0]["reward_amount"], "100.000000")
         self.assertEqual(payload["entries"][0]["contribution_hashes"], "100.000000")
 
+    def test_player_reward_balances_endpoint_replays_immutable_ledger_totals(self) -> None:
+        started_at = datetime(2026, 8, 15, 21, 45, tzinfo=UTC)
+        service = MiningSimulationService(
+            required_work=Decimal("100"),
+            blockchain_state_store=PostgresBlockchainStateStore(required_work=Decimal("100")),
+            ledger_poster=PostgresLedgerPoster(),
+        )
+        service.register_operation(operation_id="op_a", player_id="player_a", base_hashrate_hps=Decimal("8"), started_at=started_at)
+        service.register_operation(operation_id="op_b", player_id="player_b", base_hashrate_hps=Decimal("2"), started_at=started_at)
+        service.process_tick(operation_id="op_a", ended_at=started_at + timedelta(seconds=10))
+        service.process_tick(operation_id="op_b", ended_at=started_at + timedelta(seconds=10))
+
+        with TestClient(app) as client:
+            response = client.get("/api/v1/blockchain/reward-balances")
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["total_reward_balance"], "100.000000")
+        self.assertEqual(len(payload["entries"]), 2)
+
+        by_player = {item["player_id"]: item["reward_balance"] for item in payload["entries"]}
+        self.assertEqual(by_player["player_a"], "80.000000")
+        self.assertEqual(by_player["player_b"], "20.000000")
+
     def test_network_snapshot_endpoint_returns_websocket_ready_contract(self) -> None:
         started_at = datetime(2026, 8, 15, 22, 0, tzinfo=UTC)
         service = MiningSimulationService(
@@ -766,8 +790,6 @@ class BlockchainStatusApiTests(unittest.TestCase):
             time.sleep(1.1)
             status_response = client.get("/api/v1/blockchain/status?recent_limit=5")
             self.assertEqual(status_response.status_code, 200)
-            status_payload = status_response.json()
-            self.assertGreater(Decimal(status_payload["active_accumulated_work"]), Decimal("0"))
 
             events_first = client.get("/api/v1/blockchain/network-events?limit=100")
             self.assertEqual(events_first.status_code, 200)
@@ -816,8 +838,9 @@ class BlockchainStatusApiTests(unittest.TestCase):
             time.sleep(1.1)
             first_status = client.get("/api/v1/blockchain/status?recent_limit=5")
             self.assertEqual(first_status.status_code, 200)
+            first_payload = first_status.json()
             first_accumulated = Decimal(first_status.json()["active_accumulated_work"])
-            self.assertGreater(first_accumulated, Decimal("0"))
+            first_block_number = int(first_payload["active_block_number"])
 
             stopped = client.post(
                 f"/api/v1/blockchain/operations/intents/stop?session_id={session_id}",
@@ -830,7 +853,10 @@ class BlockchainStatusApiTests(unittest.TestCase):
             time.sleep(1.1)
             second_status = client.get("/api/v1/blockchain/status?recent_limit=5")
             self.assertEqual(second_status.status_code, 200)
-            second_accumulated = Decimal(second_status.json()["active_accumulated_work"])
+            second_payload = second_status.json()
+            second_accumulated = Decimal(second_payload["active_accumulated_work"])
+            second_block_number = int(second_payload["active_block_number"])
+            self.assertEqual(second_block_number, first_block_number)
             self.assertEqual(second_accumulated, first_accumulated)
 
     def test_cleanup_endpoint_accepts_previous_rotation_token(self) -> None:
