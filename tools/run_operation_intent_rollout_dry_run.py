@@ -177,6 +177,7 @@ def main() -> int:
     bundle_path = output_dir / "intent-transport-rollout-bundle.json"
     memo_draft_path = output_dir / "intent-transport-decision-memo-draft.json"
     memo_markdown_path = output_dir / "intent-transport-decision-memo.md"
+    rollout_evaluation_path = output_dir / "intent-transport-rollout-evaluation.json"
 
     _run_command(
         [
@@ -221,12 +222,24 @@ def main() -> int:
         ]
     )
 
+    _run_command(
+        [
+            sys.executable,
+            str(root / "tools" / "evaluate_operation_intent_rollout_gate.py"),
+            "--bundle",
+            str(bundle_path),
+            "--output",
+            str(rollout_evaluation_path),
+        ]
+    )
+
     result = {
         "output_dir": str(output_dir).replace("\\", "/"),
         "generated_daily_files": args.days,
         "bundle_file": str(bundle_path).replace("\\", "/"),
         "memo_draft_file": str(memo_draft_path).replace("\\", "/"),
         "memo_markdown_file": str(memo_markdown_path).replace("\\", "/"),
+        "rollout_evaluation_file": str(rollout_evaluation_path).replace("\\", "/"),
     }
     print(json.dumps(result, indent=2, sort_keys=True))
     return 0

@@ -184,6 +184,7 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertIn("bundle_file", summary)
             self.assertIn("memo_draft_file", summary)
             self.assertIn("memo_markdown_file", summary)
+            self.assertIn("rollout_evaluation_file", summary)
 
             self.assertTrue((output_dir / "intent-transport-day01.json").exists())
             self.assertTrue((output_dir / "intent-transport-day02.json").exists())
@@ -191,10 +192,15 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertTrue((output_dir / "intent-transport-rollout-bundle.json").exists())
             self.assertTrue((output_dir / "intent-transport-decision-memo-draft.json").exists())
             self.assertTrue((output_dir / "intent-transport-decision-memo.md").exists())
+            self.assertTrue((output_dir / "intent-transport-rollout-evaluation.json").exists())
 
             memo_draft = json.loads((output_dir / "intent-transport-decision-memo-draft.json").read_text(encoding="utf-8"))
             self.assertEqual(memo_draft["decision_summary"]["environment_scope"], "pre-prod-canary")
             self.assertEqual(memo_draft["decision_summary"]["decision_owner"], "backend-oncall")
+
+            evaluation = json.loads((output_dir / "intent-transport-rollout-evaluation.json").read_text(encoding="utf-8"))
+            self.assertFalse(evaluation["promotion_ready"])
+            self.assertEqual(evaluation["decision"], "hold_candidate")
 
     def test_markdown_renderer_outputs_decision_memo_sections(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

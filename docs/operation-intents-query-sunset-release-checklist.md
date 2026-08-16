@@ -106,6 +106,7 @@ Read auto-filled draft memo fields:
 Dry-run expected outputs:
 - `artifacts/operation-intent-dry-run/intent-transport-day01.json` ... `intent-transport-day14.json`
 - `artifacts/operation-intent-dry-run/intent-transport-rollout-bundle.json`
+- `artifacts/operation-intent-dry-run/intent-transport-rollout-evaluation.json`
 - `artifacts/operation-intent-dry-run/intent-transport-decision-memo-draft.json`
 - `artifacts/operation-intent-dry-run/intent-transport-decision-memo.md`
 
