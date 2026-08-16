@@ -105,6 +105,10 @@ Build the full decision artifact package in one command:
 - Package outputs include `intent-transport-decision-package-manifest.json` as an index of inputs, thresholds, and generated artifact paths.
 - Optional override: use `--manifest-name <filename>.json` to customize the manifest output filename.
 
+Verify generated package integrity:
+- PowerShell: `python tools/verify_operation_intent_decision_package.py --manifest artifacts/operation-intent-decision-package/intent-transport-decision-package-manifest.json`
+- The verifier checks artifact path existence and validates that `rollout_gate_evaluation` embedded in memo draft matches the standalone evaluation artifact.
+
 Read auto-filled draft memo fields:
 - `threshold_evaluation.query_share_threshold.auto_result`
 - `threshold_evaluation.strict_rejection_stability.auto_result`

@@ -570,6 +570,84 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertTrue(summary["manifest_file"].endswith("/custom-manifest.json"))
             self.assertTrue((output_dir / custom_manifest).exists())
 
+    def test_decision_package_verifier_reports_valid_package(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            temp_root = Path(tmp)
+            captures_dir = temp_root / "captures"
+            captures_dir.mkdir(parents=True, exist_ok=True)
+
+            self._write_capture_file(
+                captures_dir / "intent-transport-day01.json",
+                finished_at="2026-08-16T00:00:00+00:00",
+                query_delta=1,
+                header_delta=200,
+                dual_match_delta=4,
+                mismatch_delta=0,
+                query_rejected_strict_delta=0,
+            )
+
+            output_dir = temp_root / "decision-package"
+            package_result = self._run(
+                "tools/build_operation_intent_decision_package.py",
+                "--input-glob",
+                str(captures_dir / "intent-transport-day*.json"),
+                "--output-dir",
+                str(output_dir),
+            )
+            self.assertEqual(package_result.returncode, 0, msg=package_result.stderr)
+
+            manifest_path = output_dir / "intent-transport-decision-package-manifest.json"
+            verify_result = self._run(
+                "tools/verify_operation_intent_decision_package.py",
+                "--manifest",
+                str(manifest_path),
+            )
+            self.assertEqual(verify_result.returncode, 0, msg=verify_result.stderr)
+            verification = json.loads(verify_result.stdout)
+            self.assertTrue(verification["verified"])
+
+    def test_decision_package_verifier_detects_memo_evaluation_mismatch(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            temp_root = Path(tmp)
+            captures_dir = temp_root / "captures"
+            captures_dir.mkdir(parents=True, exist_ok=True)
+
+            self._write_capture_file(
+                captures_dir / "intent-transport-day01.json",
+                finished_at="2026-08-16T00:00:00+00:00",
+                query_delta=1,
+                header_delta=200,
+                dual_match_delta=4,
+                mismatch_delta=0,
+                query_rejected_strict_delta=0,
+            )
+
+            output_dir = temp_root / "decision-package"
+            package_result = self._run(
+                "tools/build_operation_intent_decision_package.py",
+                "--input-glob",
+                str(captures_dir / "intent-transport-day*.json"),
+                "--output-dir",
+                str(output_dir),
+            )
+            self.assertEqual(package_result.returncode, 0, msg=package_result.stderr)
+
+            memo_path = output_dir / "intent-transport-decision-memo-draft.json"
+            memo = json.loads(memo_path.read_text(encoding="utf-8"))
+            memo["rollout_gate_evaluation"]["decision"] = "hold_candidate"
+            memo_path.write_text(json.dumps(memo, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+            manifest_path = output_dir / "intent-transport-decision-package-manifest.json"
+            verify_result = self._run(
+                "tools/verify_operation_intent_decision_package.py",
+                "--manifest",
+                str(manifest_path),
+            )
+            self.assertEqual(verify_result.returncode, 1)
+            verification = json.loads(verify_result.stdout)
+            self.assertFalse(verification["verified"])
+            self.assertFalse(verification["evaluation_matches_memo"])
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
