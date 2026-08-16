@@ -252,6 +252,10 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertEqual(summary["decision_package_failed_checks"], ["query_share_window_pass"])
             self.assertIsInstance(summary["decision_package_checks"], list)
             self.assertEqual(len(summary["decision_package_checks"]), 3)
+            evaluation = json.loads(
+                (output_dir / "intent-transport-rollout-evaluation.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(summary["decision_package_checks"], evaluation["checks"])
             self.assertTrue(summary["decision_package_inspector_summary_artifacts_present"])
             self.assertTrue(summary["decision_package_inspector_summary_checks_performed"])
             self.assertFalse(summary["decision_package_inspector_summary_checks_skipped"])
@@ -310,6 +314,7 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             )
             self.assertFalse(evaluation["promotion_ready"])
             self.assertEqual(evaluation["decision"], "hold_candidate")
+            self.assertEqual(summary["decision_package_checks"], evaluation["checks"])
 
             memo_markdown = (output_dir / "intent-transport-decision-memo.md").read_text(encoding="utf-8")
             self.assertIn("## Rollout Gate Evaluation", memo_markdown)

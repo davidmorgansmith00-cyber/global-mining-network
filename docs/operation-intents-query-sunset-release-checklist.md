@@ -135,6 +135,7 @@ Build the full decision artifact package in one command:
 - Builder and dry-run outputs now also expose direct evaluation gate fields: `verification_decision`, `verification_promotion_ready`, `verification_passed_checks`, `verification_total_checks`, `verification_failed_checks`, and the matching `decision_package_*` fields.
 - Builder and dry-run outputs now also expose per-check evaluation details via `verification_checks` and `decision_package_checks` for deeper CI diagnostics.
 - Inspector JSON now also exposes the evaluation `checks` list for parity with builder/dry-run per-check diagnostics.
+- Regression coverage now compares emitted `checks` arrays verbatim against the evaluation artifact so content drift is caught, not just array length.
 
 Verify generated package integrity:
 - PowerShell: `python tools/verify_operation_intent_decision_package.py --manifest artifacts/operation-intent-decision-package/intent-transport-decision-package-manifest.json`
