@@ -1123,6 +1123,23 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             )
             self.assertEqual(inspect_with_refresh.returncode, 1)
 
+            failed_output_path = output_dir / "inspector-refresh-failed.json"
+            inspect_with_refresh_output = self._run(
+                "tools/inspect_operation_intent_decision_package.py",
+                "--manifest",
+                str(manifest_path),
+                "--fail-on-unverified",
+                "--verify-before-inspect",
+                "--format",
+                "json",
+                "--output",
+                str(failed_output_path),
+            )
+            self.assertEqual(inspect_with_refresh_output.returncode, 1)
+            self.assertTrue(failed_output_path.exists())
+            failed_summary = json.loads(failed_output_path.read_text(encoding="utf-8"))
+            self.assertFalse(failed_summary["verified"])
+
             inspect_json_with_refresh = self._run(
                 "tools/inspect_operation_intent_decision_package.py",
                 "--manifest",
