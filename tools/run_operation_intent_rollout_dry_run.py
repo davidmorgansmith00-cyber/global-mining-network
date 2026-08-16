@@ -296,6 +296,10 @@ def main() -> int:
         if compact_summary_path.exists():
             compact_summary_json_payload = json.loads(compact_summary_path.read_text(encoding="utf-8"))
 
+    inspector_summary_json_payload: dict[str, object] = {}
+    if inspector_summary_json_path.exists():
+        inspector_summary_json_payload = json.loads(inspector_summary_json_path.read_text(encoding="utf-8"))
+
     result = {
         "output_dir": str(output_dir).replace("\\", "/"),
         "generated_daily_files": args.days,
@@ -327,6 +331,10 @@ def main() -> int:
         ),
         "decision_package_compact_summary_mismatch_details": package_summary.get(
             "verification_compact_summary_mismatch_details", []
+        ),
+        "decision_package_inspector_verified": bool(inspector_summary_json_payload.get("verified", False)),
+        "decision_package_inspector_mismatch_count": int(
+            inspector_summary_json_payload.get("compact_summary_mismatch_count", 0)
         ),
     }
     print(json.dumps(result, indent=2, sort_keys=True))

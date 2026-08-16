@@ -168,6 +168,8 @@ Dry-run quick gate fields in command JSON output:
 - `decision_package_compact_summary_artifacts_present`
 - `decision_package_compact_summary_mismatch_count`
 - `decision_package_compact_summary_mismatch_details`
+- `decision_package_inspector_verified`
+- `decision_package_inspector_mismatch_count`
 
 ## Owner Checklist
 1. Backend owner approves strict-mode metrics health.
