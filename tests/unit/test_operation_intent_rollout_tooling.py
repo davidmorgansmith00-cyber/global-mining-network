@@ -1088,6 +1088,18 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             )
             self.assertEqual(inspect_with_refresh.returncode, 1)
 
+            inspect_json_with_refresh = self._run(
+                "tools/inspect_operation_intent_decision_package.py",
+                "--manifest",
+                str(manifest_path),
+                "--verify-before-inspect",
+                "--format",
+                "json",
+            )
+            self.assertEqual(inspect_json_with_refresh.returncode, 0, msg=inspect_json_with_refresh.stderr)
+            refreshed_summary = json.loads(inspect_json_with_refresh.stdout)
+            self.assertFalse(refreshed_summary["verified"])
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
