@@ -42,6 +42,10 @@ class Settings(BaseModel):
         default=True,
     )
     operation_intent_session_header: str = os.getenv("OPERATION_INTENT_SESSION_HEADER", "X-Session-Id")
+    operation_intent_require_header_binding: bool = _read_bool(
+        os.getenv("OPERATION_INTENT_REQUIRE_HEADER_BINDING"),
+        default=False,
+    )
 
 
 settings = Settings()

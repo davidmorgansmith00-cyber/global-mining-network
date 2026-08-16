@@ -98,6 +98,11 @@ Migration guidance:
 - Do not add `player_id` back into client request payloads during transition.
 - Keep response contract fields stable (`operation_id`, `player_id`, `accepted`, `status`, `detail`) to avoid client parser churn.
 
+Strict-mode canary option:
+- `OPERATION_INTENT_REQUIRE_HEADER_BINDING=true` disables query-only `session_id` transport.
+- In strict mode, query-only requests are rejected with `400` and message: `Session binding must be provided via X-Session-Id header`.
+- Header-only and query+header (identical values) remain accepted.
+
 Concrete rollout plan:
 - See `docs/operation-intents-transport-migration-proposal.md` for header shape, compatibility window, deprecation milestones, and rollback criteria.
 
@@ -111,6 +116,7 @@ Use maintenance metrics endpoints to monitor operation-intent transport adoption
     - `dual_match`
     - `mismatch`
     - `missing`
+    - `query_rejected_strict`
 - `GET /api/v1/blockchain/maintenance/metrics/plaintext`
   - Prometheus-style lines:
     - `gmn_operation_intent_transport_requests_total{mode="query"} ...`
@@ -118,3 +124,4 @@ Use maintenance metrics endpoints to monitor operation-intent transport adoption
     - `gmn_operation_intent_transport_requests_total{mode="dual_match"} ...`
     - `gmn_operation_intent_transport_requests_total{mode="mismatch"} ...`
     - `gmn_operation_intent_transport_requests_total{mode="missing"} ...`
+    - `gmn_operation_intent_transport_requests_total{mode="query_rejected_strict"} ...`

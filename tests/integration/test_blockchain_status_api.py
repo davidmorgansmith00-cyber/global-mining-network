@@ -640,6 +640,62 @@ class BlockchainStatusApiTests(unittest.TestCase):
         self.assertIn('gmn_operation_intent_transport_requests_total{mode="mismatch"} 1', plaintext)
         self.assertIn('gmn_operation_intent_transport_requests_total{mode="missing"} 1', plaintext)
 
+    def test_operation_intents_strict_header_mode_rejects_query_only_transport(self) -> None:
+        _, session_id = self._create_player_session_binding()
+        header_name = settings.operation_intent_session_header
+        original_strict_mode = settings.operation_intent_require_header_binding
+        settings.operation_intent_require_header_binding = True
+
+        try:
+            with TestClient(app) as client:
+                query_only_start = client.post(
+                    f"/api/v1/blockchain/operations/intents/start?session_id={session_id}",
+                    json={
+                        "operation_id": "op_strict_query_reject",
+                        "base_hashrate_hps": "20",
+                    },
+                )
+                header_start = client.post(
+                    "/api/v1/blockchain/operations/intents/start",
+                    json={
+                        "operation_id": "op_strict_header_ok",
+                        "base_hashrate_hps": "20",
+                    },
+                    headers={header_name: session_id},
+                )
+                query_only_stop = client.post(
+                    f"/api/v1/blockchain/operations/intents/stop?session_id={session_id}",
+                    json={
+                        "operation_id": "op_strict_header_ok",
+                    },
+                )
+                header_stop = client.post(
+                    "/api/v1/blockchain/operations/intents/stop",
+                    json={
+                        "operation_id": "op_strict_header_ok",
+                    },
+                    headers={header_name: session_id},
+                )
+                metrics_headers = {settings.maintenance_auth_header: settings.maintenance_auth_token}
+                metrics_json = client.get("/api/v1/blockchain/maintenance/metrics", headers=metrics_headers)
+                metrics_plaintext = client.get("/api/v1/blockchain/maintenance/metrics/plaintext", headers=metrics_headers)
+
+            self.assertEqual(query_only_start.status_code, 400)
+            self.assertIn("Session binding must be provided", query_only_start.json().get("detail", ""))
+            self.assertEqual(header_start.status_code, 200)
+            self.assertEqual(query_only_stop.status_code, 400)
+            self.assertIn("Session binding must be provided", query_only_stop.json().get("detail", ""))
+            self.assertEqual(header_stop.status_code, 200)
+            self.assertEqual(metrics_json.status_code, 200)
+            self.assertEqual(metrics_plaintext.status_code, 200)
+
+            counters = metrics_json.json().get("operation_intent_transport_requests_total", {})
+            self.assertGreaterEqual(counters.get("query_rejected_strict", 0), 2)
+            plaintext = metrics_plaintext.text
+            self.assertIn('gmn_operation_intent_transport_requests_total{mode="query_rejected_strict"}', plaintext)
+        finally:
+            settings.operation_intent_require_header_binding = original_strict_mode
+
     def test_operation_intents_drive_authoritative_progression_and_reconnect_safe_events(self) -> None:
         player_id, session_id = self._create_player_session_binding()
 

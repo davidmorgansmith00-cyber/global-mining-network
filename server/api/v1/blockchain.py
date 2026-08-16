@@ -99,6 +99,17 @@ def _resolve_operation_intent_session_id(request: Request, session_id_query: str
             detail=f"Session binding mismatch between query and {header_name} header",
         )
 
+    if (
+        settings.operation_intent_require_header_binding
+        and session_id_query
+        and not session_id_header
+    ):
+        _record_operation_intent_transport_mode("query_rejected_strict")
+        raise HTTPException(
+            status_code=400,
+            detail=f"Session binding must be provided via {header_name} header",
+        )
+
     if session_id_query and session_id_header:
         _record_operation_intent_transport_mode("dual_match")
     elif session_id_header:

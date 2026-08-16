@@ -232,6 +232,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Operation intent transport migration proposal baseline | Done | Added `docs/operation-intents-transport-migration-proposal.md` covering header shape, compatibility window, deprecation milestones, and rollback criteria |
 | Operation intent dual-mode transport integration scaffolding | Done | Added server support for query-plus-header session transport (`X-Session-Id`), plus integration coverage for header-only success and query/header mismatch rejection |
 | Operation intent transport-mode observability instrumentation | Done | Added maintenance metrics counters for `query`/`header`/`dual_match`/`mismatch`/`missing` request modes, plus plaintext Prometheus export and integration assertions |
+| Operation intent strict transport guardrail option | Done | Added `OPERATION_INTENT_REQUIRE_HEADER_BINDING` to reject query-only transport in canary environments, with integration coverage and `query_rejected_strict` metrics mode |
 | Optional CI workflow-dispatch DB baseline rerun | Done | Run `31956249661` succeeded end-to-end (`baseline` and `db-integration` both green); total run window was 67s (`15:38:16Z` to `15:39:23Z`) |
 | Local CI-mirrored full suite baseline | Done | Ran the same test selection as optional `db-integration` locally: `65` tests passed in `35.976s` |
 
@@ -258,7 +259,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 ## 10. Next Actions
 1. Add release-note style client migration checklist and timeline dates for query-mode deprecation communication.
 2. Plan and stage query-mode sunset test cases (header-only required) behind an environment-gated rollout flag.
-3. Add an environment-driven strict-transport guardrail option to disable query-mode acceptance in pre-prod canary runs.
+3. Define canary promotion criteria linking `query_rejected_strict` and mismatch/error rates to rollout go/no-go decisions.
 
 ---
 

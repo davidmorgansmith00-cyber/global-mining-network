@@ -36,7 +36,11 @@ Rejected during migration window:
 - Announce sunset timeline for query mode in release notes and API docs.
 - Begin telemetry review of query-mode usage share.
 
-4. Milestone D: Query sunset
+4. Milestone D: Strict-mode canary
+- Enable `OPERATION_INTENT_REQUIRE_HEADER_BINDING=true` in pre-prod canary environments.
+- Keep production dual-mode until canary transport/error metrics remain within rollback thresholds.
+
+5. Milestone E: Query sunset
 - Remove query-mode acceptance after deprecation window closes and rollback criteria remain green.
 
 ## 3. Compatibility Window
