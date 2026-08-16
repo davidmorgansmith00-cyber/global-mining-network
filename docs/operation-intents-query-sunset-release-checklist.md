@@ -96,7 +96,7 @@ Read promotion-gate summary from rollout bundle output:
 Read auto-filled draft memo fields:
 - `threshold_evaluation.query_share_threshold.auto_result`
 - `threshold_evaluation.strict_rejection_stability.auto_result`
-- `threshold_evaluation.mismatch_stability.auto_result` (manual review expected)
+- `threshold_evaluation.mismatch_stability.auto_result`
 - `final_recommendation.recommended_action` (manual decision required)
 
 Dry-run expected outputs:
