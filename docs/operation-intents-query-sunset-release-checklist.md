@@ -145,6 +145,7 @@ Build the full decision artifact package in one command:
 - Builder no longer uses raw inspector JSON to backfill inspector status fields; the verification payload is now the sole source for those values.
 - Dry-run core gate fields now prefer verification-backed package summary values only, removing the compact-summary JSON fallback from the final summary surface.
 - Builder and inspector now carry `checks` strictly from the verification payload, removing the last evaluation fallback for the per-check vector.
+- Builder no longer reads the raw inspector JSON payload at all; the package summary is now derived entirely from verification-backed fields.
 
 Verify generated package integrity:
 - PowerShell: `python tools/verify_operation_intent_decision_package.py --manifest artifacts/operation-intent-decision-package/intent-transport-decision-package-manifest.json`

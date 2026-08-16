@@ -302,7 +302,6 @@ def main() -> int:
     )
     verification_payload = json.loads(verification_path.read_text(encoding="utf-8"))
     evaluation = json.loads(evaluation_path.read_text(encoding="utf-8"))
-    inspector_summary_json_payload = json.loads(inspector_summary_json_path.read_text(encoding="utf-8"))
     summary["verification_verified"] = bool(verification_payload.get("verified", False))
     summary["verification_schema_supported"] = bool(verification_payload.get("schema_supported", False))
     summary["verification_evaluation_matches_memo"] = bool(
