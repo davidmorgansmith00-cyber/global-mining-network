@@ -119,6 +119,7 @@ Build the full decision artifact package in one command:
 - Decision-package command output includes refreshed inspector fields: `inspector_verified`, `inspector_mismatch_count`, and `inspector_mismatch_details`.
 - Decision-package verifier now validates optional inspector summary artifacts (`inspector_summary_file`, `inspector_summary_json_file`) and emits parity fields (`inspector_summary_artifacts_present`, `inspector_summary_checks_performed`, `inspector_summary_checks_skipped`, `inspector_summary_mismatch_details`).
 - Decision-package and dry-run command outputs now propagate verifier inspector-summary diagnostics (`verification_inspector_summary_*` and `decision_package_inspector_summary_*`).
+- Dry-run regression now asserts expected boolean/count/list values for compact-summary and inspector-summary parity fields, not only field existence.
 
 Verify generated package integrity:
 - PowerShell: `python tools/verify_operation_intent_decision_package.py --manifest artifacts/operation-intent-decision-package/intent-transport-decision-package-manifest.json`
