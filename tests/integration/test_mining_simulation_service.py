@@ -27,6 +27,7 @@ from domain.mining.contracts import (
     EVENT_MODIFIER_ENDED,
     EVENT_MODIFIER_STARTED,
     EVENT_OPERATION_PAUSE,
+    EVENT_POOL_MEMBERSHIP_CHANGED,
     EVENT_OPERATION_RESUME,
     EVENT_POWER_STATE_CHANGED,
     EVENT_THROTTLE_STATE_CHANGED,
@@ -242,6 +243,29 @@ class MiningSimulationServiceIntegrationTests(unittest.TestCase):
 
         self.assertEqual(result.contribution_hashes, Decimal("105.000000"))
         self.assertEqual(service.operations["op_a"].current_multiplier, Decimal("1.0"))
+        self.assertEqual(service.operations["op_a"].last_processed_at, tick_end)
+
+    def test_pool_membership_boundary_updates_effective_hashrate_multiplier(self) -> None:
+        started_at = datetime(2026, 8, 15, 15, 5, tzinfo=UTC)
+        joined_pool_at = started_at + timedelta(seconds=5)
+        tick_end = started_at + timedelta(seconds=12)
+
+        service = MiningSimulationService(required_work=Decimal("1000"))
+        service.register_operation(operation_id="op_a", base_hashrate_hps=Decimal("10"), started_at=started_at)
+        service.apply_boundary_event(
+            SimulationBoundaryEvent(
+                event_type=EVENT_POOL_MEMBERSHIP_CHANGED,
+                player_id="player_a",
+                operation_id="op_a",
+                occurred_at=joined_pool_at,
+                payload={"hashrate_multiplier": "1.2"},
+            )
+        )
+
+        result = service.process_tick(operation_id="op_a", ended_at=tick_end)
+
+        self.assertEqual(result.contribution_hashes, Decimal("134.000000"))
+        self.assertEqual(service.operations["op_a"].current_multiplier, Decimal("1.2"))
         self.assertEqual(service.operations["op_a"].last_processed_at, tick_end)
 
     def test_atomic_finalization_under_concurrency(self) -> None:
