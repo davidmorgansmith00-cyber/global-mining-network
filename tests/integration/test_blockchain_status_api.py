@@ -148,6 +148,15 @@ class BlockchainStatusApiTests(unittest.TestCase):
         self.assertEqual(by_player["player_a"], "80.000000")
         self.assertEqual(by_player["player_b"], "20.000000")
 
+    def test_player_reward_balances_endpoint_returns_empty_projection_when_no_rewards_exist(self) -> None:
+        with TestClient(app) as client:
+            response = client.get("/api/v1/blockchain/reward-balances")
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["total_reward_balance"], "0")
+        self.assertEqual(payload["entries"], [])
+
     def test_network_snapshot_endpoint_returns_websocket_ready_contract(self) -> None:
         started_at = datetime(2026, 8, 15, 22, 0, tzinfo=UTC)
         service = MiningSimulationService(
