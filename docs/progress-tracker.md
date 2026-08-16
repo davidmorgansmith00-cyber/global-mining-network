@@ -233,6 +233,8 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Operation intent dual-mode transport integration scaffolding | Done | Added server support for query-plus-header session transport (`X-Session-Id`), plus integration coverage for header-only success and query/header mismatch rejection |
 | Operation intent transport-mode observability instrumentation | Done | Added maintenance metrics counters for `query`/`header`/`dual_match`/`mismatch`/`missing` request modes, plus plaintext Prometheus export and integration assertions |
 | Operation intent strict transport guardrail option | Done | Added `OPERATION_INTENT_REQUIRE_HEADER_BINDING` to reject query-only transport in canary environments, with integration coverage and `query_rejected_strict` metrics mode |
+| Operation intent query-sunset release checklist | Done | Added `docs/operation-intents-query-sunset-release-checklist.md` with dated release-note timeline, evidence bundle, rollback triggers, and owner stage gates |
+| Operation intent env-gated query-sunset test staging | Done | Added integration sunset test path gated by `GMN_ENABLE_QUERY_SUNSET_TESTS=1` to validate header-only behavior during strict-mode windows |
 | Optional CI workflow-dispatch DB baseline rerun | Done | Run `31956249661` succeeded end-to-end (`baseline` and `db-integration` both green); total run window was 67s (`15:38:16Z` to `15:39:23Z`) |
 | Local CI-mirrored full suite baseline | Done | Ran the same test selection as optional `db-integration` locally: `65` tests passed in `35.976s` |
 
@@ -257,9 +259,9 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 ---
 
 ## 10. Next Actions
-1. Add release-note style client migration checklist and timeline dates for query-mode deprecation communication.
-2. Plan and stage query-mode sunset test cases (header-only required) behind an environment-gated rollout flag.
-3. Define canary promotion criteria linking `query_rejected_strict` and mismatch/error rates to rollout go/no-go decisions.
+1. Execute first deprecation release-note publication and attach communication artifacts to the migration evidence bundle.
+2. Run strict-mode canary with `GMN_ENABLE_QUERY_SUNSET_TESTS=1` in pre-prod and capture 14-day metrics evidence for promotion review.
+3. Prepare production rollout decision memo using `query`, `mismatch`, and `query_rejected_strict` trend thresholds.
 
 ---
 

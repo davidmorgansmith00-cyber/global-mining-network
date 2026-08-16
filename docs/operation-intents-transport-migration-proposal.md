@@ -43,6 +43,9 @@ Rejected during migration window:
 5. Milestone E: Query sunset
 - Remove query-mode acceptance after deprecation window closes and rollback criteria remain green.
 
+Execution checklist:
+- See `docs/operation-intents-query-sunset-release-checklist.md` for dated release timeline, evidence requirements, and stage-gate owner checklist.
+
 ## 3. Compatibility Window
 Recommended minimum window:
 - 2 release cycles after Milestone B.
@@ -57,6 +60,12 @@ Trigger rollback to full dual-mode behavior when any of the following occurs:
 - Header-mode 401 rate exceeds baseline by >2x for 30+ minutes.
 - 400 mismatch errors exceed a sustained threshold indicating integration breakage.
 - Critical client cohort reports inability to submit start/stop intents.
+
+Canary promotion criteria:
+- `query` mode share remains <1% for 14 consecutive days.
+- `query_rejected_strict` remains near zero outside scheduled strict-mode windows.
+- `mismatch` mode does not exhibit sustained growth versus pre-canary baseline.
+- No unresolved P1/P2 client regressions in start/stop intent flows.
 
 Rollback action:
 - Continue accepting query mode as primary fallback while remediation is deployed.

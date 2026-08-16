@@ -1,0 +1,65 @@
+# Operation Intent Query Sunset Release Checklist
+
+Status: Draft
+Version: 1.0
+Date: 2026-08-16
+
+Objective:
+- Execute a controlled migration from query-compatible operation-intent session binding to header-only transport.
+
+## Timeline (Proposed)
+1. 2026-08-19: Publish deprecation notice in release notes and API docs.
+2. 2026-08-26: Ensure first-party clients default to `X-Session-Id` header transport.
+3. 2026-09-02: Enable strict-mode canary in pre-prod (`OPERATION_INTENT_REQUIRE_HEADER_BINDING=true`).
+4. 2026-09-16: Review 14-day canary metrics and decide production promotion readiness.
+5. 2026-09-23: Production rollout decision gate for header-only enforcement.
+
+## Release Note Template
+Title:
+- Deprecation Notice: Operation Intent Query Session Binding
+
+Body:
+- Operation intent endpoints currently accept both query (`session_id`) and header (`X-Session-Id`) session binding during migration.
+- Query-based binding is deprecated and will be sunset after rollout criteria are met.
+- Clients should migrate to header-based transport immediately.
+
+Affected endpoints:
+- `POST /api/v1/blockchain/operations/intents/start`
+- `POST /api/v1/blockchain/operations/intents/stop`
+
+Required client action:
+- Send session binding via `X-Session-Id` header.
+- Do not include `player_id` in request payloads.
+
+## Go/No-Go Criteria for Promotion
+Promote to next stage only when all are true:
+1. `query` transport share is below 1% for 14 consecutive days.
+2. `query_rejected_strict` remains near zero outside explicit canary windows.
+3. `mismatch` error mode does not show sustained increase versus pre-canary baseline.
+4. No unresolved P1/P2 client regressions for start/stop intent flows.
+
+## Required Evidence Bundle
+Capture and attach:
+1. Metrics export snapshot for `operation_intent_transport_requests_total` across modes (`query`, `header`, `dual_match`, `mismatch`, `query_rejected_strict`).
+2. Error-rate comparison for 400/401 on operation-intent endpoints pre- and post-canary.
+3. Integration test evidence with strict mode enabled and sunset tests gated by `GMN_ENABLE_QUERY_SUNSET_TESTS=1`.
+4. Client compatibility sign-off from all supported first-party versions.
+
+## Rollback Triggers
+Rollback to dual-mode (query + header accepted) if any trigger occurs:
+1. Header-path 401 rate >2x baseline for at least 30 minutes.
+2. `mismatch` mode exceeds agreed threshold for at least 30 minutes.
+3. Critical compatibility cohort cannot start or stop operations.
+
+## Commands
+Run full blockchain integration suite:
+- `python -m unittest tests/integration/test_blockchain_status_api.py -v`
+
+Run sunset-gated tests:
+- PowerShell: `$env:GMN_ENABLE_QUERY_SUNSET_TESTS='1'; python -m unittest tests/integration/test_blockchain_status_api.py -v`
+
+## Owner Checklist
+1. Backend owner approves strict-mode metrics health.
+2. Client owner confirms header transport rollout completion.
+3. QA owner confirms sunset-gated test pass evidence.
+4. Operations owner confirms rollback playbook readiness.

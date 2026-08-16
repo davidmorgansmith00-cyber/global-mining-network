@@ -696,6 +696,54 @@ class BlockchainStatusApiTests(unittest.TestCase):
         finally:
             settings.operation_intent_require_header_binding = original_strict_mode
 
+    @unittest.skipUnless(
+        os.getenv("GMN_ENABLE_QUERY_SUNSET_TESTS", "0") in {"1", "true", "TRUE"},
+        "Query-sunset tests are gated behind GMN_ENABLE_QUERY_SUNSET_TESTS",
+    )
+    def test_query_sunset_stage_requires_header_only_transport(self) -> None:
+        _, session_id = self._create_player_session_binding()
+        header_name = settings.operation_intent_session_header
+        original_strict_mode = settings.operation_intent_require_header_binding
+        settings.operation_intent_require_header_binding = True
+
+        try:
+            with TestClient(app) as client:
+                query_start = client.post(
+                    f"/api/v1/blockchain/operations/intents/start?session_id={session_id}",
+                    json={
+                        "operation_id": "op_sunset_query_start",
+                        "base_hashrate_hps": "22",
+                    },
+                )
+                header_start = client.post(
+                    "/api/v1/blockchain/operations/intents/start",
+                    json={
+                        "operation_id": "op_sunset_header_start",
+                        "base_hashrate_hps": "22",
+                    },
+                    headers={header_name: session_id},
+                )
+                query_stop = client.post(
+                    f"/api/v1/blockchain/operations/intents/stop?session_id={session_id}",
+                    json={
+                        "operation_id": "op_sunset_header_start",
+                    },
+                )
+                header_stop = client.post(
+                    "/api/v1/blockchain/operations/intents/stop",
+                    json={
+                        "operation_id": "op_sunset_header_start",
+                    },
+                    headers={header_name: session_id},
+                )
+
+            self.assertEqual(query_start.status_code, 400)
+            self.assertEqual(header_start.status_code, 200)
+            self.assertEqual(query_stop.status_code, 400)
+            self.assertEqual(header_stop.status_code, 200)
+        finally:
+            settings.operation_intent_require_header_binding = original_strict_mode
+
     def test_operation_intents_drive_authoritative_progression_and_reconnect_safe_events(self) -> None:
         player_id, session_id = self._create_player_session_binding()
 

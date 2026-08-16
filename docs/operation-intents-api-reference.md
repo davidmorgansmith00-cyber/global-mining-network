@@ -103,8 +103,13 @@ Strict-mode canary option:
 - In strict mode, query-only requests are rejected with `400` and message: `Session binding must be provided via X-Session-Id header`.
 - Header-only and query+header (identical values) remain accepted.
 
+Sunset test gate:
+- Query-sunset integration tests are staged behind `GMN_ENABLE_QUERY_SUNSET_TESTS=1`.
+- These tests validate header-only behavior during strict-mode rollout windows without forcing global CI behavior.
+
 Concrete rollout plan:
 - See `docs/operation-intents-transport-migration-proposal.md` for header shape, compatibility window, deprecation milestones, and rollback criteria.
+- See `docs/operation-intents-query-sunset-release-checklist.md` for dated release-note steps, evidence bundle requirements, and promotion criteria.
 
 ## Migration Observability Metrics
 Use maintenance metrics endpoints to monitor operation-intent transport adoption during rollout:
