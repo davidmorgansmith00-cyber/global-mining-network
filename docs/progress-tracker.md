@@ -212,6 +212,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Checkpoint player_rewards required-field schema coverage | Done | Added integration test asserting player_rewards checkpoint upsert rejects payloads missing required `reconnect_cursor` with HTTP 422 |
 | Checkpoint player_rewards required-query schema coverage | Done | Added integration test asserting player_rewards checkpoint GET/PUT reject requests missing required `player_id` or `session_id` query parameters with HTTP 422 |
 | Checkpoint global empty-value auth coverage | Done | Added integration test asserting global checkpoint GET/PUT reject empty `player_id` or `session_id` values with deterministic invalid-session responses |
+| Checkpoint player_rewards empty-value auth coverage | Done | Added integration test asserting player_rewards checkpoint GET/PUT reject empty `player_id` or `session_id` values with deterministic invalid-session responses |
 | Operation stop missing-session transport coverage | Done | Added integration test asserting operation stop without query/header session transport is rejected with deterministic invalid-session response |
 | WebSocket auth/session binding | Done | WebSocket now validates `player_id` + `session_id` against active auth sessions |
 | Per-client channel filtering | Done | Added `global` and `player_rewards` channel filters with player-scoped event routing |
