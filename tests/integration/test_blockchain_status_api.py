@@ -157,6 +157,35 @@ class BlockchainStatusApiTests(unittest.TestCase):
         self.assertEqual(payload["total_reward_balance"], "0")
         self.assertEqual(payload["entries"], [])
 
+    def test_reward_balances_are_consistent_with_player_reward_history_totals(self) -> None:
+        started_at = datetime(2026, 8, 15, 21, 50, tzinfo=UTC)
+        service = MiningSimulationService(
+            required_work=Decimal("100"),
+            blockchain_state_store=PostgresBlockchainStateStore(required_work=Decimal("100")),
+            ledger_poster=PostgresLedgerPoster(),
+        )
+        service.register_operation(operation_id="op_a", player_id="player_a", base_hashrate_hps=Decimal("7"), started_at=started_at)
+        service.register_operation(operation_id="op_b", player_id="player_b", base_hashrate_hps=Decimal("3"), started_at=started_at)
+        service.process_tick(operation_id="op_a", ended_at=started_at + timedelta(seconds=10))
+        service.process_tick(operation_id="op_b", ended_at=started_at + timedelta(seconds=10))
+
+        with TestClient(app) as client:
+            balances_response = client.get("/api/v1/blockchain/reward-balances")
+            history_a = client.get("/api/v1/blockchain/players/player_a/rewards?recent_limit=10")
+            history_b = client.get("/api/v1/blockchain/players/player_b/rewards?recent_limit=10")
+
+        self.assertEqual(balances_response.status_code, 200)
+        self.assertEqual(history_a.status_code, 200)
+        self.assertEqual(history_b.status_code, 200)
+
+        balances_payload = balances_response.json()
+        by_player = {item["player_id"]: item["reward_balance"] for item in balances_payload["entries"]}
+        self.assertEqual(by_player["player_a"], history_a.json()["total_rewards"])
+        self.assertEqual(by_player["player_b"], history_b.json()["total_rewards"])
+
+        expected_total = Decimal(history_a.json()["total_rewards"]) + Decimal(history_b.json()["total_rewards"])
+        self.assertEqual(Decimal(balances_payload["total_reward_balance"]), expected_total)
+
     def test_network_snapshot_endpoint_returns_websocket_ready_contract(self) -> None:
         started_at = datetime(2026, 8, 15, 22, 0, tzinfo=UTC)
         service = MiningSimulationService(
