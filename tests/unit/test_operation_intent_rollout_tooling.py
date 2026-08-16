@@ -529,6 +529,8 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertIn("verification_file", summary)
             self.assertIn("compact_summary_file", summary)
             self.assertIn("compact_summary_json_file", summary)
+            self.assertIn("inspector_summary_file", summary)
+            self.assertIn("inspector_summary_json_file", summary)
             self.assertTrue(summary["verification_verified"])
             self.assertTrue(summary["verification_schema_supported"])
             self.assertTrue(summary["verification_compact_summary_artifacts_present"])
@@ -545,6 +547,8 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertTrue((output_dir / "intent-transport-decision-package-verification.json").exists())
             self.assertTrue((output_dir / "intent-transport-decision-package-summary.txt").exists())
             self.assertTrue((output_dir / "intent-transport-decision-package-summary.json").exists())
+            self.assertTrue((output_dir / "intent-transport-decision-package-inspector-summary.txt").exists())
+            self.assertTrue((output_dir / "intent-transport-decision-package-inspector-summary.json").exists())
 
             memo_draft = json.loads(
                 (output_dir / "intent-transport-decision-memo-draft.json").read_text(encoding="utf-8")
@@ -562,6 +566,8 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertIn("verification_file", manifest["artifacts"])
             self.assertIn("compact_summary_file", manifest["artifacts"])
             self.assertIn("compact_summary_json_file", manifest["artifacts"])
+            self.assertIn("inspector_summary_file", manifest["artifacts"])
+            self.assertIn("inspector_summary_json_file", manifest["artifacts"])
 
             verification = json.loads(
                 (output_dir / "intent-transport-decision-package-verification.json").read_text(

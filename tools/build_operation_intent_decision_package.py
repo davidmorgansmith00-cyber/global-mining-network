@@ -95,6 +95,8 @@ def main() -> int:
     verification_path = output_dir / "intent-transport-decision-package-verification.json"
     compact_summary_path = output_dir / "intent-transport-decision-package-summary.txt"
     compact_summary_json_path = output_dir / "intent-transport-decision-package-summary.json"
+    inspector_summary_path = output_dir / "intent-transport-decision-package-inspector-summary.txt"
+    inspector_summary_json_path = output_dir / "intent-transport-decision-package-inspector-summary.json"
 
     _run_command(
         [
@@ -219,9 +221,13 @@ def main() -> int:
         "verification_file": str(verification_path).replace("\\", "/"),
         "compact_summary_file": str(compact_summary_path).replace("\\", "/"),
         "compact_summary_json_file": str(compact_summary_json_path).replace("\\", "/"),
+        "inspector_summary_file": str(inspector_summary_path).replace("\\", "/"),
+        "inspector_summary_json_file": str(inspector_summary_json_path).replace("\\", "/"),
     }
     manifest["artifacts"]["compact_summary_file"] = summary["compact_summary_file"]
     manifest["artifacts"]["compact_summary_json_file"] = summary["compact_summary_json_file"]
+    manifest["artifacts"]["inspector_summary_file"] = summary["inspector_summary_file"]
+    manifest["artifacts"]["inspector_summary_json_file"] = summary["inspector_summary_json_file"]
     manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
     _run_command(
@@ -255,6 +261,31 @@ def main() -> int:
             "json",
             "--output",
             str(compact_summary_json_path),
+        ]
+    )
+
+    _run_command(
+        [
+            sys.executable,
+            str(root / "tools" / "inspect_operation_intent_decision_package.py"),
+            "--manifest",
+            str(manifest_path),
+            "--verify-before-inspect",
+            "--output",
+            str(inspector_summary_path),
+        ]
+    )
+    _run_command(
+        [
+            sys.executable,
+            str(root / "tools" / "inspect_operation_intent_decision_package.py"),
+            "--manifest",
+            str(manifest_path),
+            "--verify-before-inspect",
+            "--format",
+            "json",
+            "--output",
+            str(inspector_summary_json_path),
         ]
     )
 
