@@ -334,6 +334,8 @@ def main() -> int:
         "decision_package_inspector_summary_json_file": str(inspector_summary_json_path).replace("\\", "/"),
         "decision_package_decision": str(compact_summary_json_payload.get("decision", "")),
         "decision_package_promotion_ready": bool(compact_summary_json_payload.get("promotion_ready", False)),
+        "decision_package_passed_checks": int(compact_summary_json_payload.get("passed_checks", 0)),
+        "decision_package_total_checks": int(compact_summary_json_payload.get("total_checks", 0)),
         "decision_package_failed_checks": decision_package_failed_checks,
         "decision_package_verified": decision_package_verified,
         "decision_package_schema_supported": decision_package_schema_supported,
