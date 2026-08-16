@@ -207,6 +207,40 @@ class BlockchainPersistenceAndLedgerTests(unittest.TestCase):
         self.assertEqual(first_projection["player_b"], Decimal("20.000000"))
         self.assertEqual(sum(first_projection.values(), Decimal("0")), Decimal("100.000000"))
 
+    def test_player_reward_replay_projects_cumulative_balances_across_multiple_blocks(self) -> None:
+        started_at = datetime(2026, 8, 15, 18, 40, tzinfo=UTC)
+
+        service = MiningSimulationService(
+            required_work=Decimal("100"),
+            blockchain_state_store=PostgresBlockchainStateStore(required_work=Decimal("100")),
+            ledger_poster=PostgresLedgerPoster(),
+        )
+        service.register_operation(
+            operation_id="op_a",
+            player_id="player_a",
+            base_hashrate_hps=Decimal("6"),
+            started_at=started_at,
+        )
+        service.register_operation(
+            operation_id="op_b",
+            player_id="player_b",
+            base_hashrate_hps=Decimal("4"),
+            started_at=started_at,
+        )
+
+        # Block 1 finalization
+        service.process_tick(operation_id="op_a", ended_at=started_at + timedelta(seconds=10))
+        service.process_tick(operation_id="op_b", ended_at=started_at + timedelta(seconds=10))
+        # Block 2 finalization
+        service.process_tick(operation_id="op_a", ended_at=started_at + timedelta(seconds=20))
+        service.process_tick(operation_id="op_b", ended_at=started_at + timedelta(seconds=20))
+
+        projection = {entry.player_id: entry.reward_balance for entry in project_player_reward_balances()}
+
+        self.assertEqual(projection["player_a"], Decimal("120.000000"))
+        self.assertEqual(projection["player_b"], Decimal("80.000000"))
+        self.assertEqual(sum(projection.values(), Decimal("0")), Decimal("200.000000"))
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
