@@ -519,6 +519,7 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             )
             self.assertEqual(manifest["inputs"]["environment_scope"], "pre-prod-canary")
             self.assertIn("bundle_file", manifest["artifacts"])
+            self.assertIn("verification_file", manifest["artifacts"])
 
             verification = json.loads(
                 (output_dir / "intent-transport-decision-package-verification.json").read_text(

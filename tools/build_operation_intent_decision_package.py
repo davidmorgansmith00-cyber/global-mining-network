@@ -168,6 +168,7 @@ def main() -> int:
             "evaluation_file": str(evaluation_path).replace("\\", "/"),
             "memo_draft_file": str(memo_draft_path).replace("\\", "/"),
             "memo_markdown_file": str(memo_markdown_path).replace("\\", "/"),
+            "verification_file": str(verification_path).replace("\\", "/"),
         },
     }
     manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
