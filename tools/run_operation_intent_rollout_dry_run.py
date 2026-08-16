@@ -321,21 +321,9 @@ def main() -> int:
     if not isinstance(decision_package_checks, list):
         decision_package_checks = [decision_package_checks]
 
-    inspector_verified = bool(
-        package_summary.get("inspector_verified", inspector_summary_json_payload.get("verified", False))
-    )
-    inspector_mismatch_count = int(
-        package_summary.get(
-            "inspector_mismatch_count",
-            inspector_summary_json_payload.get("compact_summary_mismatch_count", 0),
-        )
-    )
-    inspector_mismatch_details = _normalize_string_list(
-        package_summary.get(
-            "inspector_mismatch_details",
-            inspector_summary_json_payload.get("compact_summary_mismatch_details", []),
-        )
-    )
+    inspector_verified = bool(package_summary.get("inspector_verified", False))
+    inspector_mismatch_count = int(package_summary.get("inspector_mismatch_count", 0))
+    inspector_mismatch_details = _normalize_string_list(package_summary.get("inspector_mismatch_details", []))
 
     result = {
         "output_dir": str(output_dir).replace("\\", "/"),
