@@ -1366,6 +1366,23 @@ class BlockchainStatusApiTests(unittest.TestCase):
 
         self.assertEqual(put_response.status_code, 422)
 
+    def test_checkpoint_endpoints_reject_unsupported_channel(self) -> None:
+        player_id, session_id = self._create_player_session_binding()
+
+        with TestClient(app) as client:
+            put_response = client.put(
+                f"/api/v1/blockchain/checkpoints/invalid_channel?player_id={player_id}&session_id={session_id}",
+                json={"reconnect_cursor": 1},
+            )
+            get_response = client.get(
+                f"/api/v1/blockchain/checkpoints/invalid_channel?player_id={player_id}&session_id={session_id}"
+            )
+
+        self.assertEqual(put_response.status_code, 400)
+        self.assertEqual(get_response.status_code, 400)
+        self.assertEqual(put_response.json()["detail"], "Unsupported channel")
+        self.assertEqual(get_response.json()["detail"], "Unsupported channel")
+
     def test_player_rewards_channel_filters_to_bound_player(self) -> None:
         started_at = datetime(2026, 8, 15, 23, 30, tzinfo=UTC)
         player_a, session_a = self._create_player_session_binding()
