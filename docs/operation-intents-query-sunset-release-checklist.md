@@ -126,6 +126,7 @@ Build the full decision artifact package in one command:
 - Verifier regression suite now explicitly covers malformed `inspector_summary_json_file` handling (non-JSON payload becomes structured mismatch diagnostics).
 - Builder and dry-run outputs now surface verifier `evaluation_matches_memo` status (`verification_evaluation_matches_memo` / `decision_package_evaluation_matches_memo`) for direct contract-gate checks.
 - Dry-run now prefers builder verification fields for `decision_package_verified` and `decision_package_schema_supported`, falling back to compact-summary JSON only when needed.
+- Inspector summary rendering now prefers verifier `compact_summary_mismatch_count` when present (with details-length fallback), and regression coverage validates this stale/tampered verification behavior.
 
 Verify generated package integrity:
 - PowerShell: `python tools/verify_operation_intent_decision_package.py --manifest artifacts/operation-intent-decision-package/intent-transport-decision-package-manifest.json`

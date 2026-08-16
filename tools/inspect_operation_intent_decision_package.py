@@ -56,6 +56,14 @@ def _resolve_artifact(path_text: str, parent: Path) -> Path:
     return (parent / candidate).resolve()
 
 
+def _normalize_string_list(value: object) -> list[str]:
+    if isinstance(value, list):
+        return [str(item) for item in value]
+    if value is None:
+        return []
+    return [str(value)]
+
+
 def _refresh_verification(manifest_path: Path, verification_path: Path) -> None:
     completed = subprocess.run(
         [
@@ -116,6 +124,12 @@ def main() -> int:
 
     evaluation = _load_json(evaluation_path, "Evaluation")
     verification = _load_json(verification_path, "Verification")
+    compact_summary_mismatch_details = _normalize_string_list(
+        verification.get("compact_summary_mismatch_details", [])
+    )
+    compact_summary_mismatch_count = int(
+        verification.get("compact_summary_mismatch_count", len(compact_summary_mismatch_details))
+    )
 
     summary = {
         "manifest": str(manifest_path.resolve()).replace("\\", "/"),
@@ -134,12 +148,8 @@ def main() -> int:
         "compact_summary_checks_skipped": bool(
             verification.get("compact_summary_checks_skipped", False)
         ),
-        "compact_summary_mismatch_count": int(
-            len(verification.get("compact_summary_mismatch_details", []))
-            if isinstance(verification.get("compact_summary_mismatch_details", []), list)
-            else 1
-        ),
-        "compact_summary_mismatch_details": verification.get("compact_summary_mismatch_details", []),
+        "compact_summary_mismatch_count": compact_summary_mismatch_count,
+        "compact_summary_mismatch_details": compact_summary_mismatch_details,
         "failed_checks": evaluation.get("failed_checks", []),
     }
 

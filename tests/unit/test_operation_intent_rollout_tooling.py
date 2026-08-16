@@ -1308,6 +1308,59 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             refreshed_summary = json.loads(inspect_json_with_refresh.stdout)
             self.assertFalse(refreshed_summary["verified"])
 
+    def test_decision_package_inspector_uses_verifier_mismatch_count_field(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            temp_root = Path(tmp)
+            captures_dir = temp_root / "captures"
+            captures_dir.mkdir(parents=True, exist_ok=True)
+
+            self._write_capture_file(
+                captures_dir / "intent-transport-day01.json",
+                finished_at="2026-08-16T00:00:00+00:00",
+                query_delta=1,
+                header_delta=200,
+                dual_match_delta=4,
+                mismatch_delta=0,
+                query_rejected_strict_delta=0,
+            )
+
+            output_dir = temp_root / "decision-package"
+            package_result = self._run(
+                "tools/build_operation_intent_decision_package.py",
+                "--input-glob",
+                str(captures_dir / "intent-transport-day*.json"),
+                "--output-dir",
+                str(output_dir),
+            )
+            self.assertEqual(package_result.returncode, 0, msg=package_result.stderr)
+
+            verification_path = output_dir / "intent-transport-decision-package-verification.json"
+            verification = json.loads(verification_path.read_text(encoding="utf-8"))
+            verification["compact_summary_mismatch_count"] = 3
+            verification["compact_summary_mismatch_details"] = []
+            verification_path.write_text(json.dumps(verification, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+            manifest_path = output_dir / "intent-transport-decision-package-manifest.json"
+            inspect_json_result = self._run(
+                "tools/inspect_operation_intent_decision_package.py",
+                "--manifest",
+                str(manifest_path),
+                "--format",
+                "json",
+            )
+            self.assertEqual(inspect_json_result.returncode, 0, msg=inspect_json_result.stderr)
+            summary = json.loads(inspect_json_result.stdout)
+            self.assertEqual(summary["compact_summary_mismatch_count"], 3)
+            self.assertEqual(summary["compact_summary_mismatch_details"], [])
+
+            inspect_text_result = self._run(
+                "tools/inspect_operation_intent_decision_package.py",
+                "--manifest",
+                str(manifest_path),
+            )
+            self.assertEqual(inspect_text_result.returncode, 0, msg=inspect_text_result.stderr)
+            self.assertIn("summary_mismatch_count=3", inspect_text_result.stdout)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
