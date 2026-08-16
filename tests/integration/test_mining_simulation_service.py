@@ -293,6 +293,62 @@ class MiningSimulationServiceIntegrationTests(unittest.TestCase):
         self.assertFalse(service.operations["op_a"].current_paused)
         self.assertEqual(service.operations["op_a"].last_processed_at, tick_end)
 
+    def test_same_timestamp_boundary_order_produces_deterministic_outcome(self) -> None:
+        started_at = datetime(2026, 8, 15, 15, 15, tzinfo=UTC)
+        collision_at = started_at + timedelta(seconds=4)
+        tick_end = started_at + timedelta(seconds=10)
+
+        service_a = MiningSimulationService(required_work=Decimal("1000"))
+        service_b = MiningSimulationService(required_work=Decimal("1000"))
+        service_a.register_operation(operation_id="op_a", base_hashrate_hps=Decimal("10"), started_at=started_at)
+        service_b.register_operation(operation_id="op_a", base_hashrate_hps=Decimal("10"), started_at=started_at)
+
+        # Same boundary set, opposite insertion order.
+        service_a.apply_boundary_event(
+            SimulationBoundaryEvent(
+                event_type=EVENT_POWER_STATE_CHANGED,
+                player_id="player_a",
+                operation_id="op_a",
+                occurred_at=collision_at,
+                payload={"hashrate_multiplier": "0.5"},
+            )
+        )
+        service_a.apply_boundary_event(
+            SimulationBoundaryEvent(
+                event_type=EVENT_COOLING_STATE_CHANGED,
+                player_id="player_a",
+                operation_id="op_a",
+                occurred_at=collision_at,
+                payload={"hashrate_multiplier": "1.5"},
+            )
+        )
+
+        service_b.apply_boundary_event(
+            SimulationBoundaryEvent(
+                event_type=EVENT_COOLING_STATE_CHANGED,
+                player_id="player_a",
+                operation_id="op_a",
+                occurred_at=collision_at,
+                payload={"hashrate_multiplier": "1.5"},
+            )
+        )
+        service_b.apply_boundary_event(
+            SimulationBoundaryEvent(
+                event_type=EVENT_POWER_STATE_CHANGED,
+                player_id="player_a",
+                operation_id="op_a",
+                occurred_at=collision_at,
+                payload={"hashrate_multiplier": "0.5"},
+            )
+        )
+
+        result_a = service_a.process_tick(operation_id="op_a", ended_at=tick_end)
+        result_b = service_b.process_tick(operation_id="op_a", ended_at=tick_end)
+
+        self.assertEqual(result_a.contribution_hashes, result_b.contribution_hashes)
+        self.assertEqual(service_a.operations["op_a"].current_multiplier, service_b.operations["op_a"].current_multiplier)
+        self.assertEqual(service_a.operations["op_a"].current_paused, service_b.operations["op_a"].current_paused)
+
     def test_atomic_finalization_under_concurrency(self) -> None:
         started_at = datetime(2026, 8, 15, 15, 0, tzinfo=UTC)
         tick_end = started_at + timedelta(seconds=10)

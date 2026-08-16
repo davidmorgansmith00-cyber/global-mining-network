@@ -37,6 +37,10 @@ def _to_utc(value: datetime) -> datetime:
     return value.astimezone(UTC)
 
 
+def _boundary_sort_key(boundary: IntervalBoundaryState) -> tuple[datetime, int, str]:
+    return (boundary.occurred_at, int(boundary.paused), str(boundary.hashrate_multiplier))
+
+
 @dataclass
 class MiningOperationState:
     operation_id: str
@@ -163,6 +167,7 @@ class MiningSimulationService:
             for item in operation.pending_boundaries
             if operation.last_processed_at <= item.occurred_at < tick_end
         ]
+        boundaries_for_window.sort(key=_boundary_sort_key)
         retained_boundaries = [item for item in operation.pending_boundaries if item.occurred_at >= tick_end]
 
         slices = slice_progression_intervals(
@@ -178,7 +183,7 @@ class MiningSimulationService:
         operation.last_processed_at = tick_end
         operation.pending_boundaries = retained_boundaries
         if boundaries_for_window:
-            latest_boundary = max(boundaries_for_window, key=lambda item: item.occurred_at)
+            latest_boundary = boundaries_for_window[-1]
             operation.current_multiplier = latest_boundary.hashrate_multiplier
             operation.current_paused = latest_boundary.paused
 
