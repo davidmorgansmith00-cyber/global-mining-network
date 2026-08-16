@@ -161,6 +161,55 @@ class AuthApiIntegrationTests(unittest.TestCase):
         finally:
             self._cleanup_player_by_email(email=email)
 
+    def test_auth_register_rejects_duplicate_email(self) -> None:
+        email = f"auth_duplicate_{uuid4().hex[:10]}@example.com"
+        password = "password123"
+
+        try:
+            with TestClient(app) as client:
+                first = client.post(
+                    "/api/v1/auth/register",
+                    json={"email": email, "password": password},
+                )
+                second = client.post(
+                    "/api/v1/auth/register",
+                    json={"email": email, "password": password},
+                )
+
+                self.assertEqual(first.status_code, 200)
+                self.assertEqual(second.status_code, 400)
+                self.assertEqual(second.json()["detail"], "Email already registered")
+        finally:
+            self._cleanup_player_by_email(email=email)
+
+    def test_auth_login_rejects_invalid_credentials(self) -> None:
+        email = f"auth_login_{uuid4().hex[:10]}@example.com"
+        password = "password123"
+
+        try:
+            with TestClient(app) as client:
+                registered = client.post(
+                    "/api/v1/auth/register",
+                    json={"email": email, "password": password},
+                )
+                self.assertEqual(registered.status_code, 200)
+
+                wrong_password = client.post(
+                    "/api/v1/auth/login",
+                    json={"email": email, "password": "password999"},
+                )
+                unknown_player = client.post(
+                    "/api/v1/auth/login",
+                    json={"email": f"unknown_{uuid4().hex[:6]}@example.com", "password": password},
+                )
+
+                self.assertEqual(wrong_password.status_code, 401)
+                self.assertEqual(wrong_password.json()["detail"], "Invalid credentials")
+                self.assertEqual(unknown_player.status_code, 401)
+                self.assertEqual(unknown_player.json()["detail"], "Unknown player")
+        finally:
+            self._cleanup_player_by_email(email=email)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

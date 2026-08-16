@@ -143,6 +143,8 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Auth refresh invalid-token rejection coverage | Done | Added API integration test ensuring refresh returns 401 for invalid refresh tokens |
 | Auth logout idempotency baseline | Done | Logout now returns success for repeated valid session/token revocation requests to support safe client retries |
 | Auth logout idempotency integration coverage | Done | Added API integration test confirming repeated valid logout requests return successful revoked responses |
+| Auth duplicate-register contract hardening | Done | Registration now rejects already-registered emails with a deterministic 400 response contract |
+| Auth duplicate-register and invalid-login API coverage | Done | Added API integration tests for duplicate email registration rejection and login rejection for wrong password/unknown player |
 | Shared-block aggregation integration test | Done | Added and passed `tests/integration/test_mining_simulation_service.py::test_multiple_operations_contribute_to_same_active_block` |
 | Timestamp progression and boundary application test | Done | Added and passed `tests/integration/test_mining_simulation_service.py::test_operation_last_processed_timestamp_advances_and_boundaries_apply` |
 | Upgrade-boundary multiplier integration test | Done | Added and passed `tests/integration/test_mining_simulation_service.py::test_hardware_upgrade_boundary_updates_effective_hashrate_multiplier` |

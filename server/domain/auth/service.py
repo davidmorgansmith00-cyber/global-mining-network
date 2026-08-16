@@ -15,10 +15,15 @@ class AuthService:
         self.player_repository = PlayerRepository()
 
     def register(self, payload: RegisterRequest) -> SessionResponse:
-        identifier = payload.email.strip().lower().replace("@", "_").replace(".", "_")
+        normalized_email = payload.email.strip().lower()
+        identifier = normalized_email.replace("@", "_").replace(".", "_")
         if database_is_configured():
+            existing = self.auth_repository.get_player_by_email(normalized_email)
+            if existing is not None:
+                raise ValueError("Email already registered")
+
             password_hash = hash_secret(payload.password)
-            player_id = self.auth_repository.create_player(payload.email.strip().lower(), password_hash)
+            player_id = self.auth_repository.create_player(normalized_email, password_hash)
             self.player_repository.create_profile(player_id)
             refresh_token = f"refresh_{uuid4()}"
             session_id = self.auth_repository.create_session(player_id, hash_secret(refresh_token))
@@ -37,9 +42,10 @@ class AuthService:
         )
 
     def login(self, payload: LoginRequest) -> SessionResponse:
-        identifier = payload.email.strip().lower().replace("@", "_").replace(".", "_")
+        normalized_email = payload.email.strip().lower()
+        identifier = normalized_email.replace("@", "_").replace(".", "_")
         if database_is_configured():
-            player_record = self.auth_repository.get_player_by_email(payload.email.strip().lower())
+            player_record = self.auth_repository.get_player_by_email(normalized_email)
             if player_record is None:
                 raise ValueError("Unknown player")
 
