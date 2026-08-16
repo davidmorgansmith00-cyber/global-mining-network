@@ -323,6 +323,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Operation intent dry-run compact-summary fallback removal | Done | Dry-run core gate fields now prefer verification-backed package summary values only, removing the compact-summary JSON fallback from the final summary surface |
 | Operation intent strict verification checks vector | Done | Builder and inspector now carry `checks` strictly from the verification payload, removing the last evaluation fallback for the per-check vector |
 | Operation intent builder raw inspector payload removal | Done | Builder no longer reads the raw inspector JSON payload at all; the package summary is now derived entirely from verification-backed fields |
+| Operation intent dry-run inspector path cleanup | Done | Dry-run now uses the package-summary inspector artifact strings directly instead of rehydrating them into Path locals |
 | Optional CI workflow-dispatch DB baseline rerun | Done | Run `31956249661` succeeded end-to-end (`baseline` and `db-integration` both green); total run window was 67s (`15:38:16Z` to `15:39:23Z`) |
 | Local CI-mirrored full suite baseline | Done | Ran the same test selection as optional `db-integration` locally: `65` tests passed in `35.976s` |
 

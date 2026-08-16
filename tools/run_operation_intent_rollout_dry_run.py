@@ -273,10 +273,6 @@ def main() -> int:
     manifest_file = str(package_summary.get("manifest_file", ""))
     inspector_summary_text_file = str(package_summary.get("inspector_summary_file", ""))
     inspector_summary_json_file = str(package_summary.get("inspector_summary_json_file", ""))
-    if inspector_summary_text_file:
-        inspector_summary_text_path = Path(inspector_summary_text_file)
-    if inspector_summary_json_file:
-        inspector_summary_json_path = Path(inspector_summary_json_file)
 
     compact_summary_json_file = str(package_summary.get("compact_summary_json_file", ""))
 
@@ -319,8 +315,8 @@ def main() -> int:
         "decision_package_verification_file": str(package_summary.get("verification_file", "")),
         "decision_package_compact_summary_file": str(package_summary.get("compact_summary_file", "")),
         "decision_package_compact_summary_json_file": compact_summary_json_file,
-        "decision_package_inspector_summary_file": str(inspector_summary_text_path).replace("\\", "/"),
-        "decision_package_inspector_summary_json_file": str(inspector_summary_json_path).replace("\\", "/"),
+        "decision_package_inspector_summary_file": inspector_summary_text_file,
+        "decision_package_inspector_summary_json_file": inspector_summary_json_file,
         "decision_package_decision": decision_package_decision,
         "decision_package_promotion_ready": decision_package_promotion_ready,
         "decision_package_passed_checks": decision_package_passed_checks,
