@@ -335,6 +335,12 @@ def main() -> int:
         "decision_package_evaluation_matches_memo": bool(
             package_summary.get("verification_evaluation_matches_memo", False)
         ),
+        "decision_package_verification_missing_artifacts": _normalize_string_list(
+            package_summary.get("verification_missing_artifacts", [])
+        ),
+        "decision_package_verification_mismatch_details": str(
+            package_summary.get("verification_mismatch_details", "")
+        ),
         "decision_package_compact_summary_artifacts_present": bool(
             package_summary.get("verification_compact_summary_artifacts_present", False)
         ),

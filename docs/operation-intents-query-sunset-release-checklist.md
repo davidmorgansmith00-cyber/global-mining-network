@@ -128,6 +128,7 @@ Build the full decision artifact package in one command:
 - Dry-run now prefers builder verification fields for `decision_package_verified` and `decision_package_schema_supported`, falling back to compact-summary JSON only when needed.
 - Inspector summary rendering now prefers verifier `compact_summary_mismatch_count` when present (with details-length fallback), and regression coverage validates this stale/tampered verification behavior.
 - Verifier backward-compatibility regression now also covers manifests that omit only `inspector_summary_*` artifact keys (compact-summary checks still enforced).
+- Builder and dry-run outputs now include verifier failure-context fields `verification_missing_artifacts`/`verification_mismatch_details` and `decision_package_verification_missing_artifacts`/`decision_package_verification_mismatch_details` for machine-readable debugging.
 
 Verify generated package integrity:
 - PowerShell: `python tools/verify_operation_intent_decision_package.py --manifest artifacts/operation-intent-decision-package/intent-transport-decision-package-manifest.json`

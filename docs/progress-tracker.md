@@ -305,6 +305,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Operation intent dry-run verified/schema source preference | Done | Dry-run now reads `decision_package_verified` and `decision_package_schema_supported` from builder verification fields first, with compact-summary JSON fallback |
 | Operation intent inspector mismatch-count source preference | Done | Inspector now uses verifier `compact_summary_mismatch_count` when available (with fallback), with regression coverage for stale/tampered verification payloads |
 | Operation intent inspector-only manifest compatibility regression | Done | Added verifier test ensuring manifests without `inspector_summary_*` keys still verify successfully while compact-summary checks remain active |
+| Operation intent verifier failure-context propagation | Done | Builder and dry-run outputs now expose verifier `missing_artifacts` and `mismatch_details` fields for direct CI/debug consumption |
 | Optional CI workflow-dispatch DB baseline rerun | Done | Run `31956249661` succeeded end-to-end (`baseline` and `db-integration` both green); total run window was 67s (`15:38:16Z` to `15:39:23Z`) |
 | Local CI-mirrored full suite baseline | Done | Ran the same test selection as optional `db-integration` locally: `65` tests passed in `35.976s` |
 

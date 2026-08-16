@@ -307,6 +307,11 @@ def main() -> int:
     summary["verification_evaluation_matches_memo"] = bool(
         verification_payload.get("evaluation_matches_memo", False)
     )
+    verification_missing_artifacts = verification_payload.get("missing_artifacts", [])
+    if not isinstance(verification_missing_artifacts, list):
+        verification_missing_artifacts = [str(verification_missing_artifacts)]
+    summary["verification_missing_artifacts"] = [str(item) for item in verification_missing_artifacts]
+    summary["verification_mismatch_details"] = str(verification_payload.get("mismatch_details", ""))
     summary["verification_compact_summary_artifacts_present"] = bool(
         verification_payload.get("compact_summary_artifacts_present", False)
     )
