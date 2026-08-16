@@ -322,6 +322,9 @@ def main() -> int:
         "decision_package_promotion_ready": bool(compact_summary_json_payload.get("promotion_ready", False)),
         "decision_package_verified": bool(compact_summary_json_payload.get("verified", False)),
         "decision_package_schema_supported": bool(compact_summary_json_payload.get("schema_supported", False)),
+        "decision_package_evaluation_matches_memo": bool(
+            package_summary.get("verification_evaluation_matches_memo", False)
+        ),
         "decision_package_compact_summary_artifacts_present": bool(
             package_summary.get("verification_compact_summary_artifacts_present", False)
         ),
