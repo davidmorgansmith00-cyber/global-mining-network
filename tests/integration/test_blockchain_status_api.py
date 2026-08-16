@@ -1748,6 +1748,23 @@ class BlockchainStatusApiTests(unittest.TestCase):
         self.assertEqual(put_response.json()["detail"], "Unsupported channel")
         self.assertEqual(get_response.json()["detail"], "Unsupported channel")
 
+    def test_checkpoint_endpoints_reject_case_variant_channel(self) -> None:
+        player_id, session_id = self._create_player_session_binding()
+
+        with TestClient(app) as client:
+            put_response = client.put(
+                f"/api/v1/blockchain/checkpoints/GLOBAL?player_id={player_id}&session_id={session_id}",
+                json={"reconnect_cursor": 1},
+            )
+            get_response = client.get(
+                f"/api/v1/blockchain/checkpoints/GLOBAL?player_id={player_id}&session_id={session_id}"
+            )
+
+        self.assertEqual(put_response.status_code, 400)
+        self.assertEqual(get_response.status_code, 400)
+        self.assertEqual(put_response.json()["detail"], "Unsupported channel")
+        self.assertEqual(get_response.json()["detail"], "Unsupported channel")
+
     def test_checkpoint_endpoints_require_player_and_session_query_parameters(self) -> None:
         with TestClient(app) as client:
             get_missing_player = client.get("/api/v1/blockchain/checkpoints/global?session_id=session_only")
