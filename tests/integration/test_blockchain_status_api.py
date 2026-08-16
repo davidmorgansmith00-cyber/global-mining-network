@@ -260,6 +260,14 @@ class BlockchainStatusApiTests(unittest.TestCase):
         self.assertEqual(payload["recent_finalizations"][0]["block_number"], 1)
         self.assertEqual(payload["recent_finalizations"][0]["reward_pool_amount"], "100.000000")
 
+    def test_network_snapshot_endpoint_rejects_out_of_range_recent_limit(self) -> None:
+        with TestClient(app) as client:
+            below_min = client.get("/api/v1/blockchain/network-snapshot?recent_limit=0")
+            above_max = client.get("/api/v1/blockchain/network-snapshot?recent_limit=101")
+
+        self.assertEqual(below_min.status_code, 422)
+        self.assertEqual(above_max.status_code, 422)
+
     def test_network_events_endpoint_supports_cursor_based_reconnect(self) -> None:
         started_at = datetime(2026, 8, 15, 22, 30, tzinfo=UTC)
         service = MiningSimulationService(
