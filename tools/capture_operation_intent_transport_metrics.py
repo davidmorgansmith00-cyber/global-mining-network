@@ -72,6 +72,23 @@ def _build_summary(
     return summary
 
 
+def _build_query_share(summary: dict[str, dict[str, float | int]]) -> dict[str, float | int]:
+    query_delta = int(summary.get("query", {}).get("delta", 0))
+    header_delta = int(summary.get("header", {}).get("delta", 0))
+    dual_match_delta = int(summary.get("dual_match", {}).get("delta", 0))
+    total_delta = query_delta + header_delta + dual_match_delta
+    share_ratio = (query_delta / total_delta) if total_delta > 0 else 0.0
+
+    return {
+        "query_delta": query_delta,
+        "header_delta": header_delta,
+        "dual_match_delta": dual_match_delta,
+        "total_transport_delta": total_delta,
+        "query_share_ratio": round(share_ratio, 6),
+        "query_share_percent": round(share_ratio * 100.0, 4),
+    }
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
@@ -151,6 +168,7 @@ def main() -> int:
         last=last_counters if isinstance(last_counters, dict) else {},
         elapsed_seconds=elapsed_seconds,
     )
+    query_share = _build_query_share(summary)
 
     result = {
         "started_at": started_at.isoformat(),
@@ -162,6 +180,7 @@ def main() -> int:
         "interval_seconds": args.interval_seconds,
         "snapshots": snapshots,
         "summary": summary,
+        "query_share_from_deltas": query_share,
     }
 
     output_text = json.dumps(result, indent=2, sort_keys=True)

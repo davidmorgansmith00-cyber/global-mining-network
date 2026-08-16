@@ -29,6 +29,7 @@ Attach additional evidence:
 The helper output JSON contains:
 - snapshots: list of captured counter maps by mode
 - summary: per-mode first, last, delta, and rate_per_minute
+- query_share_from_deltas: canonical query-share calculation derived from `query`, `header`, and `dual_match` deltas
 
 Required mode keys for review:
 - query
@@ -43,9 +44,9 @@ Complete all checks with explicit pass/fail results.
 1. Query share threshold
 - Rule: query transport share is below 1% for 14 consecutive days.
 - Calculation input:
-  - query delta:
-  - total delta (query + header + dual_match):
-  - computed share:
+  - query_share_from_deltas.query_delta:
+  - query_share_from_deltas.total_transport_delta:
+  - query_share_from_deltas.query_share_percent:
 - Result: Pass or Fail
 
 2. Strict rejection stability

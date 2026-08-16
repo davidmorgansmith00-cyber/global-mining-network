@@ -65,6 +65,12 @@ Capture a single transport metrics snapshot:
 Capture short trend evidence (example: 15 minutes at 60-second interval):
 - PowerShell: `$env:MAINTENANCE_AUTH_TOKEN='<token>'; python tools/capture_operation_intent_transport_metrics.py --base-url http://127.0.0.1:8000 --samples 15 --interval-seconds 60 --output artifacts/intent-transport-trend-15m.json`
 
+Read computed query share from helper output:
+- Use `query_share_from_deltas.query_share_percent` from the output JSON as the canonical query-share value for promotion gates.
+- Supporting fields:
+	- `query_share_from_deltas.query_delta`
+	- `query_share_from_deltas.total_transport_delta`
+
 ## Owner Checklist
 1. Backend owner approves strict-mode metrics health.
 2. Client owner confirms header transport rollout completion.
