@@ -159,6 +159,7 @@ def main() -> int:
                 f"summary_artifacts_present={str(verification_compact_summary_artifacts_present).lower()} "
                 f"summary_checks_performed={str(verification_compact_summary_checks_performed).lower()} "
                 f"summary_checks_skipped={str(verification_compact_summary_checks_skipped).lower()} "
+                f"summary_mismatch_count={len(verification_compact_summary_mismatch_details)} "
                 f"failed_checks={failed_checks}"
             )
             compact_summary_json_expected = {

@@ -148,7 +148,8 @@ def main() -> int:
             "verified={verified} schema_supported={schema_supported} "
             "summary_artifacts_present={summary_artifacts_present} "
             "summary_checks_performed={summary_checks_performed} "
-            "summary_checks_skipped={summary_checks_skipped} failed_checks={failed_checks}".format(
+            "summary_checks_skipped={summary_checks_skipped} "
+            "summary_mismatch_count={summary_mismatch_count} failed_checks={failed_checks}".format(
                 decision=summary["decision"],
                 promotion_ready=str(summary["promotion_ready"]).lower(),
                 passed_checks=summary["passed_checks"],
@@ -158,6 +159,7 @@ def main() -> int:
                 summary_artifacts_present=str(summary["compact_summary_artifacts_present"]).lower(),
                 summary_checks_performed=str(summary["compact_summary_checks_performed"]).lower(),
                 summary_checks_skipped=str(summary["compact_summary_checks_skipped"]).lower(),
+                summary_mismatch_count=summary["compact_summary_mismatch_count"],
                 failed_checks=failed_checks_text,
             )
         )
