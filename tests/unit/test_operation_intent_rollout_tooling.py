@@ -398,6 +398,8 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             evaluation = json.loads(eval_result.stdout)
             self.assertFalse(evaluation["promotion_ready"])
             self.assertEqual(evaluation["decision"], "hold_candidate")
+            self.assertEqual(evaluation["passed_checks"], 2)
+            self.assertEqual(evaluation["total_checks"], 3)
             self.assertEqual(evaluation["failed_checks"], ["strict_rejection_window_pass"])
 
             fail_result = self._run(

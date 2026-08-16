@@ -58,12 +58,16 @@ def _build_evaluation(bundle: dict[str, object], bundle_path: Path) -> dict[str,
 
     promotion_ready = len(failed_checks) == 0
     decision = "promote_candidate" if promotion_ready else "hold_candidate"
+    total_checks = len(checks)
+    passed_checks = sum(1 for item in checks if bool(item.get("passed", False)))
 
     return {
         "generated_at": datetime.now(UTC).isoformat(),
         "source_bundle": str(bundle_path).replace("\\", "/"),
         "promotion_ready": promotion_ready,
         "decision": decision,
+        "passed_checks": passed_checks,
+        "total_checks": total_checks,
         "failed_checks": failed_checks,
         "checks": checks,
     }

@@ -97,6 +97,7 @@ Read promotion-gate summary from rollout bundle output:
 Evaluate promotion readiness from bundle thresholds:
 - PowerShell: `python tools/evaluate_operation_intent_rollout_gate.py --bundle artifacts/intent-transport-rollout-bundle.json --output artifacts/intent-transport-rollout-evaluation.json`
 - Optional CI-gating mode: `python tools/evaluate_operation_intent_rollout_gate.py --bundle artifacts/intent-transport-rollout-bundle.json --fail-on-blocked`
+- Read summary fields from evaluation output: `promotion_ready`, `decision`, `passed_checks`, `total_checks`, `failed_checks`.
 
 Read auto-filled draft memo fields:
 - `threshold_evaluation.query_share_threshold.auto_result`
