@@ -1731,6 +1731,22 @@ class BlockchainStatusApiTests(unittest.TestCase):
 
         self.assertEqual(put_response.status_code, 422)
 
+    def test_checkpoint_upsert_rejects_non_integer_reconnect_cursor(self) -> None:
+        player_id, session_id = self._create_player_session_binding()
+
+        with TestClient(app) as client:
+            global_response = client.put(
+                f"/api/v1/blockchain/checkpoints/global?player_id={player_id}&session_id={session_id}",
+                json={"reconnect_cursor": "not_an_int"},
+            )
+            rewards_response = client.put(
+                f"/api/v1/blockchain/checkpoints/player_rewards?player_id={player_id}&session_id={session_id}",
+                json={"reconnect_cursor": "not_an_int"},
+            )
+
+        self.assertEqual(global_response.status_code, 422)
+        self.assertEqual(rewards_response.status_code, 422)
+
     def test_checkpoint_endpoints_reject_unsupported_channel(self) -> None:
         player_id, session_id = self._create_player_session_binding()
 
