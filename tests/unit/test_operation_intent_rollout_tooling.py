@@ -113,6 +113,10 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
                 str(captures_dir / "intent-transport-day*.json"),
                 "--query-threshold-percent",
                 "1.0",
+                "--strict-rejection-max-delta",
+                "0",
+                "--mismatch-rate-max-per-minute",
+                "0.1",
                 "--output",
                 str(bundle_path),
             )
@@ -122,6 +126,8 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             bundle = json.loads(bundle_path.read_text(encoding="utf-8"))
             self.assertEqual(bundle["inputs_count"], 2)
             self.assertTrue(bundle["threshold_checks"]["query_share_window_pass"])
+            self.assertTrue(bundle["threshold_checks"]["strict_rejection_window_pass"])
+            self.assertTrue(bundle["threshold_checks"]["mismatch_rate_window_pass"])
             self.assertIn("aggregate", bundle)
 
             memo_path = temp_root / "decision-memo-draft.json"
@@ -144,6 +150,14 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertEqual(memo["decision_summary"]["decision_owner"], "backend-oncall")
             self.assertEqual(
                 memo["threshold_evaluation"]["query_share_threshold"]["auto_result"],
+                "pass_candidate",
+            )
+            self.assertEqual(
+                memo["threshold_evaluation"]["strict_rejection_stability"]["auto_result"],
+                "pass_candidate",
+            )
+            self.assertEqual(
+                memo["threshold_evaluation"]["mismatch_stability"]["auto_result"],
                 "pass_candidate",
             )
 

@@ -73,6 +73,7 @@ Complete all checks with explicit pass/fail results.
 - Rule: query_rejected_strict remains near zero outside planned strict-mode windows.
 - Calculation input:
   - aggregate.total_query_rejected_strict_delta:
+  - threshold_checks.strict_rejection_window_pass:
   - strict-mode window periods reviewed:
 - Result: Pass or Fail
 
@@ -81,6 +82,7 @@ Complete all checks with explicit pass/fail results.
 - Calculation input:
   - baseline mismatch rate_per_minute:
   - aggregate.max_mismatch_rate_per_minute:
+  - threshold_checks.mismatch_rate_window_pass:
   - sustained duration observed:
 - Result: Pass or Fail
 

@@ -71,12 +71,12 @@ def _build_memo_draft(
     threshold_checks = bundle.get("threshold_checks", {})
 
     query_share_window_pass = bool(threshold_checks.get("query_share_window_pass", False))
+    strict_rejection_window_pass = bool(threshold_checks.get("strict_rejection_window_pass", False))
+    mismatch_rate_window_pass = bool(threshold_checks.get("mismatch_rate_window_pass", False))
     overall_query_share_percent = _safe_float(aggregate.get("overall_query_share_percent", 0.0))
     days_below_threshold = _safe_int(aggregate.get("days_below_threshold", 0))
     total_query_rejected_strict_delta = _safe_int(aggregate.get("total_query_rejected_strict_delta", 0))
     max_mismatch_rate = _safe_float(aggregate.get("max_mismatch_rate_per_minute", 0.0))
-
-    strict_rejection_auto_pass = total_query_rejected_strict_delta == 0
 
     return {
         "generated_at": datetime.now(UTC).isoformat(),
@@ -105,14 +105,14 @@ def _build_memo_draft(
                 "rule": "query_rejected_strict remains near zero outside strict-mode windows",
                 "total_query_rejected_strict_delta": total_query_rejected_strict_delta,
                 "strict_mode_window_periods_reviewed": "",
-                "auto_result": _auto_result(strict_rejection_auto_pass),
+                "auto_result": _auto_result(strict_rejection_window_pass),
             },
             "mismatch_stability": {
                 "rule": "mismatch does not show sustained increase versus baseline",
                 "max_mismatch_rate_per_minute": round(max_mismatch_rate, 4),
                 "baseline_mismatch_rate_per_minute": "",
                 "sustained_duration_observed": "",
-                "auto_result": "review_required",
+                "auto_result": _auto_result(mismatch_rate_window_pass),
             },
             "error_rate_safety": {
                 "rule": "no material 400/401 regression attributable to migration",

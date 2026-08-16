@@ -32,6 +32,18 @@ def _parse_args() -> argparse.Namespace:
         help="Query-share threshold for pass/fail summaries (default: 1.0)",
     )
     parser.add_argument(
+        "--strict-rejection-max-delta",
+        type=int,
+        default=0,
+        help="Maximum allowed total query_rejected_strict delta across inputs (default: 0)",
+    )
+    parser.add_argument(
+        "--mismatch-rate-max-per-minute",
+        type=float,
+        default=0.1,
+        help="Maximum allowed mismatch rate_per_minute observed across inputs (default: 0.1)",
+    )
+    parser.add_argument(
         "--output",
         default="",
         help="Optional output file path for bundle JSON",
@@ -110,7 +122,12 @@ def _load_entries(files: list[Path]) -> list[dict[str, object]]:
     return entries
 
 
-def _build_bundle(entries: list[dict[str, object]], query_threshold_percent: float) -> dict[str, object]:
+def _build_bundle(
+    entries: list[dict[str, object]],
+    query_threshold_percent: float,
+    strict_rejection_max_delta: int,
+    mismatch_rate_max_per_minute: float,
+) -> dict[str, object]:
     total_query_delta = sum(_safe_int(item.get("query_delta", 0)) for item in entries)
     total_transport_delta = sum(_safe_int(item.get("total_transport_delta", 0)) for item in entries)
     overall_query_share_percent = (
@@ -128,10 +145,15 @@ def _build_bundle(entries: list[dict[str, object]], query_threshold_percent: flo
         _safe_int(item.get("query_rejected_strict_delta", 0)) for item in entries
     )
 
+    strict_rejection_window_pass = total_query_rejected_strict_delta <= strict_rejection_max_delta
+    mismatch_rate_window_pass = max_mismatch_rate_per_minute <= mismatch_rate_max_per_minute
+
     return {
         "generated_at": datetime.now(UTC).isoformat(),
         "inputs_count": len(entries),
         "query_threshold_percent": query_threshold_percent,
+        "strict_rejection_max_delta": strict_rejection_max_delta,
+        "mismatch_rate_max_per_minute": mismatch_rate_max_per_minute,
         "daily_entries": entries,
         "aggregate": {
             "total_query_delta": total_query_delta,
@@ -148,6 +170,14 @@ def _build_bundle(entries: list[dict[str, object]], query_threshold_percent: flo
             "query_share_window_rule": (
                 "All included entries must have query_share_percent below query_threshold_percent"
             ),
+            "strict_rejection_window_pass": strict_rejection_window_pass,
+            "strict_rejection_window_rule": (
+                "Total query_rejected_strict delta across inputs must be <= strict_rejection_max_delta"
+            ),
+            "mismatch_rate_window_pass": mismatch_rate_window_pass,
+            "mismatch_rate_window_rule": (
+                "Maximum mismatch_rate_per_minute across inputs must be <= mismatch_rate_max_per_minute"
+            ),
         },
     }
 
@@ -156,7 +186,12 @@ def main() -> int:
     args = _parse_args()
     files = _collect_input_files(args.inputs, args.input_glob)
     entries = _load_entries(files)
-    bundle = _build_bundle(entries, query_threshold_percent=args.query_threshold_percent)
+    bundle = _build_bundle(
+        entries,
+        query_threshold_percent=args.query_threshold_percent,
+        strict_rejection_max_delta=args.strict_rejection_max_delta,
+        mismatch_rate_max_per_minute=args.mismatch_rate_max_per_minute,
+    )
 
     text = json.dumps(bundle, indent=2, sort_keys=True)
     if args.output:
