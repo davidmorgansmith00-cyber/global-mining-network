@@ -124,6 +124,8 @@ Dry-run expected outputs:
 - `artifacts/operation-intent-dry-run/intent-transport-rollout-evaluation.json`
 - `artifacts/operation-intent-dry-run/intent-transport-decision-memo-draft.json`
 - `artifacts/operation-intent-dry-run/intent-transport-decision-memo.md`
+- `artifacts/operation-intent-dry-run/decision-package/intent-transport-decision-package-manifest.json`
+- `artifacts/operation-intent-dry-run/decision-package/intent-transport-decision-package-verification.json`
 
 ## Owner Checklist
 1. Backend owner approves strict-mode metrics health.

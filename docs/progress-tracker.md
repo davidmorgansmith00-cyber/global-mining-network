@@ -260,6 +260,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Operation intent custom manifest filename coverage | Done | Added tooling test and checklist guidance for `--manifest-name` to support custom decision-package manifest naming conventions |
 | Operation intent decision package verifier helper | Done | Added `tools/verify_operation_intent_decision_package.py` with unit coverage to validate manifest artifact existence and memo/evaluation decision consistency |
 | Operation intent auto verification artifact emission | Done | Decision package builder now runs verifier automatically after manifest generation and writes `intent-transport-decision-package-verification.json` |
+| Operation intent dry-run decision-package parity | Done | Dry-run helper now also produces a nested decision package with manifest and verification artifacts for full rehearsal parity with production handoff flow |
 | Optional CI workflow-dispatch DB baseline rerun | Done | Run `31956249661` succeeded end-to-end (`baseline` and `db-integration` both green); total run window was 67s (`15:38:16Z` to `15:39:23Z`) |
 | Local CI-mirrored full suite baseline | Done | Ran the same test selection as optional `db-integration` locally: `65` tests passed in `35.976s` |
 

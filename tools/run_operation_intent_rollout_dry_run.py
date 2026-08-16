@@ -146,7 +146,7 @@ def _build_daily_capture(index: int, total_days: int) -> dict[str, object]:
     }
 
 
-def _run_command(command: list[str]) -> None:
+def _run_command(command: list[str]) -> str:
     completed = subprocess.run(command, check=False, capture_output=True, text=True)
     if completed.returncode != 0:
         message = "\n".join(
@@ -158,6 +158,7 @@ def _run_command(command: list[str]) -> None:
             ]
         )
         raise RuntimeError(message)
+    return completed.stdout
 
 
 def main() -> int:
@@ -178,6 +179,7 @@ def main() -> int:
     memo_draft_path = output_dir / "intent-transport-decision-memo-draft.json"
     memo_markdown_path = output_dir / "intent-transport-decision-memo.md"
     rollout_evaluation_path = output_dir / "intent-transport-rollout-evaluation.json"
+    decision_package_dir = output_dir / "decision-package"
 
     _run_command(
         [
@@ -237,6 +239,28 @@ def main() -> int:
         ]
     )
 
+    package_output = _run_command(
+        [
+            sys.executable,
+            str(root / "tools" / "build_operation_intent_decision_package.py"),
+            "--input-glob",
+            str(output_dir / "intent-transport-day*.json"),
+            "--output-dir",
+            str(decision_package_dir),
+            "--query-threshold-percent",
+            str(args.query_threshold_percent),
+            "--strict-rejection-max-delta",
+            str(args.strict_rejection_max_delta),
+            "--mismatch-rate-max-per-minute",
+            str(args.mismatch_rate_max_per_minute),
+            "--environment-scope",
+            args.environment_scope,
+            "--decision-owner",
+            args.decision_owner,
+        ]
+    )
+    package_summary = json.loads(package_output) if package_output.strip() else {}
+
     result = {
         "output_dir": str(output_dir).replace("\\", "/"),
         "generated_daily_files": args.days,
@@ -244,6 +268,8 @@ def main() -> int:
         "memo_draft_file": str(memo_draft_path).replace("\\", "/"),
         "memo_markdown_file": str(memo_markdown_path).replace("\\", "/"),
         "rollout_evaluation_file": str(rollout_evaluation_path).replace("\\", "/"),
+        "decision_package_manifest_file": str(package_summary.get("manifest_file", "")),
+        "decision_package_verification_file": str(package_summary.get("verification_file", "")),
     }
     print(json.dumps(result, indent=2, sort_keys=True))
     return 0
