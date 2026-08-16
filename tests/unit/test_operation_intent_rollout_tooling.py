@@ -209,6 +209,7 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertIn("decision_package_schema_supported", summary)
             self.assertIn("decision_package_compact_summary_checks_performed", summary)
             self.assertIn("decision_package_compact_summary_checks_skipped", summary)
+            self.assertIn("decision_package_compact_summary_artifacts_present", summary)
             self.assertIn("decision_package_compact_summary_mismatch_count", summary)
             self.assertIn("decision_package_compact_summary_mismatch_details", summary)
 
@@ -519,6 +520,7 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertIn("compact_summary_json_file", summary)
             self.assertTrue(summary["verification_verified"])
             self.assertTrue(summary["verification_schema_supported"])
+            self.assertTrue(summary["verification_compact_summary_artifacts_present"])
             self.assertTrue(summary["verification_compact_summary_checks_performed"])
             self.assertFalse(summary["verification_compact_summary_checks_skipped"])
             self.assertEqual(summary["verification_compact_summary_mismatch_count"], 0)
