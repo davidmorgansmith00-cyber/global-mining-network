@@ -266,6 +266,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Operation intent package summary verification flags | Done | Decision package summary JSON now exposes `verification_verified` and `verification_schema_supported` for quick machine-readable gate status parsing |
 | Operation intent verifier missing-artifact coverage | Done | Added unit coverage asserting verifier fails and reports `missing_artifacts` when manifest-referenced artifacts are deleted or absent |
 | Operation intent compact package inspector helper | Done | Added `tools/inspect_operation_intent_decision_package.py` with text/json output and optional fail-on-unverified mode for concise release and CI status reporting |
+| Operation intent package compact-summary artifact | Done | Decision package builder now writes `intent-transport-decision-package-summary.txt` and records `compact_summary_file` in both manifest artifacts and command summary output |
 | Optional CI workflow-dispatch DB baseline rerun | Done | Run `31956249661` succeeded end-to-end (`baseline` and `db-integration` both green); total run window was 67s (`15:38:16Z` to `15:39:23Z`) |
 | Local CI-mirrored full suite baseline | Done | Ran the same test selection as optional `db-integration` locally: `65` tests passed in `35.976s` |
 
