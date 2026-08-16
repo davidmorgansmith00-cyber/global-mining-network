@@ -84,6 +84,7 @@ def main() -> int:
     evaluation_matches_memo = False
     compact_summary_text_matches = True
     compact_summary_json_matches = True
+    compact_summary_checks_performed = False
     compact_summary_mismatch_details: list[str] = []
     mismatch_details = ""
     if not missing_artifacts:
@@ -116,6 +117,11 @@ def main() -> int:
             )
 
         if verification_payload is not None:
+            compact_summary_artifacts_present = (
+                "compact_summary_file" in artifact_paths
+                or "compact_summary_json_file" in artifact_paths
+            )
+            compact_summary_checks_performed = compact_summary_artifacts_present
             decision = str(evaluation.get("decision", ""))
             promotion_ready = str(bool(evaluation.get("promotion_ready", False))).lower()
             passed_checks = int(evaluation.get("passed_checks", 0))
@@ -145,30 +151,31 @@ def main() -> int:
                 "failed_checks": failed_checks_payload,
             }
 
-            text_summary_path = artifact_paths.get("compact_summary_file")
-            if isinstance(text_summary_path, Path):
-                compact_summary_text_actual = text_summary_path.read_text(encoding="utf-8").strip()
-                compact_summary_text_matches = compact_summary_text_actual == compact_summary_text_expected
-                if not compact_summary_text_matches:
-                    compact_summary_mismatch_details.append(
-                        "compact_summary_file content does not match expected inspector text summary"
-                    )
-
-            json_summary_path = artifact_paths.get("compact_summary_json_file")
-            if isinstance(json_summary_path, Path):
-                try:
-                    compact_summary_json_actual = _load_json(json_summary_path, "Compact summary JSON")
-                except Exception as exc:  # noqa: BLE001
-                    compact_summary_json_matches = False
-                    compact_summary_mismatch_details.append(
-                        f"compact_summary_json_file could not be parsed: {exc}"
-                    )
-                else:
-                    compact_summary_json_matches = compact_summary_json_actual == compact_summary_json_expected
-                    if not compact_summary_json_matches:
+            if compact_summary_artifacts_present:
+                text_summary_path = artifact_paths.get("compact_summary_file")
+                if isinstance(text_summary_path, Path):
+                    compact_summary_text_actual = text_summary_path.read_text(encoding="utf-8").strip()
+                    compact_summary_text_matches = compact_summary_text_actual == compact_summary_text_expected
+                    if not compact_summary_text_matches:
                         compact_summary_mismatch_details.append(
-                            "compact_summary_json_file content does not match expected inspector JSON summary"
+                            "compact_summary_file content does not match expected inspector text summary"
                         )
+
+                json_summary_path = artifact_paths.get("compact_summary_json_file")
+                if isinstance(json_summary_path, Path):
+                    try:
+                        compact_summary_json_actual = _load_json(json_summary_path, "Compact summary JSON")
+                    except Exception as exc:  # noqa: BLE001
+                        compact_summary_json_matches = False
+                        compact_summary_mismatch_details.append(
+                            f"compact_summary_json_file could not be parsed: {exc}"
+                        )
+                    else:
+                        compact_summary_json_matches = compact_summary_json_actual == compact_summary_json_expected
+                        if not compact_summary_json_matches:
+                            compact_summary_mismatch_details.append(
+                                "compact_summary_json_file content does not match expected inspector JSON summary"
+                            )
 
     schema_supported = schema_version in supported_schema_versions
     verified = (
@@ -186,6 +193,8 @@ def main() -> int:
         "verified": verified,
         "missing_artifacts": missing_artifacts,
         "evaluation_matches_memo": evaluation_matches_memo,
+        "compact_summary_checks_performed": compact_summary_checks_performed,
+        "compact_summary_checks_skipped": not compact_summary_checks_performed,
         "compact_summary_text_matches": compact_summary_text_matches,
         "compact_summary_json_matches": compact_summary_json_matches,
         "compact_summary_mismatch_details": compact_summary_mismatch_details,

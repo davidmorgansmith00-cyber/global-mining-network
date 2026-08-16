@@ -678,6 +678,8 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             verification = json.loads(verify_result.stdout)
             self.assertTrue(verification["verified"])
             self.assertTrue(verification["schema_supported"])
+            self.assertTrue(verification["compact_summary_checks_performed"])
+            self.assertFalse(verification["compact_summary_checks_skipped"])
             self.assertTrue(verification["compact_summary_text_matches"])
             self.assertTrue(verification["compact_summary_json_matches"])
             self.assertTrue((output_dir / "verification-copy.json").exists())
@@ -806,6 +808,8 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertEqual(verify_result.returncode, 0, msg=verify_result.stderr)
             verification = json.loads(verify_result.stdout)
             self.assertTrue(verification["verified"])
+            self.assertFalse(verification["compact_summary_checks_performed"])
+            self.assertTrue(verification["compact_summary_checks_skipped"])
             self.assertTrue(verification["compact_summary_text_matches"])
             self.assertTrue(verification["compact_summary_json_matches"])
 
