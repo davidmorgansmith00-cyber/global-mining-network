@@ -196,6 +196,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Checkpoint unsupported-channel contract coverage | Done | Added integration test asserting checkpoint GET/PUT reject unsupported channels with deterministic 400 responses |
 | Checkpoint bootstrap cursor contract coverage | Done | Added integration test asserting checkpoint GET with no stored checkpoint returns reconnect cursor derived from authoritative global event stream |
 | Operation intent non-positive hashrate contract coverage | Done | Added integration test asserting operation start intent rejects zero/negative `base_hashrate_hps` with deterministic 400 validation detail |
+| Network events negative-cursor contract coverage | Done | Added integration test asserting `after_sequence=-1` is rejected by endpoint validation with HTTP 422 |
 | WebSocket auth/session binding | Done | WebSocket now validates `player_id` + `session_id` against active auth sessions |
 | Per-client channel filtering | Done | Added `global` and `player_rewards` channel filters with player-scoped event routing |
 | Event/checkpoint retention cleanup endpoint | Done | Added `POST /api/v1/blockchain/maintenance/cleanup` with age/cap cleanup for network events and checkpoints |
