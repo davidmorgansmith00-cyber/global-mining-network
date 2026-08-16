@@ -146,6 +146,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Auth duplicate-register contract hardening | Done | Registration now rejects already-registered emails with a deterministic 400 response contract |
 | Auth duplicate-register and invalid-login API coverage | Done | Added API integration tests for duplicate email registration rejection and login rejection for wrong password/unknown player |
 | Auth login session-rotation API coverage | Done | Added API integration test asserting repeated successful logins mint distinct session IDs and refresh tokens for the same player |
+| Auth expired-session refresh rejection coverage | Done | Added API integration test asserting refresh returns unauthorized after server-side session expiry |
 | Shared-block aggregation integration test | Done | Added and passed `tests/integration/test_mining_simulation_service.py::test_multiple_operations_contribute_to_same_active_block` |
 | Timestamp progression and boundary application test | Done | Added and passed `tests/integration/test_mining_simulation_service.py::test_operation_last_processed_timestamp_advances_and_boundaries_apply` |
 | Upgrade-boundary multiplier integration test | Done | Added and passed `tests/integration/test_mining_simulation_service.py::test_hardware_upgrade_boundary_updates_effective_hashrate_multiplier` |

@@ -126,6 +126,44 @@ class AuthApiIntegrationTests(unittest.TestCase):
         finally:
             self._cleanup_player_by_email(email=email)
 
+    def test_auth_refresh_rejects_expired_session(self) -> None:
+        email = f"auth_expired_{uuid4().hex[:10]}@example.com"
+        password = "password123"
+
+        try:
+            with TestClient(app) as client:
+                registered = client.post(
+                    "/api/v1/auth/register",
+                    json={"email": email, "password": password},
+                )
+                self.assertEqual(registered.status_code, 200)
+                payload = registered.json()
+
+                with psycopg.connect(self.database_url) as connection:
+                    with connection.cursor() as cursor:
+                        cursor.execute(
+                            """
+                            UPDATE auth_sessions
+                            SET expires_at = NOW() - INTERVAL '1 second'
+                            WHERE session_id = %s
+                            """,
+                            (UUID(payload["session_id"]),),
+                        )
+                    connection.commit()
+
+                expired_refresh = client.post(
+                    "/api/v1/auth/refresh",
+                    json={
+                        "session_id": payload["session_id"],
+                        "refresh_token": payload["refresh_token"],
+                    },
+                )
+
+                self.assertEqual(expired_refresh.status_code, 401)
+                self.assertEqual(expired_refresh.json()["detail"], "Invalid session")
+        finally:
+            self._cleanup_player_by_email(email=email)
+
     def test_auth_logout_is_idempotent_for_repeated_valid_requests(self) -> None:
         email = f"auth_logout_idempotent_{uuid4().hex[:10]}@example.com"
         password = "password123"
