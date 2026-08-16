@@ -500,6 +500,7 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertIn("manifest_file", summary)
             self.assertIn("verification_file", summary)
             self.assertIn("compact_summary_file", summary)
+            self.assertIn("compact_summary_json_file", summary)
             self.assertTrue(summary["verification_verified"])
             self.assertTrue(summary["verification_schema_supported"])
 
@@ -510,6 +511,7 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertTrue((output_dir / "intent-transport-decision-package-manifest.json").exists())
             self.assertTrue((output_dir / "intent-transport-decision-package-verification.json").exists())
             self.assertTrue((output_dir / "intent-transport-decision-package-summary.txt").exists())
+            self.assertTrue((output_dir / "intent-transport-decision-package-summary.json").exists())
 
             memo_draft = json.loads(
                 (output_dir / "intent-transport-decision-memo-draft.json").read_text(encoding="utf-8")
@@ -526,6 +528,7 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertIn("bundle_file", manifest["artifacts"])
             self.assertIn("verification_file", manifest["artifacts"])
             self.assertIn("compact_summary_file", manifest["artifacts"])
+            self.assertIn("compact_summary_json_file", manifest["artifacts"])
 
             verification = json.loads(
                 (output_dir / "intent-transport-decision-package-verification.json").read_text(
@@ -538,6 +541,13 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
                 encoding="utf-8"
             )
             self.assertIn("decision=", compact_summary)
+
+            compact_summary_json = json.loads(
+                (output_dir / "intent-transport-decision-package-summary.json").read_text(encoding="utf-8")
+            )
+            self.assertIn("decision", compact_summary_json)
+            self.assertIn("verified", compact_summary_json)
+            self.assertIn("schema_supported", compact_summary_json)
 
     def test_decision_package_builder_can_fail_on_blocked(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

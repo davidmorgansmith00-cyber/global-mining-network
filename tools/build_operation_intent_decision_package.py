@@ -94,6 +94,7 @@ def main() -> int:
     manifest_path = output_dir / args.manifest_name
     verification_path = output_dir / "intent-transport-decision-package-verification.json"
     compact_summary_path = output_dir / "intent-transport-decision-package-summary.txt"
+    compact_summary_json_path = output_dir / "intent-transport-decision-package-summary.json"
 
     _run_command(
         [
@@ -191,19 +192,34 @@ def main() -> int:
     verification_schema_supported = bool(verification_payload.get("schema_supported", False))
 
     decision = str(evaluation_payload.get("decision", ""))
-    promotion_ready = str(bool(evaluation_payload.get("promotion_ready", False))).lower()
+    promotion_ready_bool = bool(evaluation_payload.get("promotion_ready", False))
+    promotion_ready = str(promotion_ready_bool).lower()
     passed_checks = int(evaluation_payload.get("passed_checks", 0))
     total_checks = int(evaluation_payload.get("total_checks", 0))
     failed_checks_payload = evaluation_payload.get("failed_checks", [])
     failed_checks = (
         ",".join(failed_checks_payload) if isinstance(failed_checks_payload, list) else str(failed_checks_payload)
     )
+    compact_summary_json = {
+        "manifest": str(manifest_path.resolve()).replace("\\", "/"),
+        "decision": decision,
+        "promotion_ready": promotion_ready_bool,
+        "passed_checks": passed_checks,
+        "total_checks": total_checks,
+        "verified": verification_verified,
+        "schema_supported": verification_schema_supported,
+        "failed_checks": failed_checks_payload,
+    }
     compact_summary_line = (
         f"decision={decision} promotion_ready={promotion_ready} "
         f"checks={passed_checks}/{total_checks} verified={str(verification_verified).lower()} "
         f"schema_supported={str(verification_schema_supported).lower()} failed_checks={failed_checks}"
     )
     compact_summary_path.write_text(compact_summary_line + "\n", encoding="utf-8")
+    compact_summary_json_path.write_text(
+        json.dumps(compact_summary_json, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
 
     summary = {
         "output_dir": str(output_dir).replace("\\", "/"),
@@ -214,10 +230,12 @@ def main() -> int:
         "manifest_file": str(manifest_path).replace("\\", "/"),
         "verification_file": str(verification_path).replace("\\", "/"),
         "compact_summary_file": str(compact_summary_path).replace("\\", "/"),
+        "compact_summary_json_file": str(compact_summary_json_path).replace("\\", "/"),
         "verification_verified": verification_verified,
         "verification_schema_supported": verification_schema_supported,
     }
     manifest["artifacts"]["compact_summary_file"] = summary["compact_summary_file"]
+    manifest["artifacts"]["compact_summary_json_file"] = summary["compact_summary_json_file"]
     manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(json.dumps(summary, indent=2, sort_keys=True))
     return 0
