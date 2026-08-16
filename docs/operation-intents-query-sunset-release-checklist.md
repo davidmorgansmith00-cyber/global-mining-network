@@ -117,6 +117,7 @@ Verify generated package integrity:
 - The verifier checks artifact path existence and validates that `rollout_gate_evaluation` embedded in memo draft matches the standalone evaluation artifact.
 - When compact summary artifacts are present in the manifest, the verifier also checks that `.txt` and `.json` summary contents match expected values derived from evaluation + verification artifacts.
 - If the compact summary JSON artifact is malformed, verifier marks package as unverified and reports a compact-summary parse mismatch detail.
+- Backward compatibility: for older manifest files that do not include compact summary artifact keys, verifier still supports schema `1.0` and skips compact-summary consistency checks.
 
 Print compact package gate summary:
 - PowerShell: `python tools/inspect_operation_intent_decision_package.py --manifest artifacts/operation-intent-decision-package/intent-transport-decision-package-manifest.json`
