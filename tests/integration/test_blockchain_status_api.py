@@ -1258,6 +1258,35 @@ class BlockchainStatusApiTests(unittest.TestCase):
         payload = get_response.json()
         self.assertEqual(payload["reconnect_cursor"], 42)
 
+    def test_checkpoint_endpoints_reject_revoked_session_binding(self) -> None:
+        player_id, session_id = self._create_player_session_binding()
+
+        with psycopg.connect(self.database_url) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    UPDATE auth_sessions
+                    SET revoked_at = NOW()
+                    WHERE session_id = %s
+                    """,
+                    (UUID(session_id),),
+                )
+            connection.commit()
+
+        with TestClient(app) as client:
+            put_response = client.put(
+                f"/api/v1/blockchain/checkpoints/global?player_id={player_id}&session_id={session_id}",
+                json={"reconnect_cursor": 99},
+            )
+            get_response = client.get(
+                f"/api/v1/blockchain/checkpoints/global?player_id={player_id}&session_id={session_id}"
+            )
+
+        self.assertEqual(put_response.status_code, 401)
+        self.assertEqual(get_response.status_code, 401)
+        self.assertEqual(put_response.json()["detail"], "Invalid session binding")
+        self.assertEqual(get_response.json()["detail"], "Invalid session binding")
+
     def test_player_rewards_channel_filters_to_bound_player(self) -> None:
         started_at = datetime(2026, 8, 15, 23, 30, tzinfo=UTC)
         player_a, session_a = self._create_player_session_binding()
