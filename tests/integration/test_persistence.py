@@ -18,7 +18,7 @@ if str(ROOT) not in sys.path:
 if str(SERVER_ROOT) not in sys.path:
     sys.path.insert(0, str(SERVER_ROOT))
 
-from domain.auth.schemas import LoginRequest, RegisterRequest
+from domain.auth.schemas import LoginRequest, LogoutRequest, RefreshRequest, RegisterRequest
 from domain.auth.service import AuthService
 from domain.players.service import PlayerBootstrapService
 from tools.apply_migrations import apply_migrations
@@ -90,9 +90,11 @@ class PersistenceFlowTests(unittest.TestCase):
 
         self.assertTrue(registered.access_token.startswith("access_"))
         self.assertTrue(registered.refresh_token.startswith("refresh_"))
+        self.assertEqual(UUID(registered.session_id).version, 4)
 
         logged_in = auth.login(LoginRequest(email=unique_email, password="password123"))
         self.assertEqual(logged_in.player_id, registered.player_id)
+        self.assertNotEqual(logged_in.session_id, registered.session_id)
 
         bootstrapped = PlayerBootstrapService().bootstrap(player_id=registered.player_id)
         self.assertEqual(bootstrapped.player_id, registered.player_id)
@@ -117,6 +119,42 @@ class PersistenceFlowTests(unittest.TestCase):
                 cursor.execute("DELETE FROM auth_sessions WHERE player_id = %s", (player_id,))
                 cursor.execute("DELETE FROM player_profiles WHERE player_id = %s", (player_id,))
                 cursor.execute("DELETE FROM players WHERE player_id = %s", (player_id,))
+            connection.commit()
+
+    def test_db_backed_session_refresh_and_logout(self) -> None:
+        unique_email = f"refresh_{uuid4().hex[:10]}@example.com"
+
+        auth = AuthService()
+        registered = auth.register(RegisterRequest(email=unique_email, password="password123"))
+
+        refreshed = auth.refresh(RefreshRequest(session_id=registered.session_id, refresh_token=registered.refresh_token))
+        self.assertEqual(refreshed.player_id, registered.player_id)
+        self.assertEqual(refreshed.session_id, registered.session_id)
+        self.assertNotEqual(refreshed.refresh_token, registered.refresh_token)
+
+        with self.assertRaises(ValueError):
+            auth.refresh(RefreshRequest(session_id=registered.session_id, refresh_token=registered.refresh_token))
+
+        revoked = auth.logout(LogoutRequest(session_id=registered.session_id, refresh_token=refreshed.refresh_token))
+        self.assertEqual(revoked.session_id, registered.session_id)
+        self.assertTrue(revoked.revoked)
+
+        with self.assertRaises(ValueError):
+            auth.refresh(RefreshRequest(session_id=registered.session_id, refresh_token=refreshed.refresh_token))
+
+        with psycopg.connect(self.database_url) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT revoked_at FROM auth_sessions WHERE session_id = %s",
+                    (UUID(registered.session_id),),
+                )
+                revoked_at_row = cursor.fetchone()
+                self.assertIsNotNone(revoked_at_row)
+                self.assertIsNotNone(revoked_at_row[0])
+
+                cursor.execute("DELETE FROM auth_sessions WHERE player_id = %s", (UUID(registered.player_id),))
+                cursor.execute("DELETE FROM player_profiles WHERE player_id = %s", (UUID(registered.player_id),))
+                cursor.execute("DELETE FROM players WHERE player_id = %s", (UUID(registered.player_id),))
             connection.commit()
 
 

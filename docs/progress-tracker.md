@@ -53,10 +53,10 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 |---|---|---|---|
 | Architecture and Program Control | In Progress | Program Lead | Baseline docs are active and now guiding M1 execution |
 | Platform and Developer Experience | In Progress | Platform Lead | Root scaffold, compose stack, service skeleton, and CI baseline created |
-| Identity and Account Systems | In Progress | Backend Lead | Versioned auth route and session contract skeleton created |
+| Identity and Account Systems | In Progress | Backend Lead | Versioned auth route now includes register/login/refresh/logout and session contract coverage |
 | Player State and Progression Core | In Progress | Backend Lead | Player bootstrap contract skeleton created |
-| Simulation Kernel | In Progress | Simulation Lead | Mining service now processes intervals with per-operation timestamps and boundary events |
-| Blockchain and Difficulty | In Progress | Simulation Lead | Persistent active/finalized block state store added with DB-backed integration coverage |
+| Simulation Kernel | In Progress | Simulation Lead | Mining service now processes intervals with per-operation timestamps and explicit boundary-event timestamps |
+| Blockchain and Difficulty | In Progress | Simulation Lead | Persistent active/finalized block state store added with DB-backed integration and cross-process race coverage |
 | Economy and Ledger | In Progress | Economy Lead | Block finalization ledger posting contract added and DB-backed entry test coverage added |
 | Hardware, Power, Cooling, Facilities | Not Started | Economy Lead | Starts in M2 |
 | Marketplace and Trading | Not Started | Economy Lead | Starts after ledger/inventory baseline |
@@ -136,12 +136,16 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Mining package export surface updated | Done | Exposed contract and slicer primitives via `server/domain/mining/__init__.py` |
 | Deterministic interval unit tests | Done | Added and passed `tests/unit/test_mining_interval_slicer.py` |
 | Mining simulation service baseline | Done | Added `server/domain/mining/service.py` with per-operation last-processed timestamps and authoritative contribution processing |
+| Boundary-event timestamp contract hardening | Done | Removed the hidden default timestamp from mining boundary events so callers must provide authoritative times explicitly |
+| Auth session lifecycle baseline | Done | Added register/login/refresh/logout lifecycle support with session IDs and revocation handling |
+| Auth session lifecycle integration coverage | Done | Added persistence coverage for refresh rotation and logout revocation |
 | Shared-block aggregation integration test | Done | Added and passed `tests/integration/test_mining_simulation_service.py::test_multiple_operations_contribute_to_same_active_block` |
 | Timestamp progression and boundary application test | Done | Added and passed `tests/integration/test_mining_simulation_service.py::test_operation_last_processed_timestamp_advances_and_boundaries_apply` |
 | Atomic finalization concurrency test | Done | Added and passed `tests/integration/test_mining_simulation_service.py::test_atomic_finalization_under_concurrency` |
 | DB-backed active/finalized block persistence | Done | Added `server/domain/blockchain/store.py` and migration table coverage |
 | DB-backed ledger posting contract wiring | Done | Added `server/domain/economy/ledger.py` and finalization-to-ledger integration in mining service |
 | Blockchain persistence and ledger integration tests | Done | Added and passed `tests/integration/test_blockchain_persistence_and_ledger.py` |
+| Cross-process blockchain finalization race coverage | Done | Added Postgres-backed race regression ensuring one finalized block and one block-ledger entry under concurrent service instances |
 | Difficulty adjustment baseline service | Done | Added `server/domain/difficulty/service.py` with bounded adjustment by finalized block timing window |
 | Difficulty config DB baseline | Done | Added `database/migrations/0004_difficulty_config.sql` default singleton settings row |
 | Reward settlement calculation baseline | Done | Added `server/domain/economy/reward_settlement.py` and wired mining finalization reward amount computation |
@@ -350,9 +354,9 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 ---
 
 ## 10. Next Actions
-1. Execute first deprecation release-note publication and attach communication artifacts to the migration evidence bundle.
-2. Run strict-mode canary with `GMN_ENABLE_QUERY_SUNSET_TESTS=1` in pre-prod and collect daily transport snapshots with `tools/capture_operation_intent_transport_metrics.py`.
-3. Build a 14-day bundle with explicit strict/mismatch thresholds, prefill memo draft, then complete final manual sections and secure go/no-go approvals.
+1. Implement the remaining M1 simulation kernel timestamp/state-transition work and keep boundary reconstruction deterministic.
+2. Tighten the M1 blockchain core slice around active-block invariants, finalization lock strategy, and duplicate-finalization prevention.
+3. Continue the M1 ledger and reward-settlement path so block finalization remains immutable and replay-safe.
 
 ---
 

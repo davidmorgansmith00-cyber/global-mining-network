@@ -82,10 +82,12 @@ class MiningIntervalSlicerTests(unittest.TestCase):
         self.assertEqual(sum(item.elapsed_seconds for item in first_run), 600)
 
     def test_boundary_event_contract_defaults_to_v1_schema(self) -> None:
+        occurred_at = datetime(2026, 8, 15, 12, 15, tzinfo=UTC)
         event = SimulationBoundaryEvent(
             event_type=EVENT_OPERATION_PAUSE,
             player_id="player_123",
             operation_id="starter_operation",
+            occurred_at=occurred_at,
             payload={"reason": "manual_pause"},
         )
 
@@ -93,6 +95,7 @@ class MiningIntervalSlicerTests(unittest.TestCase):
         self.assertEqual(event.event_type, EVENT_OPERATION_PAUSE)
         self.assertEqual(event.player_id, "player_123")
         self.assertEqual(event.operation_id, "starter_operation")
+        self.assertEqual(event.occurred_at, occurred_at)
 
 
 if __name__ == "__main__":

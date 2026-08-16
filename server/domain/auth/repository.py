@@ -50,6 +50,56 @@ class AuthRepository:
             connection.commit()
         return session_id
 
+    def get_active_session_credentials(self, session_id: UUID) -> tuple[UUID, str] | None:
+        with open_connection() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT player_id, refresh_token_hash
+                    FROM auth_sessions
+                    WHERE session_id = %s
+                      AND revoked_at IS NULL
+                      AND expires_at > NOW()
+                    LIMIT 1
+                    """,
+                    (session_id,),
+                )
+                row = cursor.fetchone()
+
+        if row is None:
+            return None
+        return row[0], row[1]
+
+    def rotate_session_refresh_token(self, session_id: UUID, refresh_token_hash: str) -> None:
+        with open_connection() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    UPDATE auth_sessions
+                    SET refresh_token_hash = %s,
+                        expires_at = NOW() + INTERVAL '30 days'
+                    WHERE session_id = %s
+                      AND revoked_at IS NULL
+                      AND expires_at > NOW()
+                    """,
+                    (refresh_token_hash, session_id),
+                )
+            connection.commit()
+
+    def revoke_session(self, session_id: UUID) -> None:
+        with open_connection() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    UPDATE auth_sessions
+                    SET revoked_at = NOW()
+                    WHERE session_id = %s
+                      AND revoked_at IS NULL
+                    """,
+                    (session_id,),
+                )
+            connection.commit()
+
     def is_active_session_for_player(self, *, player_id: UUID, session_id: UUID) -> bool:
         with open_connection() as connection:
             with connection.cursor() as cursor:

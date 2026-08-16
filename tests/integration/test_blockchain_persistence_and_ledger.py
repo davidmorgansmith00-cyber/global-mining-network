@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import sys
+import threading
 import unittest
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
@@ -117,6 +118,55 @@ class BlockchainPersistenceAndLedgerTests(unittest.TestCase):
         self.assertEqual(player_row[1], Decimal("100.000000"))
         self.assertEqual(player_row[2], 1)
         self.assertEqual(player_row[3], Decimal("100.000000"))
+
+    def test_cross_process_finalization_race_records_one_block_and_one_ledger_entry(self) -> None:
+        started_at = datetime(2026, 8, 15, 18, 0, tzinfo=UTC)
+        tick_end = started_at + timedelta(seconds=2)
+        barrier = threading.Barrier(2)
+
+        service_a = MiningSimulationService(
+            required_work=Decimal("100"),
+            blockchain_state_store=PostgresBlockchainStateStore(required_work=Decimal("100")),
+            ledger_poster=PostgresLedgerPoster(),
+        )
+        service_b = MiningSimulationService(
+            required_work=Decimal("100"),
+            blockchain_state_store=PostgresBlockchainStateStore(required_work=Decimal("100")),
+            ledger_poster=PostgresLedgerPoster(),
+        )
+        service_a.register_operation(operation_id="op_a", player_id="player_a", base_hashrate_hps=Decimal("30"), started_at=started_at)
+        service_b.register_operation(operation_id="op_b", player_id="player_b", base_hashrate_hps=Decimal("30"), started_at=started_at)
+
+        results: list[int | None] = []
+        results_lock = threading.Lock()
+
+        def run_tick(service: MiningSimulationService, operation_id: str) -> None:
+            barrier.wait()
+            tick_result = service.process_tick(operation_id=operation_id, ended_at=tick_end)
+            with results_lock:
+                results.append(tick_result.finalized_block_number)
+
+        threads = [
+            threading.Thread(target=run_tick, args=(service_a, "op_a")),
+            threading.Thread(target=run_tick, args=(service_b, "op_b")),
+        ]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+
+        self.assertEqual([item for item in results if item is not None], [1])
+
+        with psycopg.connect(self.database_url) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT COUNT(*) FROM blockchain_finalized_blocks")
+                self.assertEqual(cursor.fetchone()[0], 1)
+
+                cursor.execute(
+                    "SELECT COUNT(*) FROM economy_ledger_entries WHERE reference_block_number = %s",
+                    (1,),
+                )
+                self.assertEqual(cursor.fetchone()[0], 1)
 
 
 if __name__ == "__main__":
