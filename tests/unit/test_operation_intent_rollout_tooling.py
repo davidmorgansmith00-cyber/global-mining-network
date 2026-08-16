@@ -343,6 +343,43 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
                 "fail_candidate",
             )
 
+    def test_rollout_gate_evaluator_reports_hold_and_can_fail_exit_code(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            temp_root = Path(tmp)
+            bundle_path = temp_root / "rollout-bundle.json"
+
+            bundle_payload = {
+                "threshold_checks": {
+                    "query_share_window_pass": True,
+                    "query_share_window_rule": "query share condition",
+                    "strict_rejection_window_pass": False,
+                    "strict_rejection_window_rule": "strict rejection condition",
+                    "mismatch_rate_window_pass": True,
+                    "mismatch_rate_window_rule": "mismatch condition",
+                }
+            }
+            bundle_path.write_text(json.dumps(bundle_payload), encoding="utf-8")
+
+            eval_result = self._run(
+                "tools/evaluate_operation_intent_rollout_gate.py",
+                "--bundle",
+                str(bundle_path),
+            )
+            self.assertEqual(eval_result.returncode, 0, msg=eval_result.stderr)
+
+            evaluation = json.loads(eval_result.stdout)
+            self.assertFalse(evaluation["promotion_ready"])
+            self.assertEqual(evaluation["decision"], "hold_candidate")
+            self.assertEqual(evaluation["failed_checks"], ["strict_rejection_window_pass"])
+
+            fail_result = self._run(
+                "tools/evaluate_operation_intent_rollout_gate.py",
+                "--bundle",
+                str(bundle_path),
+                "--fail-on-blocked",
+            )
+            self.assertEqual(fail_result.returncode, 1)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

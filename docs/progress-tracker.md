@@ -249,6 +249,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Operation intent checklist auto-result wording sync | Done | Updated query-sunset checklist to reflect that mismatch auto-result is now computed by tooling threshold checks rather than always manual-review-only |
 | Operation intent dry-run context parameterization | Done | Added `--environment-scope` and `--decision-owner` options to dry-run helper and verified prefilled memo fields honor supplied rollout context |
 | Operation intent threshold-failure prefill coverage | Done | Added tooling unit test that forces query-share, strict-rejection, and mismatch threshold failures and verifies prefill helper emits `fail_candidate` auto-results |
+| Operation intent rollout gate evaluator helper | Done | Added `tools/evaluate_operation_intent_rollout_gate.py` to convert bundle threshold checks into a promotion-ready/hold decision summary with optional non-zero exit for CI gating |
 | Optional CI workflow-dispatch DB baseline rerun | Done | Run `31956249661` succeeded end-to-end (`baseline` and `db-integration` both green); total run window was 67s (`15:38:16Z` to `15:39:23Z`) |
 | Local CI-mirrored full suite baseline | Done | Ran the same test selection as optional `db-integration` locally: `65` tests passed in `35.976s` |
 
