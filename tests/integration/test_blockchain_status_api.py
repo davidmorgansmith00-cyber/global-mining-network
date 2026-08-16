@@ -698,6 +698,16 @@ class BlockchainStatusApiTests(unittest.TestCase):
 
         self.assertEqual(missing_operation_id.status_code, 422)
 
+    def test_operation_stop_intent_rejects_missing_session_transport(self) -> None:
+        with TestClient(app) as client:
+            response = client.post(
+                "/api/v1/blockchain/operations/intents/stop",
+                json={"operation_id": "op_missing_transport"},
+            )
+
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json().get("detail"), "Invalid session binding")
+
     def test_operation_intents_reject_expired_session_bindings(self) -> None:
         player_id, session_id = self._create_player_session_binding()
 

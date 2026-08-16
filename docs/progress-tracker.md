@@ -209,6 +209,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Checkpoint upsert required-field schema coverage | Done | Added integration test asserting checkpoint upsert rejects payloads missing required `reconnect_cursor` with HTTP 422 |
 | Checkpoint player_rewards bootstrap cursor coverage | Done | Added integration test asserting checkpoint GET for `player_rewards` with no stored checkpoint returns reconnect cursor consistent with authoritative player_rewards stream |
 | Checkpoint player_rewards negative-cursor coverage | Done | Added integration test asserting player_rewards checkpoint upsert rejects negative `reconnect_cursor` with HTTP 422 |
+| Operation stop missing-session transport coverage | Done | Added integration test asserting operation stop without query/header session transport is rejected with deterministic invalid-session response |
 | WebSocket auth/session binding | Done | WebSocket now validates `player_id` + `session_id` against active auth sessions |
 | Per-client channel filtering | Done | Added `global` and `player_rewards` channel filters with player-scoped event routing |
 | Event/checkpoint retention cleanup endpoint | Done | Added `POST /api/v1/blockchain/maintenance/cleanup` with age/cap cleanup for network events and checkpoints |
