@@ -612,6 +612,26 @@ class BlockchainStatusApiTests(unittest.TestCase):
         self.assertEqual(zero_hashrate.json()["detail"], "base_hashrate_hps must be positive")
         self.assertEqual(negative_hashrate.json()["detail"], "base_hashrate_hps must be positive")
 
+    def test_operation_start_intent_rejects_missing_required_fields(self) -> None:
+        _, session_id = self._create_player_session_binding()
+
+        with TestClient(app) as client:
+            missing_operation_id = client.post(
+                f"/api/v1/blockchain/operations/intents/start?session_id={session_id}",
+                json={
+                    "base_hashrate_hps": "25",
+                },
+            )
+            missing_base_hashrate = client.post(
+                f"/api/v1/blockchain/operations/intents/start?session_id={session_id}",
+                json={
+                    "operation_id": "op_missing_hashrate",
+                },
+            )
+
+        self.assertEqual(missing_operation_id.status_code, 422)
+        self.assertEqual(missing_base_hashrate.status_code, 422)
+
     def test_operation_stop_intent_endpoint_enforces_player_binding_and_state_transition(self) -> None:
         _, session_a = self._create_player_session_binding()
         _, session_b = self._create_player_session_binding()
