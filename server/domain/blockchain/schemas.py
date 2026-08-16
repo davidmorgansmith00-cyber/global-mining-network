@@ -4,6 +4,7 @@ from datetime import datetime
 from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict
+from pydantic import Field
 
 
 class RecentBlockOutcome(BaseModel):
@@ -90,7 +91,7 @@ class ClientCheckpointResponse(BaseModel):
 
 
 class ClientCheckpointUpdateRequest(BaseModel):
-    reconnect_cursor: int
+    reconnect_cursor: int = Field(ge=0)
 
 
 class OperationStartIntentRequest(BaseModel):
