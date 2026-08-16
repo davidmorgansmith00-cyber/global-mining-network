@@ -92,6 +92,7 @@ def main() -> int:
     memo_draft_path = output_dir / "intent-transport-decision-memo-draft.json"
     memo_markdown_path = output_dir / "intent-transport-decision-memo.md"
     manifest_path = output_dir / args.manifest_name
+    verification_path = output_dir / "intent-transport-decision-package-verification.json"
 
     _run_command(
         [
@@ -171,6 +172,17 @@ def main() -> int:
     }
     manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
+    _run_command(
+        [
+            sys.executable,
+            str(root / "tools" / "verify_operation_intent_decision_package.py"),
+            "--manifest",
+            str(manifest_path),
+            "--output",
+            str(verification_path),
+        ]
+    )
+
     summary = {
         "output_dir": str(output_dir).replace("\\", "/"),
         "bundle_file": str(bundle_path).replace("\\", "/"),
@@ -178,6 +190,7 @@ def main() -> int:
         "memo_draft_file": str(memo_draft_path).replace("\\", "/"),
         "memo_markdown_file": str(memo_markdown_path).replace("\\", "/"),
         "manifest_file": str(manifest_path).replace("\\", "/"),
+        "verification_file": str(verification_path).replace("\\", "/"),
     }
     print(json.dumps(summary, indent=2, sort_keys=True))
     return 0

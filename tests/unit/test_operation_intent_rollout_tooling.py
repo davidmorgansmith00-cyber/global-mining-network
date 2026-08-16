@@ -490,12 +490,14 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertIn("memo_draft_file", summary)
             self.assertIn("memo_markdown_file", summary)
             self.assertIn("manifest_file", summary)
+            self.assertIn("verification_file", summary)
 
             self.assertTrue((output_dir / "intent-transport-rollout-bundle.json").exists())
             self.assertTrue((output_dir / "intent-transport-rollout-evaluation.json").exists())
             self.assertTrue((output_dir / "intent-transport-decision-memo-draft.json").exists())
             self.assertTrue((output_dir / "intent-transport-decision-memo.md").exists())
             self.assertTrue((output_dir / "intent-transport-decision-package-manifest.json").exists())
+            self.assertTrue((output_dir / "intent-transport-decision-package-verification.json").exists())
 
             memo_draft = json.loads(
                 (output_dir / "intent-transport-decision-memo-draft.json").read_text(encoding="utf-8")
@@ -509,6 +511,13 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             )
             self.assertEqual(manifest["inputs"]["environment_scope"], "pre-prod-canary")
             self.assertIn("bundle_file", manifest["artifacts"])
+
+            verification = json.loads(
+                (output_dir / "intent-transport-decision-package-verification.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            self.assertTrue(verification["verified"])
 
     def test_decision_package_builder_can_fail_on_blocked(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -601,10 +610,13 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
                 "tools/verify_operation_intent_decision_package.py",
                 "--manifest",
                 str(manifest_path),
+                "--output",
+                str(output_dir / "verification-copy.json"),
             )
             self.assertEqual(verify_result.returncode, 0, msg=verify_result.stderr)
             verification = json.loads(verify_result.stdout)
             self.assertTrue(verification["verified"])
+            self.assertTrue((output_dir / "verification-copy.json").exists())
 
     def test_decision_package_verifier_detects_memo_evaluation_mismatch(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

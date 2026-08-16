@@ -17,6 +17,11 @@ def _parse_args() -> argparse.Namespace:
         required=True,
         help="Path to decision package manifest JSON",
     )
+    parser.add_argument(
+        "--output",
+        default="",
+        help="Optional path to write verification JSON output",
+    )
     return parser.parse_args()
 
 
@@ -96,7 +101,13 @@ def main() -> int:
         "evaluation_matches_memo": evaluation_matches_memo,
         "mismatch_details": mismatch_details,
     }
-    print(json.dumps(result, indent=2, sort_keys=True))
+    text = json.dumps(result, indent=2, sort_keys=True)
+    if args.output:
+        output_path = Path(args.output)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(text + "\n", encoding="utf-8")
+
+    print(text)
     return 0 if verified else 1
 
 
