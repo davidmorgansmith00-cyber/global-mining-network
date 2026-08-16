@@ -682,6 +682,10 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             )
             self.assertEqual(inspect_json_result.returncode, 0, msg=inspect_json_result.stderr)
             self.assertEqual(compact_summary_json, json.loads(inspect_json_result.stdout))
+            inspect_summary = json.loads(inspect_json_result.stdout)
+            self.assertIn("checks", inspect_summary)
+            self.assertIsInstance(inspect_summary["checks"], list)
+            self.assertEqual(len(inspect_summary["checks"]), 3)
 
     def test_decision_package_builder_can_fail_on_blocked(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

@@ -130,6 +130,9 @@ def main() -> int:
     compact_summary_mismatch_count = int(
         verification.get("compact_summary_mismatch_count", len(compact_summary_mismatch_details))
     )
+    checks = evaluation.get("checks", [])
+    if not isinstance(checks, list):
+        checks = [checks]
 
     summary = {
         "manifest": str(manifest_path.resolve()).replace("\\", "/"),
@@ -137,6 +140,7 @@ def main() -> int:
         "promotion_ready": bool(evaluation.get("promotion_ready", False)),
         "passed_checks": int(evaluation.get("passed_checks", 0)),
         "total_checks": int(evaluation.get("total_checks", 0)),
+        "checks": checks,
         "verified": bool(verification.get("verified", False)),
         "schema_supported": bool(verification.get("schema_supported", False)),
         "compact_summary_artifacts_present": bool(
