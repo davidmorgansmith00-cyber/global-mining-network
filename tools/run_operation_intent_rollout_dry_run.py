@@ -317,6 +317,9 @@ def main() -> int:
     decision_package_failed_checks = _normalize_string_list(
         package_summary.get("verification_failed_checks", compact_summary_json_payload.get("failed_checks", []))
     )
+    decision_package_checks = package_summary.get("verification_checks", compact_summary_json_payload.get("checks", []))
+    if not isinstance(decision_package_checks, list):
+        decision_package_checks = [decision_package_checks]
 
     inspector_verified = bool(
         package_summary.get("inspector_verified", inspector_summary_json_payload.get("verified", False))
@@ -352,6 +355,7 @@ def main() -> int:
         "decision_package_passed_checks": decision_package_passed_checks,
         "decision_package_total_checks": decision_package_total_checks,
         "decision_package_failed_checks": decision_package_failed_checks,
+        "decision_package_checks": decision_package_checks,
         "decision_package_verified": decision_package_verified,
         "decision_package_schema_supported": decision_package_schema_supported,
         "decision_package_evaluation_matches_memo": bool(
