@@ -537,6 +537,39 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             )
             self.assertEqual(package_result.returncode, 1)
 
+    def test_decision_package_builder_supports_custom_manifest_name(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            temp_root = Path(tmp)
+            captures_dir = temp_root / "captures"
+            captures_dir.mkdir(parents=True, exist_ok=True)
+
+            self._write_capture_file(
+                captures_dir / "intent-transport-day01.json",
+                finished_at="2026-08-16T00:00:00+00:00",
+                query_delta=1,
+                header_delta=160,
+                dual_match_delta=4,
+                mismatch_delta=0,
+                query_rejected_strict_delta=0,
+            )
+
+            output_dir = temp_root / "decision-package"
+            custom_manifest = "custom-manifest.json"
+            package_result = self._run(
+                "tools/build_operation_intent_decision_package.py",
+                "--input-glob",
+                str(captures_dir / "intent-transport-day*.json"),
+                "--output-dir",
+                str(output_dir),
+                "--manifest-name",
+                custom_manifest,
+            )
+            self.assertEqual(package_result.returncode, 0, msg=package_result.stderr)
+
+            summary = json.loads(package_result.stdout)
+            self.assertTrue(summary["manifest_file"].endswith("/custom-manifest.json"))
+            self.assertTrue((output_dir / custom_manifest).exists())
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

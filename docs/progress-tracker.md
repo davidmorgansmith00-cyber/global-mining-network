@@ -257,6 +257,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Operation intent decision package orchestrator helper | Done | Added `tools/build_operation_intent_decision_package.py` to generate bundle, evaluation, memo draft, and markdown memo in one command from capture inputs |
 | Operation intent decision package fail-on-blocked mode | Done | Added `--fail-on-blocked` pass-through in decision package builder so CI can enforce non-zero exit when rollout gate evaluation is not promotion-ready |
 | Operation intent decision package manifest index | Done | Decision package builder now emits `intent-transport-decision-package-manifest.json` recording thresholds/inputs and canonical artifact paths for review handoff |
+| Operation intent custom manifest filename coverage | Done | Added tooling test and checklist guidance for `--manifest-name` to support custom decision-package manifest naming conventions |
 | Optional CI workflow-dispatch DB baseline rerun | Done | Run `31956249661` succeeded end-to-end (`baseline` and `db-integration` both green); total run window was 67s (`15:38:16Z` to `15:39:23Z`) |
 | Local CI-mirrored full suite baseline | Done | Ran the same test selection as optional `db-integration` locally: `65` tests passed in `35.976s` |
 
