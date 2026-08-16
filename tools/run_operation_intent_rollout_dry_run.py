@@ -282,6 +282,12 @@ def main() -> int:
         "decision_package_promotion_ready": bool(compact_summary_json_payload.get("promotion_ready", False)),
         "decision_package_verified": bool(compact_summary_json_payload.get("verified", False)),
         "decision_package_schema_supported": bool(compact_summary_json_payload.get("schema_supported", False)),
+        "decision_package_compact_summary_checks_performed": bool(
+            package_summary.get("verification_compact_summary_checks_performed", False)
+        ),
+        "decision_package_compact_summary_checks_skipped": bool(
+            package_summary.get("verification_compact_summary_checks_skipped", False)
+        ),
     }
     print(json.dumps(result, indent=2, sort_keys=True))
     return 0

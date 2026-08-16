@@ -207,6 +207,8 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertIn("decision_package_promotion_ready", summary)
             self.assertIn("decision_package_verified", summary)
             self.assertIn("decision_package_schema_supported", summary)
+            self.assertIn("decision_package_compact_summary_checks_performed", summary)
+            self.assertIn("decision_package_compact_summary_checks_skipped", summary)
 
             self.assertTrue((output_dir / "intent-transport-day01.json").exists())
             self.assertTrue((output_dir / "intent-transport-day02.json").exists())
@@ -515,6 +517,8 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertIn("compact_summary_json_file", summary)
             self.assertTrue(summary["verification_verified"])
             self.assertTrue(summary["verification_schema_supported"])
+            self.assertTrue(summary["verification_compact_summary_checks_performed"])
+            self.assertFalse(summary["verification_compact_summary_checks_skipped"])
 
             self.assertTrue((output_dir / "intent-transport-rollout-bundle.json").exists())
             self.assertTrue((output_dir / "intent-transport-rollout-evaluation.json").exists())

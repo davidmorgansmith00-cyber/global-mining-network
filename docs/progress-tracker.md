@@ -275,6 +275,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Operation intent malformed summary JSON verification handling | Done | Verifier now converts malformed `compact_summary_json_file` payloads into structured mismatch failures (instead of hard exceptions), with regression coverage |
 | Operation intent backward compatibility lock (schema 1.0) | Done | Kept compact summary verification optional for legacy manifests by confirming verifier accepts schema `1.0` manifests without `compact_summary_file`/`compact_summary_json_file` keys |
 | Operation intent summary-check observability flags | Done | Verifier output now explicitly surfaces `compact_summary_checks_performed` and `compact_summary_checks_skipped` so CI can distinguish strict vs backward-compatible validation paths |
+| Operation intent summary-check flag propagation | Done | Decision package builder and dry-run outputs now propagate compact summary verification path flags (`performed`/`skipped`) for machine-readable pipeline reporting |
 | Optional CI workflow-dispatch DB baseline rerun | Done | Run `31956249661` succeeded end-to-end (`baseline` and `db-integration` both green); total run window was 67s (`15:38:16Z` to `15:39:23Z`) |
 | Local CI-mirrored full suite baseline | Done | Ran the same test selection as optional `db-integration` locally: `65` tests passed in `35.976s` |
 

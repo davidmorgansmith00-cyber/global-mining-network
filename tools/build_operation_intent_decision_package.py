@@ -201,9 +201,6 @@ def main() -> int:
             str(verification_path),
         ]
     )
-    verification_payload = json.loads(verification_path.read_text(encoding="utf-8"))
-    verification_verified = bool(verification_payload.get("verified", False))
-    verification_schema_supported = bool(verification_payload.get("schema_supported", False))
     compact_summary_line = _run_command_capture_output(
         [
             sys.executable,
@@ -237,12 +234,30 @@ def main() -> int:
         "verification_file": str(verification_path).replace("\\", "/"),
         "compact_summary_file": str(compact_summary_path).replace("\\", "/"),
         "compact_summary_json_file": str(compact_summary_json_path).replace("\\", "/"),
-        "verification_verified": verification_verified,
-        "verification_schema_supported": verification_schema_supported,
     }
     manifest["artifacts"]["compact_summary_file"] = summary["compact_summary_file"]
     manifest["artifacts"]["compact_summary_json_file"] = summary["compact_summary_json_file"]
     manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+    _run_command(
+        [
+            sys.executable,
+            str(root / "tools" / "verify_operation_intent_decision_package.py"),
+            "--manifest",
+            str(manifest_path),
+            "--output",
+            str(verification_path),
+        ]
+    )
+    verification_payload = json.loads(verification_path.read_text(encoding="utf-8"))
+    summary["verification_verified"] = bool(verification_payload.get("verified", False))
+    summary["verification_schema_supported"] = bool(verification_payload.get("schema_supported", False))
+    summary["verification_compact_summary_checks_performed"] = bool(
+        verification_payload.get("compact_summary_checks_performed", False)
+    )
+    summary["verification_compact_summary_checks_skipped"] = bool(
+        verification_payload.get("compact_summary_checks_skipped", False)
+    )
     print(json.dumps(summary, indent=2, sort_keys=True))
     return 0
 
