@@ -1535,6 +1535,17 @@ class BlockchainStatusApiTests(unittest.TestCase):
 
         self.assertEqual(put_response.status_code, 422)
 
+    def test_checkpoint_upsert_rejects_missing_reconnect_cursor(self) -> None:
+        player_id, session_id = self._create_player_session_binding()
+
+        with TestClient(app) as client:
+            put_response = client.put(
+                f"/api/v1/blockchain/checkpoints/global?player_id={player_id}&session_id={session_id}",
+                json={},
+            )
+
+        self.assertEqual(put_response.status_code, 422)
+
     def test_checkpoint_endpoints_reject_unsupported_channel(self) -> None:
         player_id, session_id = self._create_player_session_binding()
 
