@@ -1338,6 +1338,27 @@ class BlockchainStatusApiTests(unittest.TestCase):
         payload = get_response.json()
         self.assertEqual(payload["reconnect_cursor"], 42)
 
+    def test_checkpoint_player_rewards_channel_persists_and_returns_reconnect_cursor(self) -> None:
+        player_id, session_id = self._create_player_session_binding()
+
+        with TestClient(app) as client:
+            put_response = client.put(
+                f"/api/v1/blockchain/checkpoints/player_rewards?player_id={player_id}&session_id={session_id}",
+                json={"reconnect_cursor": 7},
+            )
+            self.assertEqual(put_response.status_code, 200)
+
+            get_response = client.get(
+                f"/api/v1/blockchain/checkpoints/player_rewards?player_id={player_id}&session_id={session_id}"
+            )
+
+        self.assertEqual(get_response.status_code, 200)
+        payload = get_response.json()
+        self.assertEqual(payload["player_id"], player_id)
+        self.assertEqual(payload["session_id"], session_id)
+        self.assertEqual(payload["channel"], "player_rewards")
+        self.assertEqual(payload["reconnect_cursor"], 7)
+
     def test_checkpoint_get_bootstraps_reconnect_cursor_without_existing_checkpoint(self) -> None:
         started_at = datetime(2026, 8, 16, 0, 15, tzinfo=UTC)
         player_id, session_id = self._create_player_session_binding()
