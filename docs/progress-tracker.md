@@ -241,6 +241,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Operation intent 14-day rollout bundle builder | Done | Added `tools/build_operation_intent_rollout_bundle.py` to combine daily captures into one threshold-oriented bundle (`aggregate` + `threshold_checks`) for decision memo completion |
 | Operation intent decision memo prefill helper | Done | Added `tools/prefill_operation_intent_decision_memo.py` to pre-populate decision draft JSON from rollout bundle values while leaving manual-judgment sections explicit |
 | Operation intent end-to-end dry-run workflow helper | Done | Added `tools/run_operation_intent_rollout_dry_run.py` to generate synthetic day files and verify bundle + prefill pipeline outputs in one command |
+| Operation intent rollout tooling unit coverage | Done | Added `tests/unit/test_operation_intent_rollout_tooling.py` to validate bundle builder, memo prefill helper, and dry-run generator pipeline behavior |
 | Optional CI workflow-dispatch DB baseline rerun | Done | Run `31956249661` succeeded end-to-end (`baseline` and `db-integration` both green); total run window was 67s (`15:38:16Z` to `15:39:23Z`) |
 | Local CI-mirrored full suite baseline | Done | Ran the same test selection as optional `db-integration` locally: `65` tests passed in `35.976s` |
 
