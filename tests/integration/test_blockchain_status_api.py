@@ -101,6 +101,14 @@ class BlockchainStatusApiTests(unittest.TestCase):
         self.assertEqual(payload["recent_outcomes"][0]["reward_pool_amount"], "100.000000")
         self.assertEqual(payload["recent_outcomes"][0]["player_reward_amount"], "100.000000")
 
+    def test_status_endpoint_rejects_out_of_range_recent_limit(self) -> None:
+        with TestClient(app) as client:
+            below_min = client.get("/api/v1/blockchain/status?recent_limit=0")
+            above_max = client.get("/api/v1/blockchain/status?recent_limit=101")
+
+        self.assertEqual(below_min.status_code, 422)
+        self.assertEqual(above_max.status_code, 422)
+
     def test_finalized_reward_pool_amount_is_consistent_across_status_events_and_ledger(self) -> None:
         started_at = datetime(2026, 8, 15, 21, 10, tzinfo=UTC)
         service = MiningSimulationService(
