@@ -175,6 +175,12 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             )
             self.assertEqual(dry_run_result.returncode, 0, msg=dry_run_result.stderr)
 
+            summary = json.loads(dry_run_result.stdout)
+            self.assertEqual(summary["generated_daily_files"], 3)
+            self.assertIn("bundle_file", summary)
+            self.assertIn("memo_draft_file", summary)
+            self.assertIn("memo_markdown_file", summary)
+
             self.assertTrue((output_dir / "intent-transport-day01.json").exists())
             self.assertTrue((output_dir / "intent-transport-day02.json").exists())
             self.assertTrue((output_dir / "intent-transport-day03.json").exists())

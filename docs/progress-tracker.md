@@ -245,6 +245,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Operation intent threshold-check automation expansion | Done | Extended bundle `threshold_checks` with strict-rejection and mismatch-rate pass/fail flags and wired memo prefill auto-results to those checks |
 | Operation intent memo markdown renderer | Done | Added `tools/render_operation_intent_decision_memo.py` plus unit coverage to generate a readable markdown decision memo from prefilled JSON draft artifacts |
 | Operation intent dry-run markdown artifact wiring | Done | Updated `tools/run_operation_intent_rollout_dry_run.py` to pass strict/mismatch thresholds into bundle generation and emit `intent-transport-decision-memo.md` automatically |
+| Operation intent dry-run summary contract test | Done | Expanded tooling unit test to assert dry-run JSON output reports daily file count plus bundle/draft/markdown artifact paths |
 | Optional CI workflow-dispatch DB baseline rerun | Done | Run `31956249661` succeeded end-to-end (`baseline` and `db-integration` both green); total run window was 67s (`15:38:16Z` to `15:39:23Z`) |
 | Local CI-mirrored full suite baseline | Done | Ran the same test selection as optional `db-integration` locally: `65` tests passed in `35.976s` |
 
