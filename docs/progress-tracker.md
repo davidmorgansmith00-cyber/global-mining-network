@@ -289,6 +289,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Operation intent inspector output file mode | Done | Added `--output` support to inspector for writing rendered text/JSON payloads to disk, with regression tests validating file content parity |
 | Operation intent builder/inspector output unification | Done | Decision package builder now uses inspector `--output` mode to emit compact summary `.txt`/`.json` artifacts, reducing duplicated serialization paths |
 | Operation intent inspector failure-output persistence | Done | Added regression coverage that inspector still writes `--output` JSON diagnostics when `--fail-on-unverified` exits non-zero after refreshed verification |
+| Operation intent dry-run inspector artifacts | Done | Dry-run helper now emits refreshed inspector summary `.txt`/`.json` files for decision package and returns both paths in its output JSON |
 | Optional CI workflow-dispatch DB baseline rerun | Done | Run `31956249661` succeeded end-to-end (`baseline` and `db-integration` both green); total run window was 67s (`15:38:16Z` to `15:39:23Z`) |
 | Local CI-mirrored full suite baseline | Done | Ran the same test selection as optional `db-integration` locally: `65` tests passed in `35.976s` |
 

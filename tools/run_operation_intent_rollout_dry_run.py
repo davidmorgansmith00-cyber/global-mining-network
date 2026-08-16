@@ -180,6 +180,8 @@ def main() -> int:
     memo_markdown_path = output_dir / "intent-transport-decision-memo.md"
     rollout_evaluation_path = output_dir / "intent-transport-rollout-evaluation.json"
     decision_package_dir = output_dir / "decision-package"
+    inspector_summary_text_path = decision_package_dir / "intent-transport-decision-package-inspector-summary.txt"
+    inspector_summary_json_path = decision_package_dir / "intent-transport-decision-package-inspector-summary.json"
 
     _run_command(
         [
@@ -260,6 +262,33 @@ def main() -> int:
         ]
     )
     package_summary = json.loads(package_output) if package_output.strip() else {}
+    manifest_file = str(package_summary.get("manifest_file", ""))
+    if manifest_file:
+        _run_command(
+            [
+                sys.executable,
+                str(root / "tools" / "inspect_operation_intent_decision_package.py"),
+                "--manifest",
+                manifest_file,
+                "--verify-before-inspect",
+                "--output",
+                str(inspector_summary_text_path),
+            ]
+        )
+        _run_command(
+            [
+                sys.executable,
+                str(root / "tools" / "inspect_operation_intent_decision_package.py"),
+                "--manifest",
+                manifest_file,
+                "--verify-before-inspect",
+                "--format",
+                "json",
+                "--output",
+                str(inspector_summary_json_path),
+            ]
+        )
+
     compact_summary_json_file = str(package_summary.get("compact_summary_json_file", ""))
     compact_summary_json_payload: dict[str, object] = {}
     if compact_summary_json_file:
@@ -274,10 +303,12 @@ def main() -> int:
         "memo_draft_file": str(memo_draft_path).replace("\\", "/"),
         "memo_markdown_file": str(memo_markdown_path).replace("\\", "/"),
         "rollout_evaluation_file": str(rollout_evaluation_path).replace("\\", "/"),
-        "decision_package_manifest_file": str(package_summary.get("manifest_file", "")),
+        "decision_package_manifest_file": manifest_file,
         "decision_package_verification_file": str(package_summary.get("verification_file", "")),
         "decision_package_compact_summary_file": str(package_summary.get("compact_summary_file", "")),
         "decision_package_compact_summary_json_file": compact_summary_json_file,
+        "decision_package_inspector_summary_file": str(inspector_summary_text_path).replace("\\", "/"),
+        "decision_package_inspector_summary_json_file": str(inspector_summary_json_path).replace("\\", "/"),
         "decision_package_decision": str(compact_summary_json_payload.get("decision", "")),
         "decision_package_promotion_ready": bool(compact_summary_json_payload.get("promotion_ready", False)),
         "decision_package_verified": bool(compact_summary_json_payload.get("verified", False)),

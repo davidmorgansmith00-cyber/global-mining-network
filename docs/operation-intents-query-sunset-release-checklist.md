@@ -155,6 +155,8 @@ Dry-run expected outputs:
 - `artifacts/operation-intent-dry-run/decision-package/intent-transport-decision-package-verification.json`
 - `artifacts/operation-intent-dry-run/decision-package/intent-transport-decision-package-summary.txt`
 - `artifacts/operation-intent-dry-run/decision-package/intent-transport-decision-package-summary.json`
+- `artifacts/operation-intent-dry-run/decision-package/intent-transport-decision-package-inspector-summary.txt`
+- `artifacts/operation-intent-dry-run/decision-package/intent-transport-decision-package-inspector-summary.json`
 
 Dry-run quick gate fields in command JSON output:
 - `decision_package_decision`
