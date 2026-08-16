@@ -316,7 +316,7 @@ def main() -> int:
     if not isinstance(verification_failed_checks, list):
         verification_failed_checks = [str(verification_failed_checks)]
     summary["verification_failed_checks"] = [str(item) for item in verification_failed_checks]
-    verification_checks = evaluation.get("checks", [])
+    verification_checks = verification_payload.get("checks", evaluation.get("checks", []))
     if not isinstance(verification_checks, list):
         verification_checks = [verification_checks]
     summary["verification_checks"] = verification_checks

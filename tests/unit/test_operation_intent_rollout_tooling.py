@@ -656,6 +656,13 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
                 )
             )
             self.assertTrue(verification["verified"])
+            self.assertIn("checks", verification)
+
+            evaluation = json.loads(
+                (output_dir / "intent-transport-rollout-evaluation.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(verification["checks"], evaluation["checks"])
+            self.assertEqual(summary["verification_checks"], verification["checks"])
 
             compact_summary = (output_dir / "intent-transport-decision-package-summary.txt").read_text(
                 encoding="utf-8"

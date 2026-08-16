@@ -99,8 +99,12 @@ def main() -> int:
     inspector_summary_artifacts_present = False
     inspector_summary_mismatch_details: list[str] = []
     mismatch_details = ""
+    evaluation_checks: list[object] = []
     if not missing_artifacts:
         evaluation = _load_json(artifact_paths["evaluation_file"], "Evaluation")
+        evaluation_checks = evaluation.get("checks", [])
+        if not isinstance(evaluation_checks, list):
+            evaluation_checks = [evaluation_checks]
         memo_draft = _load_json(artifact_paths["memo_draft_file"], "Memo draft")
         verification_payload: dict[str, object] | None = None
         verification_path = artifact_paths.get("verification_file")
@@ -162,9 +166,6 @@ def main() -> int:
                 if isinstance(failed_checks_payload, list)
                 else str(failed_checks_payload)
             )
-            evaluation_checks = evaluation.get("checks", [])
-            if not isinstance(evaluation_checks, list):
-                evaluation_checks = [evaluation_checks]
 
             compact_summary_text_expected = (
                 f"decision={decision} promotion_ready={promotion_ready} "
@@ -307,6 +308,7 @@ def main() -> int:
         "manifest_schema_version": schema_version,
         "schema_supported": schema_supported,
         "verified": verified,
+        "checks": evaluation_checks,
         "missing_artifacts": missing_artifacts,
         "evaluation_matches_memo": evaluation_matches_memo,
         "compact_summary_artifacts_present": compact_summary_artifacts_present,
