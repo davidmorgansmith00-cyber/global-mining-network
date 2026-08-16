@@ -67,11 +67,32 @@ def main() -> int:
         if not resolved_path.exists():
             missing_artifacts.append(name)
 
+    optional_artifacts = ["verification_file", "compact_summary_file", "compact_summary_json_file"]
+    output_target = Path(args.output).resolve() if args.output else None
+    for name in optional_artifacts:
+        value = artifacts.get(name, "")
+        if not isinstance(value, str) or not value:
+            continue
+        resolved_path = _resolve_manifest_artifact(value, manifest_parent)
+        artifact_paths[name] = resolved_path
+        if output_target and name == "verification_file" and resolved_path == output_target:
+            # The verifier may be generating this file in the current run.
+            continue
+        if not resolved_path.exists():
+            missing_artifacts.append(name)
+
     evaluation_matches_memo = False
+    compact_summary_text_matches = True
+    compact_summary_json_matches = True
+    compact_summary_mismatch_details: list[str] = []
     mismatch_details = ""
     if not missing_artifacts:
         evaluation = _load_json(artifact_paths["evaluation_file"], "Evaluation")
         memo_draft = _load_json(artifact_paths["memo_draft_file"], "Memo draft")
+        verification_payload: dict[str, object] | None = None
+        verification_path = artifact_paths.get("verification_file")
+        if isinstance(verification_path, Path) and verification_path.exists():
+            verification_payload = _load_json(verification_path, "Verification")
         embedded = memo_draft.get("rollout_gate_evaluation", {})
         if not isinstance(embedded, dict):
             embedded = {}
@@ -94,8 +115,62 @@ def main() -> int:
                 f"evaluation={evaluation_view}, memo={embedded_view}"
             )
 
+        if verification_payload is not None:
+            decision = str(evaluation.get("decision", ""))
+            promotion_ready = str(bool(evaluation.get("promotion_ready", False))).lower()
+            passed_checks = int(evaluation.get("passed_checks", 0))
+            total_checks = int(evaluation.get("total_checks", 0))
+            verification_verified = bool(verification_payload.get("verified", False))
+            verification_schema_supported = bool(verification_payload.get("schema_supported", False))
+            failed_checks_payload = evaluation.get("failed_checks", [])
+            failed_checks = (
+                ",".join(failed_checks_payload)
+                if isinstance(failed_checks_payload, list)
+                else str(failed_checks_payload)
+            )
+
+            compact_summary_text_expected = (
+                f"decision={decision} promotion_ready={promotion_ready} "
+                f"checks={passed_checks}/{total_checks} verified={str(verification_verified).lower()} "
+                f"schema_supported={str(verification_schema_supported).lower()} failed_checks={failed_checks}"
+            )
+            compact_summary_json_expected = {
+                "manifest": str(manifest_path.resolve()).replace("\\", "/"),
+                "decision": decision,
+                "promotion_ready": bool(evaluation.get("promotion_ready", False)),
+                "passed_checks": passed_checks,
+                "total_checks": total_checks,
+                "verified": verification_verified,
+                "schema_supported": verification_schema_supported,
+                "failed_checks": failed_checks_payload,
+            }
+
+            text_summary_path = artifact_paths.get("compact_summary_file")
+            if isinstance(text_summary_path, Path):
+                compact_summary_text_actual = text_summary_path.read_text(encoding="utf-8").strip()
+                compact_summary_text_matches = compact_summary_text_actual == compact_summary_text_expected
+                if not compact_summary_text_matches:
+                    compact_summary_mismatch_details.append(
+                        "compact_summary_file content does not match expected inspector text summary"
+                    )
+
+            json_summary_path = artifact_paths.get("compact_summary_json_file")
+            if isinstance(json_summary_path, Path):
+                compact_summary_json_actual = _load_json(json_summary_path, "Compact summary JSON")
+                compact_summary_json_matches = compact_summary_json_actual == compact_summary_json_expected
+                if not compact_summary_json_matches:
+                    compact_summary_mismatch_details.append(
+                        "compact_summary_json_file content does not match expected inspector JSON summary"
+                    )
+
     schema_supported = schema_version in supported_schema_versions
-    verified = (len(missing_artifacts) == 0) and evaluation_matches_memo and schema_supported
+    verified = (
+        (len(missing_artifacts) == 0)
+        and evaluation_matches_memo
+        and compact_summary_text_matches
+        and compact_summary_json_matches
+        and schema_supported
+    )
 
     result = {
         "manifest_file": str(manifest_path.resolve()).replace("\\", "/"),
@@ -104,6 +179,9 @@ def main() -> int:
         "verified": verified,
         "missing_artifacts": missing_artifacts,
         "evaluation_matches_memo": evaluation_matches_memo,
+        "compact_summary_text_matches": compact_summary_text_matches,
+        "compact_summary_json_matches": compact_summary_json_matches,
+        "compact_summary_mismatch_details": compact_summary_mismatch_details,
         "mismatch_details": mismatch_details,
     }
     text = json.dumps(result, indent=2, sort_keys=True)
