@@ -762,6 +762,17 @@ class BlockchainStatusApiTests(unittest.TestCase):
 
         self.assertEqual(missing_operation_id.status_code, 422)
 
+    def test_operation_stop_intent_rejects_non_object_payload(self) -> None:
+        _, session_id = self._create_player_session_binding()
+
+        with TestClient(app) as client:
+            malformed_payload = client.post(
+                f"/api/v1/blockchain/operations/intents/stop?session_id={session_id}",
+                json=[],
+            )
+
+        self.assertEqual(malformed_payload.status_code, 422)
+
     def test_operation_stop_intent_rejects_missing_session_transport(self) -> None:
         with TestClient(app) as client:
             response = client.post(
