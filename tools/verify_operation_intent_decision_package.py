@@ -162,6 +162,9 @@ def main() -> int:
                 if isinstance(failed_checks_payload, list)
                 else str(failed_checks_payload)
             )
+            evaluation_checks = evaluation.get("checks", [])
+            if not isinstance(evaluation_checks, list):
+                evaluation_checks = [evaluation_checks]
 
             compact_summary_text_expected = (
                 f"decision={decision} promotion_ready={promotion_ready} "
@@ -191,6 +194,7 @@ def main() -> int:
                 "compact_summary_mismatch_count": len(verification_compact_summary_mismatch_details),
                 "compact_summary_mismatch_details": verification_compact_summary_mismatch_details,
                 "failed_checks": failed_checks_payload,
+                "checks": evaluation_checks,
             }
             inspector_summary_text_expected = (
                 f"decision={decision} promotion_ready={promotion_ready} "
@@ -220,6 +224,7 @@ def main() -> int:
                 "compact_summary_mismatch_count": len(verification_compact_summary_mismatch_details),
                 "compact_summary_mismatch_details": verification_compact_summary_mismatch_details,
                 "failed_checks": failed_checks_payload,
+                "checks": evaluation_checks,
             }
 
             if compact_summary_artifacts_present:
