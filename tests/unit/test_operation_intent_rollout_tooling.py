@@ -1056,6 +1056,49 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertFalse(verification["verified"])
             self.assertFalse(verification["compact_summary_json_matches"])
 
+    def test_decision_package_verifier_detects_malformed_inspector_summary_json(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            temp_root = Path(tmp)
+            captures_dir = temp_root / "captures"
+            captures_dir.mkdir(parents=True, exist_ok=True)
+
+            self._write_capture_file(
+                captures_dir / "intent-transport-day01.json",
+                finished_at="2026-08-16T00:00:00+00:00",
+                query_delta=1,
+                header_delta=200,
+                dual_match_delta=4,
+                mismatch_delta=0,
+                query_rejected_strict_delta=0,
+            )
+
+            output_dir = temp_root / "decision-package"
+            package_result = self._run(
+                "tools/build_operation_intent_decision_package.py",
+                "--input-glob",
+                str(captures_dir / "intent-transport-day*.json"),
+                "--output-dir",
+                str(output_dir),
+            )
+            self.assertEqual(package_result.returncode, 0, msg=package_result.stderr)
+
+            (output_dir / "intent-transport-decision-package-inspector-summary.json").write_text(
+                "not-json\n",
+                encoding="utf-8",
+            )
+
+            manifest_path = output_dir / "intent-transport-decision-package-manifest.json"
+            verify_result = self._run(
+                "tools/verify_operation_intent_decision_package.py",
+                "--manifest",
+                str(manifest_path),
+            )
+            self.assertEqual(verify_result.returncode, 1)
+            verification = json.loads(verify_result.stdout)
+            self.assertFalse(verification["verified"])
+            self.assertFalse(verification["inspector_summary_json_matches"])
+            self.assertEqual(verification["inspector_summary_mismatch_count"], 1)
+
     def test_decision_package_inspector_emits_text_and_json(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             temp_root = Path(tmp)
