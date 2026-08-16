@@ -23,6 +23,8 @@ from domain.economy.ledger import NoOpLedgerPoster
 from domain.mining.contracts import (
     EVENT_HARDWARE_CHANGED,
     EVENT_MAINTENANCE_STATE_CHANGED,
+    EVENT_MODIFIER_ENDED,
+    EVENT_MODIFIER_STARTED,
     EVENT_OPERATION_PAUSE,
     EVENT_OPERATION_RESUME,
     EVENT_POWER_STATE_CHANGED,
@@ -172,6 +174,39 @@ class MiningSimulationServiceIntegrationTests(unittest.TestCase):
         result = service.process_tick(operation_id="op_a", ended_at=tick_end)
 
         self.assertEqual(result.contribution_hashes, Decimal("84.000000"))
+        self.assertEqual(service.operations["op_a"].current_multiplier, Decimal("1.0"))
+        self.assertEqual(service.operations["op_a"].last_processed_at, tick_end)
+
+    def test_modifier_start_and_end_boundaries_update_multiplier_state(self) -> None:
+        started_at = datetime(2026, 8, 15, 14, 55, tzinfo=UTC)
+        boost_start_at = started_at + timedelta(seconds=3)
+        boost_end_at = started_at + timedelta(seconds=8)
+        tick_end = started_at + timedelta(seconds=10)
+
+        service = MiningSimulationService(required_work=Decimal("1000"))
+        service.register_operation(operation_id="op_a", base_hashrate_hps=Decimal("10"), started_at=started_at)
+        service.apply_boundary_event(
+            SimulationBoundaryEvent(
+                event_type=EVENT_MODIFIER_STARTED,
+                player_id="player_a",
+                operation_id="op_a",
+                occurred_at=boost_start_at,
+                payload={"hashrate_multiplier": "1.8"},
+            )
+        )
+        service.apply_boundary_event(
+            SimulationBoundaryEvent(
+                event_type=EVENT_MODIFIER_ENDED,
+                player_id="player_a",
+                operation_id="op_a",
+                occurred_at=boost_end_at,
+                payload={"hashrate_multiplier": "1.0"},
+            )
+        )
+
+        result = service.process_tick(operation_id="op_a", ended_at=tick_end)
+
+        self.assertEqual(result.contribution_hashes, Decimal("140.000000"))
         self.assertEqual(service.operations["op_a"].current_multiplier, Decimal("1.0"))
         self.assertEqual(service.operations["op_a"].last_processed_at, tick_end)
 
