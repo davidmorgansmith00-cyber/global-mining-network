@@ -1337,6 +1337,24 @@ class BlockchainStatusApiTests(unittest.TestCase):
         self.assertEqual(put_response.json()["detail"], "Invalid session binding")
         self.assertEqual(get_response.json()["detail"], "Invalid session binding")
 
+    def test_checkpoint_endpoints_reject_mismatched_player_session_binding(self) -> None:
+        player_a, _ = self._create_player_session_binding()
+        _, session_b = self._create_player_session_binding()
+
+        with TestClient(app) as client:
+            put_response = client.put(
+                f"/api/v1/blockchain/checkpoints/global?player_id={player_a}&session_id={session_b}",
+                json={"reconnect_cursor": 55},
+            )
+            get_response = client.get(
+                f"/api/v1/blockchain/checkpoints/global?player_id={player_a}&session_id={session_b}"
+            )
+
+        self.assertEqual(put_response.status_code, 401)
+        self.assertEqual(get_response.status_code, 401)
+        self.assertEqual(put_response.json()["detail"], "Invalid session binding")
+        self.assertEqual(get_response.json()["detail"], "Invalid session binding")
+
     def test_player_rewards_channel_filters_to_bound_player(self) -> None:
         started_at = datetime(2026, 8, 15, 23, 30, tzinfo=UTC)
         player_a, session_a = self._create_player_session_binding()
