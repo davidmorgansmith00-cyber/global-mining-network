@@ -260,6 +260,12 @@ def main() -> int:
         ]
     )
     package_summary = json.loads(package_output) if package_output.strip() else {}
+    compact_summary_json_file = str(package_summary.get("compact_summary_json_file", ""))
+    compact_summary_json_payload: dict[str, object] = {}
+    if compact_summary_json_file:
+        compact_summary_path = Path(compact_summary_json_file)
+        if compact_summary_path.exists():
+            compact_summary_json_payload = json.loads(compact_summary_path.read_text(encoding="utf-8"))
 
     result = {
         "output_dir": str(output_dir).replace("\\", "/"),
@@ -271,9 +277,11 @@ def main() -> int:
         "decision_package_manifest_file": str(package_summary.get("manifest_file", "")),
         "decision_package_verification_file": str(package_summary.get("verification_file", "")),
         "decision_package_compact_summary_file": str(package_summary.get("compact_summary_file", "")),
-        "decision_package_compact_summary_json_file": str(
-            package_summary.get("compact_summary_json_file", "")
-        ),
+        "decision_package_compact_summary_json_file": compact_summary_json_file,
+        "decision_package_decision": str(compact_summary_json_payload.get("decision", "")),
+        "decision_package_promotion_ready": bool(compact_summary_json_payload.get("promotion_ready", False)),
+        "decision_package_verified": bool(compact_summary_json_payload.get("verified", False)),
+        "decision_package_schema_supported": bool(compact_summary_json_payload.get("schema_supported", False)),
     }
     print(json.dumps(result, indent=2, sort_keys=True))
     return 0

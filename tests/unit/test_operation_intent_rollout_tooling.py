@@ -203,6 +203,10 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertIn("decision_package_verification_file", summary)
             self.assertIn("decision_package_compact_summary_file", summary)
             self.assertIn("decision_package_compact_summary_json_file", summary)
+            self.assertIn("decision_package_decision", summary)
+            self.assertIn("decision_package_promotion_ready", summary)
+            self.assertIn("decision_package_verified", summary)
+            self.assertIn("decision_package_schema_supported", summary)
 
             self.assertTrue((output_dir / "intent-transport-day01.json").exists())
             self.assertTrue((output_dir / "intent-transport-day02.json").exists())

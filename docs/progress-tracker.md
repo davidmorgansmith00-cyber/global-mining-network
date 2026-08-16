@@ -271,6 +271,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Operation intent summary/inspector parity hardening | Done | Builder now generates compact summary `.txt`/`.json` artifacts by invoking `inspect_operation_intent_decision_package.py`, with tests asserting emitted files exactly match inspector output |
 | Operation intent verifier compact-summary consistency checks | Done | Verifier now validates optional compact summary `.txt`/`.json` artifact contents against expected evaluation+verification-derived values and fails verification on mismatch |
 | Operation intent dry-run compact-summary surfacing | Done | Dry-run helper now exposes decision-package compact summary `.txt`/`.json` paths in output JSON and regression coverage asserts both files are emitted |
+| Operation intent dry-run top-level gate status fields | Done | Dry-run helper now surfaces `decision_package_decision`, `decision_package_promotion_ready`, `decision_package_verified`, and `decision_package_schema_supported` from compact summary JSON |
 | Optional CI workflow-dispatch DB baseline rerun | Done | Run `31956249661` succeeded end-to-end (`baseline` and `db-integration` both green); total run window was 67s (`15:38:16Z` to `15:39:23Z`) |
 | Local CI-mirrored full suite baseline | Done | Ran the same test selection as optional `db-integration` locally: `65` tests passed in `35.976s` |
 

@@ -141,6 +141,12 @@ Dry-run expected outputs:
 - `artifacts/operation-intent-dry-run/decision-package/intent-transport-decision-package-summary.txt`
 - `artifacts/operation-intent-dry-run/decision-package/intent-transport-decision-package-summary.json`
 
+Dry-run quick gate fields in command JSON output:
+- `decision_package_decision`
+- `decision_package_promotion_ready`
+- `decision_package_verified`
+- `decision_package_schema_supported`
+
 ## Owner Checklist
 1. Backend owner approves strict-mode metrics health.
 2. Client owner confirms header transport rollout completion.
