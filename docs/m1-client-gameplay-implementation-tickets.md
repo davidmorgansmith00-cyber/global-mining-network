@@ -7,6 +7,7 @@ Date: 2026-08-15
 Source alignment:
 - docs/m1-client-gameplay-minimal-slice-plan.md
 - docs/m1-slice-1-simulation-kernel-tick-contract.md
+- docs/operation-intents-api-reference.md
 
 ## Ticket GMN-CL-01: Session Bootstrap Wiring
 Owner: Gameplay Lead

@@ -9,6 +9,7 @@ Source alignment:
 - docs/game-design-brief-v1.md
 - docs/m1-slice-1-simulation-kernel-tick-contract.md
 - docs/implementation-plan-v1.md
+- docs/operation-intents-api-reference.md
 
 ## 1. Objective
 Define a minimal client gameplay slice for M1 that presents authoritative server state without introducing client-owned progression, reward, or block logic.
