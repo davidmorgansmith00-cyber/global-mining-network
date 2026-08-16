@@ -223,6 +223,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Operation start non-numeric hashrate coverage | Done | Added integration test asserting operation start rejects non-numeric `base_hashrate_hps` values with HTTP 422 |
 | Operation stop malformed-body coverage | Done | Added integration test asserting operation stop rejects non-object JSON payloads with HTTP 422 |
 | Operation start malformed-body coverage | Done | Added integration test asserting operation start rejects non-object JSON payloads with HTTP 422 |
+| Operation intent empty-session transport coverage | Done | Added integration test asserting operation start/stop reject empty `session_id` query transport with deterministic invalid-session responses |
 | WebSocket auth/session binding | Done | WebSocket now validates `player_id` + `session_id` against active auth sessions |
 | Per-client channel filtering | Done | Added `global` and `player_rewards` channel filters with player-scoped event routing |
 | Event/checkpoint retention cleanup endpoint | Done | Added `POST /api/v1/blockchain/maintenance/cleanup` with age/cap cleanup for network events and checkpoints |
