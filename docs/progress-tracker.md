@@ -315,6 +315,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Operation intent exact checks-array parity | Done | Regression coverage now compares builder and dry-run emitted `checks` arrays verbatim against the evaluation artifact, catching content drift beyond shape/length checks |
 | Operation intent verification checks vector persistence | Done | Verification JSON now persists the `checks` vector itself and builder summaries prefer that file-backed source over rehydrating from evaluation JSON |
 | Operation intent inspector verification-source preference | Done | Inspector output now prefers the persisted verification `checks` vector so rendered summaries stay aligned with the file-backed contract |
+| Operation intent dry-run verification-source preference | Done | Dry-run output now prefers the persisted verification `checks` vector, removing the remaining compact-summary fallback for per-check reporting |
 | Optional CI workflow-dispatch DB baseline rerun | Done | Run `31956249661` succeeded end-to-end (`baseline` and `db-integration` both green); total run window was 67s (`15:38:16Z` to `15:39:23Z`) |
 | Local CI-mirrored full suite baseline | Done | Ran the same test selection as optional `db-integration` locally: `65` tests passed in `35.976s` |
 

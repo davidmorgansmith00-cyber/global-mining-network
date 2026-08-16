@@ -317,7 +317,7 @@ def main() -> int:
     decision_package_failed_checks = _normalize_string_list(
         package_summary.get("verification_failed_checks", compact_summary_json_payload.get("failed_checks", []))
     )
-    decision_package_checks = package_summary.get("verification_checks", compact_summary_json_payload.get("checks", []))
+    decision_package_checks = package_summary.get("verification_checks", [])
     if not isinstance(decision_package_checks, list):
         decision_package_checks = [decision_package_checks]
 
