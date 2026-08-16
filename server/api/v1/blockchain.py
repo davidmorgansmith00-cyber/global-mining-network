@@ -57,6 +57,7 @@ _websocket_stale_evictions_total = 0
 _cleanup_rate_limit_rejections_total = 0
 _cleanup_request_timestamps: list[float] = []
 _maintenance_auth_scope_requests_total: dict[str, int] = {}
+_operation_intent_transport_requests_total: dict[str, int] = {}
 _runtime_mining_service = _build_runtime_mining_service()
 _operation_runtime_lock = Lock()
 
@@ -80,18 +81,34 @@ def _extract_request_source_ip(request: Request) -> str:
     return "unknown"
 
 
+def _record_operation_intent_transport_mode(mode: str) -> None:
+    with _metrics_lock:
+        _operation_intent_transport_requests_total[mode] = (
+            _operation_intent_transport_requests_total.get(mode, 0) + 1
+        )
+
+
 def _resolve_operation_intent_session_id(request: Request, session_id_query: str | None) -> str:
     header_name = settings.operation_intent_session_header
     session_id_header = request.headers.get(header_name)
 
     if session_id_query and session_id_header and session_id_query != session_id_header:
+        _record_operation_intent_transport_mode("mismatch")
         raise HTTPException(
             status_code=400,
             detail=f"Session binding mismatch between query and {header_name} header",
         )
 
+    if session_id_query and session_id_header:
+        _record_operation_intent_transport_mode("dual_match")
+    elif session_id_header:
+        _record_operation_intent_transport_mode("header")
+    elif session_id_query:
+        _record_operation_intent_transport_mode("query")
+
     resolved = session_id_header or session_id_query
     if not resolved:
+        _record_operation_intent_transport_mode("missing")
         raise HTTPException(status_code=401, detail="Invalid session binding")
     return resolved
 
@@ -184,6 +201,7 @@ def reset_blockchain_runtime_counters_for_tests(
     global _websocket_stale_evictions_total
     global _cleanup_rate_limit_rejections_total
     global _maintenance_auth_scope_requests_total
+    global _operation_intent_transport_requests_total
 
     with _metrics_lock:
         _cleanup_runs_total = 0
@@ -192,6 +210,7 @@ def reset_blockchain_runtime_counters_for_tests(
         _websocket_stale_evictions_total = 0
         _cleanup_rate_limit_rejections_total = 0
         _maintenance_auth_scope_requests_total = {}
+        _operation_intent_transport_requests_total = {}
         _cleanup_request_timestamps.clear()
 
     if include_persisted_rate_limit_state and database_is_configured():
@@ -519,6 +538,7 @@ def get_maintenance_metrics(request: Request) -> MaintenanceMetricsResponse:
         stale_evictions_total = _websocket_stale_evictions_total
         in_memory_window_count = len(_cleanup_request_timestamps)
         auth_scope_requests_total = dict(_maintenance_auth_scope_requests_total)
+        operation_intent_transport_requests_total = dict(_operation_intent_transport_requests_total)
 
     return MaintenanceMetricsResponse(
         schema_version="maintenance.metrics.v1",
@@ -534,6 +554,8 @@ def get_maintenance_metrics(request: Request) -> MaintenanceMetricsResponse:
         maintenance_auth_previous_token_scope_label=previous_label,
         maintenance_auth_unknown_token_scope_label=unknown_label,
         maintenance_auth_scope_requests_total=auth_scope_requests_total,
+        operation_intent_session_header_name=settings.operation_intent_session_header,
+        operation_intent_transport_requests_total=operation_intent_transport_requests_total,
     )
 
 
@@ -548,6 +570,9 @@ def get_maintenance_metrics_plaintext(request: Request) -> PlainTextResponse:
     auth_scope_lines: list[str] = []
     for scope, value in metrics.maintenance_auth_scope_requests_total.items():
         auth_scope_lines.append(f'gmn_maintenance_auth_requests_total{{token_scope="{scope}"}} {value}')
+    operation_transport_lines: list[str] = []
+    for mode, value in metrics.operation_intent_transport_requests_total.items():
+        operation_transport_lines.append(f'gmn_operation_intent_transport_requests_total{{mode="{mode}"}} {value}')
     lines = [
         "# HELP gmn_maintenance_cleanup_runs_total Total successful cleanup runs",
         "# TYPE gmn_maintenance_cleanup_runs_total counter",
@@ -569,8 +594,11 @@ def get_maintenance_metrics_plaintext(request: Request) -> PlainTextResponse:
         f"gmn_maintenance_cleanup_rate_limit_requests_in_window{mode_labels} {metrics.cleanup_rate_limit_requests_in_window}",
         "# HELP gmn_maintenance_auth_requests_total Total maintenance endpoint auth requests by token scope",
         "# TYPE gmn_maintenance_auth_requests_total counter",
+        "# HELP gmn_operation_intent_transport_requests_total Total operation-intent requests by session transport mode",
+        "# TYPE gmn_operation_intent_transport_requests_total counter",
     ]
     lines.extend(auth_scope_lines)
+    lines.extend(operation_transport_lines)
     return PlainTextResponse("\n".join(lines) + "\n")
 
 

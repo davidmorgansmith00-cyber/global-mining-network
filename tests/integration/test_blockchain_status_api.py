@@ -570,6 +570,76 @@ class BlockchainStatusApiTests(unittest.TestCase):
         self.assertEqual(mismatch_stop.status_code, 400)
         self.assertIn("Session binding mismatch", mismatch_stop.json().get("detail", ""))
 
+    def test_operation_intent_transport_metrics_track_query_header_and_mismatch_modes(self) -> None:
+        _, session_a = self._create_player_session_binding()
+        _, session_b = self._create_player_session_binding()
+        header_name = settings.operation_intent_session_header
+
+        with TestClient(app) as client:
+            query_start = client.post(
+                f"/api/v1/blockchain/operations/intents/start?session_id={session_a}",
+                json={
+                    "operation_id": "op_transport_metrics_query",
+                    "base_hashrate_hps": "25",
+                },
+            )
+            header_start = client.post(
+                "/api/v1/blockchain/operations/intents/start",
+                json={
+                    "operation_id": "op_transport_metrics_header",
+                    "base_hashrate_hps": "25",
+                },
+                headers={header_name: session_a},
+            )
+            dual_start = client.post(
+                f"/api/v1/blockchain/operations/intents/start?session_id={session_a}",
+                json={
+                    "operation_id": "op_transport_metrics_dual",
+                    "base_hashrate_hps": "25",
+                },
+                headers={header_name: session_a},
+            )
+            mismatch_start = client.post(
+                f"/api/v1/blockchain/operations/intents/start?session_id={session_a}",
+                json={
+                    "operation_id": "op_transport_metrics_mismatch",
+                    "base_hashrate_hps": "25",
+                },
+                headers={header_name: session_b},
+            )
+            missing_start = client.post(
+                "/api/v1/blockchain/operations/intents/start",
+                json={
+                    "operation_id": "op_transport_metrics_missing",
+                    "base_hashrate_hps": "25",
+                },
+            )
+            metrics_headers = {settings.maintenance_auth_header: settings.maintenance_auth_token}
+            metrics_json = client.get("/api/v1/blockchain/maintenance/metrics", headers=metrics_headers)
+            metrics_plaintext = client.get("/api/v1/blockchain/maintenance/metrics/plaintext", headers=metrics_headers)
+
+        self.assertEqual(query_start.status_code, 200)
+        self.assertEqual(header_start.status_code, 200)
+        self.assertEqual(dual_start.status_code, 200)
+        self.assertEqual(mismatch_start.status_code, 400)
+        self.assertEqual(missing_start.status_code, 401)
+        self.assertEqual(metrics_json.status_code, 200)
+        self.assertEqual(metrics_plaintext.status_code, 200)
+
+        counters = metrics_json.json().get("operation_intent_transport_requests_total", {})
+        self.assertEqual(counters.get("query", 0), 1)
+        self.assertEqual(counters.get("header", 0), 1)
+        self.assertEqual(counters.get("dual_match", 0), 1)
+        self.assertEqual(counters.get("mismatch", 0), 1)
+        self.assertEqual(counters.get("missing", 0), 1)
+
+        plaintext = metrics_plaintext.text
+        self.assertIn('gmn_operation_intent_transport_requests_total{mode="query"} 1', plaintext)
+        self.assertIn('gmn_operation_intent_transport_requests_total{mode="header"} 1', plaintext)
+        self.assertIn('gmn_operation_intent_transport_requests_total{mode="dual_match"} 1', plaintext)
+        self.assertIn('gmn_operation_intent_transport_requests_total{mode="mismatch"} 1', plaintext)
+        self.assertIn('gmn_operation_intent_transport_requests_total{mode="missing"} 1', plaintext)
+
     def test_operation_intents_drive_authoritative_progression_and_reconnect_safe_events(self) -> None:
         player_id, session_id = self._create_player_session_binding()
 
@@ -926,6 +996,8 @@ class BlockchainStatusApiTests(unittest.TestCase):
         self.assertEqual(payload["maintenance_auth_previous_token_scope_label"], settings.maintenance_auth_previous_token_scope_label)
         self.assertEqual(payload["maintenance_auth_unknown_token_scope_label"], settings.maintenance_auth_unknown_token_scope_label)
         self.assertIn(settings.maintenance_auth_current_token_scope_label, payload["maintenance_auth_scope_requests_total"])
+        self.assertEqual(payload["operation_intent_session_header_name"], settings.operation_intent_session_header)
+        self.assertIn("operation_intent_transport_requests_total", payload)
         self.assertIn("generated_at", payload)
 
     def test_maintenance_metrics_endpoint_rejects_unauthorized_requests(self) -> None:
@@ -959,6 +1031,7 @@ class BlockchainStatusApiTests(unittest.TestCase):
         self.assertIn("gmn_maintenance_cleanup_runs_total", body)
         self.assertIn("gmn_maintenance_cleanup_rate_limit_requests_in_window", body)
         self.assertIn("gmn_maintenance_auth_requests_total", body)
+        self.assertIn("gmn_operation_intent_transport_requests_total", body)
         self.assertIn(f'token_scope="{settings.maintenance_auth_current_token_scope_label}"', body)
 
     def test_maintenance_metrics_plaintext_endpoint_rejects_unauthorized_requests(self) -> None:

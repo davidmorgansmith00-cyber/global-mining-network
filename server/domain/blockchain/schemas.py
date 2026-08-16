@@ -124,3 +124,5 @@ class MaintenanceMetricsResponse(BaseModel):
     maintenance_auth_previous_token_scope_label: str
     maintenance_auth_unknown_token_scope_label: str
     maintenance_auth_scope_requests_total: dict[str, int]
+    operation_intent_session_header_name: str
+    operation_intent_transport_requests_total: dict[str, int]

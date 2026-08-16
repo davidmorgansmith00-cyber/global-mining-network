@@ -100,3 +100,21 @@ Migration guidance:
 
 Concrete rollout plan:
 - See `docs/operation-intents-transport-migration-proposal.md` for header shape, compatibility window, deprecation milestones, and rollback criteria.
+
+## Migration Observability Metrics
+Use maintenance metrics endpoints to monitor operation-intent transport adoption during rollout:
+- `GET /api/v1/blockchain/maintenance/metrics`
+  - `operation_intent_session_header_name`: configured header used for session binding (default `X-Session-Id`).
+  - `operation_intent_transport_requests_total`: cumulative request counters by mode:
+    - `query`
+    - `header`
+    - `dual_match`
+    - `mismatch`
+    - `missing`
+- `GET /api/v1/blockchain/maintenance/metrics/plaintext`
+  - Prometheus-style lines:
+    - `gmn_operation_intent_transport_requests_total{mode="query"} ...`
+    - `gmn_operation_intent_transport_requests_total{mode="header"} ...`
+    - `gmn_operation_intent_transport_requests_total{mode="dual_match"} ...`
+    - `gmn_operation_intent_transport_requests_total{mode="mismatch"} ...`
+    - `gmn_operation_intent_transport_requests_total{mode="missing"} ...`
