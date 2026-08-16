@@ -657,6 +657,9 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             )
             self.assertTrue(verification["verified"])
             self.assertIn("checks", verification)
+            self.assertEqual(summary["inspector_verified"], verification["verified"])
+            self.assertEqual(summary["inspector_mismatch_count"], verification["inspector_summary_mismatch_count"])
+            self.assertEqual(summary["inspector_mismatch_details"], verification["inspector_summary_mismatch_details"])
 
             evaluation = json.loads(
                 (output_dir / "intent-transport-rollout-evaluation.json").read_text(encoding="utf-8")

@@ -139,6 +139,7 @@ Build the full decision artifact package in one command:
 - Verification JSON now carries the `checks` vector itself so downstream summaries can prefer the file-backed contract instead of rehydrating from the evaluation artifact.
 - Inspector output now prefers the persisted verification `checks` vector when present so the rendered summary stays aligned with the file-backed contract.
 - Dry-run output now also prefers the persisted verification `checks` vector, removing the remaining compact-summary fallback for per-check reporting.
+- Builder inspector status fields now prefer the verification payload over the raw inspector JSON, keeping the package summary aligned with the persisted contract.
 
 Verify generated package integrity:
 - PowerShell: `python tools/verify_operation_intent_decision_package.py --manifest artifacts/operation-intent-decision-package/intent-transport-decision-package-manifest.json`

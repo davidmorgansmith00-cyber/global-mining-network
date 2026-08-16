@@ -369,13 +369,20 @@ def main() -> int:
         verification_payload.get("inspector_summary_mismatch_count", len(inspector_summary_mismatch_details))
     )
     summary["verification_inspector_summary_mismatch_details"] = inspector_summary_mismatch_details
-    summary["inspector_verified"] = bool(inspector_summary_json_payload.get("verified", False))
+    summary["inspector_verified"] = bool(verification_payload.get("verified", inspector_summary_json_payload.get("verified", False)))
     summary["inspector_mismatch_count"] = int(
-        inspector_summary_json_payload.get("compact_summary_mismatch_count", 0)
+        verification_payload.get(
+            "inspector_summary_mismatch_count",
+            inspector_summary_json_payload.get("compact_summary_mismatch_count", 0),
+        )
     )
-    summary["inspector_mismatch_details"] = inspector_summary_json_payload.get(
-        "compact_summary_mismatch_details", []
+    inspector_mismatch_details = verification_payload.get(
+        "inspector_summary_mismatch_details",
+        inspector_summary_json_payload.get("compact_summary_mismatch_details", []),
     )
+    if not isinstance(inspector_mismatch_details, list):
+        inspector_mismatch_details = [str(inspector_mismatch_details)]
+    summary["inspector_mismatch_details"] = inspector_mismatch_details
     print(json.dumps(summary, indent=2, sort_keys=True))
     return 0
 
