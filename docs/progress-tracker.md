@@ -299,6 +299,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Operation intent dry-run parity assertions hardening | Done | Dry-run regression now validates expected values for compact/inspector parity diagnostics (performed/skipped flags, mismatch counts, mismatch details) instead of key presence only |
 | Operation intent verifier mismatch counters | Done | Verifier now emits explicit `compact_summary_mismatch_count` and `inspector_summary_mismatch_count` fields so downstream consumers can use stable counters without recomputing list lengths |
 | Operation intent dry-run inspector status source preference | Done | Dry-run now consumes inspector status from builder-emitted summary fields first and uses inspector-summary JSON only as fallback |
+| Operation intent inspector parity boolean propagation | Done | Builder/dry-run outputs now expose verifier inspector parity booleans (`*_inspector_summary_text_matches`, `*_inspector_summary_json_matches`) for simpler CI checks |
 | Optional CI workflow-dispatch DB baseline rerun | Done | Run `31956249661` succeeded end-to-end (`baseline` and `db-integration` both green); total run window was 67s (`15:38:16Z` to `15:39:23Z`) |
 | Local CI-mirrored full suite baseline | Done | Ran the same test selection as optional `db-integration` locally: `65` tests passed in `35.976s` |
 

@@ -122,6 +122,7 @@ Build the full decision artifact package in one command:
 - Dry-run regression now asserts expected boolean/count/list values for compact-summary and inspector-summary parity fields, not only field existence.
 - Verifier output now includes explicit mismatch counters: `compact_summary_mismatch_count` and `inspector_summary_mismatch_count`.
 - Dry-run now prefers builder-emitted inspector status fields (`inspector_verified`, `inspector_mismatch_count`, `inspector_mismatch_details`) with inspector-summary JSON as fallback.
+- Builder and dry-run outputs now also propagate verifier inspector parity booleans: `verification_inspector_summary_text_matches`, `verification_inspector_summary_json_matches`, `decision_package_inspector_summary_text_matches`, and `decision_package_inspector_summary_json_matches`.
 
 Verify generated package integrity:
 - PowerShell: `python tools/verify_operation_intent_decision_package.py --manifest artifacts/operation-intent-decision-package/intent-transport-decision-package-manifest.json`

@@ -329,6 +329,12 @@ def main() -> int:
     summary["verification_inspector_summary_checks_skipped"] = bool(
         verification_payload.get("inspector_summary_checks_skipped", False)
     )
+    summary["verification_inspector_summary_text_matches"] = bool(
+        verification_payload.get("inspector_summary_text_matches", False)
+    )
+    summary["verification_inspector_summary_json_matches"] = bool(
+        verification_payload.get("inspector_summary_json_matches", False)
+    )
     inspector_summary_mismatch_details = verification_payload.get("inspector_summary_mismatch_details", [])
     if not isinstance(inspector_summary_mismatch_details, list):
         inspector_summary_mismatch_details = [str(inspector_summary_mismatch_details)]

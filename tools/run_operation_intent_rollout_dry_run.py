@@ -346,6 +346,12 @@ def main() -> int:
         "decision_package_inspector_summary_checks_skipped": bool(
             package_summary.get("verification_inspector_summary_checks_skipped", False)
         ),
+        "decision_package_inspector_summary_text_matches": bool(
+            package_summary.get("verification_inspector_summary_text_matches", False)
+        ),
+        "decision_package_inspector_summary_json_matches": bool(
+            package_summary.get("verification_inspector_summary_json_matches", False)
+        ),
         "decision_package_inspector_summary_mismatch_count": int(
             package_summary.get("verification_inspector_summary_mismatch_count", 0)
         ),
