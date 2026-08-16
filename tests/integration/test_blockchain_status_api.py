@@ -330,6 +330,12 @@ class BlockchainStatusApiTests(unittest.TestCase):
         self.assertEqual(below_min.status_code, 422)
         self.assertEqual(above_max.status_code, 422)
 
+    def test_network_events_endpoint_rejects_non_integer_limit(self) -> None:
+        with TestClient(app) as client:
+            response = client.get("/api/v1/blockchain/network-events?after_sequence=0&limit=not_an_int")
+
+        self.assertEqual(response.status_code, 422)
+
     def test_network_events_websocket_streams_cursor_based_payloads(self) -> None:
         started_at = datetime(2026, 8, 15, 23, 0, tzinfo=UTC)
         player_id, session_id = self._create_player_session_binding()
