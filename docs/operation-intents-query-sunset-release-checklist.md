@@ -113,6 +113,11 @@ Verify generated package integrity:
 - PowerShell: `python tools/verify_operation_intent_decision_package.py --manifest artifacts/operation-intent-decision-package/intent-transport-decision-package-manifest.json`
 - The verifier checks artifact path existence and validates that `rollout_gate_evaluation` embedded in memo draft matches the standalone evaluation artifact.
 
+Print compact package gate summary:
+- PowerShell: `python tools/inspect_operation_intent_decision_package.py --manifest artifacts/operation-intent-decision-package/intent-transport-decision-package-manifest.json`
+- JSON mode: append `--format json`.
+- CI mode: append `--fail-on-unverified` to return non-zero when verification status is false.
+
 Read auto-filled draft memo fields:
 - `threshold_evaluation.query_share_threshold.auto_result`
 - `threshold_evaluation.strict_rejection_stability.auto_result`
