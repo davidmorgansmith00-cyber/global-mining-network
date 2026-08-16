@@ -148,6 +148,12 @@ def main() -> int:
                 "total_checks": total_checks,
                 "verified": verification_verified,
                 "schema_supported": verification_schema_supported,
+                "compact_summary_checks_performed": bool(
+                    verification_payload.get("compact_summary_checks_performed", False)
+                ),
+                "compact_summary_checks_skipped": bool(
+                    verification_payload.get("compact_summary_checks_skipped", False)
+                ),
                 "failed_checks": failed_checks_payload,
             }
 

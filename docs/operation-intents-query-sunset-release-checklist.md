@@ -108,6 +108,7 @@ Build the full decision artifact package in one command:
 - Package outputs include `intent-transport-decision-package-summary.txt` for a compact one-line gate status summary.
 - Package outputs include `intent-transport-decision-package-summary.json` for machine-readable compact gate status fields.
 - Compact summary `.txt` and `.json` artifacts are emitted using the same inspector logic as `tools/inspect_operation_intent_decision_package.py` to keep formatting and fields consistent.
+- Decision package builder performs a final summary refresh and verification pass after summary artifacts are registered, ensuring summary files and verifier state are fully consistent at handoff time.
 - The manifest `artifacts` section now includes `verification_file` alongside bundle/evaluation/memo paths.
 - Manifest schema is versioned (`manifest_schema_version`) and verifier output includes `schema_supported` for compatibility checks.
 - Decision-package command output now includes `verification_verified` and `verification_schema_supported` for quick pass/fail parsing in CI logs.
@@ -125,6 +126,7 @@ Print compact package gate summary:
 - PowerShell: `python tools/inspect_operation_intent_decision_package.py --manifest artifacts/operation-intent-decision-package/intent-transport-decision-package-manifest.json`
 - JSON mode: append `--format json`.
 - CI mode: append `--fail-on-unverified` to return non-zero when verification status is false.
+- Inspector JSON output includes compact summary verification path flags: `compact_summary_checks_performed` and `compact_summary_checks_skipped`.
 
 Read auto-filled draft memo fields:
 - `threshold_evaluation.query_share_threshold.auto_result`

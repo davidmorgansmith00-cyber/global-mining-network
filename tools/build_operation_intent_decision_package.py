@@ -249,6 +249,39 @@ def main() -> int:
             str(verification_path),
         ]
     )
+    # Refresh compact summaries so inspector-derived JSON reflects final verification-state fields.
+    compact_summary_line = _run_command_capture_output(
+        [
+            sys.executable,
+            str(root / "tools" / "inspect_operation_intent_decision_package.py"),
+            "--manifest",
+            str(manifest_path),
+        ]
+    )
+    compact_summary_json_raw = _run_command_capture_output(
+        [
+            sys.executable,
+            str(root / "tools" / "inspect_operation_intent_decision_package.py"),
+            "--manifest",
+            str(manifest_path),
+            "--format",
+            "json",
+        ]
+    )
+    compact_summary_json = json.loads(compact_summary_json_raw)
+    compact_summary_path.write_text(compact_summary_line + "\n", encoding="utf-8")
+    compact_summary_json_path.write_text(json.dumps(compact_summary_json, sort_keys=True) + "\n", encoding="utf-8")
+
+    _run_command(
+        [
+            sys.executable,
+            str(root / "tools" / "verify_operation_intent_decision_package.py"),
+            "--manifest",
+            str(manifest_path),
+            "--output",
+            str(verification_path),
+        ]
+    )
     verification_payload = json.loads(verification_path.read_text(encoding="utf-8"))
     summary["verification_verified"] = bool(verification_payload.get("verified", False))
     summary["verification_schema_supported"] = bool(verification_payload.get("schema_supported", False))

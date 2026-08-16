@@ -988,6 +988,8 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             summary = json.loads(inspect_json_result.stdout)
             self.assertIn("decision", summary)
             self.assertTrue(summary["verified"])
+            self.assertIn("compact_summary_checks_performed", summary)
+            self.assertIn("compact_summary_checks_skipped", summary)
 
     def test_decision_package_inspector_can_fail_on_unverified(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

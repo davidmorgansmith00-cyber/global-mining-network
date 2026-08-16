@@ -79,6 +79,12 @@ def main() -> int:
         "total_checks": int(evaluation.get("total_checks", 0)),
         "verified": bool(verification.get("verified", False)),
         "schema_supported": bool(verification.get("schema_supported", False)),
+        "compact_summary_checks_performed": bool(
+            verification.get("compact_summary_checks_performed", False)
+        ),
+        "compact_summary_checks_skipped": bool(
+            verification.get("compact_summary_checks_skipped", False)
+        ),
         "failed_checks": evaluation.get("failed_checks", []),
     }
 
