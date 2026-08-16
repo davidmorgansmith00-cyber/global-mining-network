@@ -122,6 +122,7 @@ Verify generated package integrity:
 - If the compact summary JSON artifact is malformed, verifier marks package as unverified and reports a compact-summary parse mismatch detail.
 - Backward compatibility: for older manifest files that do not include compact summary artifact keys, verifier still supports schema `1.0` and skips compact-summary consistency checks.
 - Verifier output includes `compact_summary_checks_performed` and `compact_summary_checks_skipped` to make compatibility-path behavior explicit in CI logs.
+- Verifier output also includes `compact_summary_artifacts_present` so CI can distinguish whether compact summary artifacts were provided by the manifest.
 
 Print compact package gate summary:
 - PowerShell: `python tools/inspect_operation_intent_decision_package.py --manifest artifacts/operation-intent-decision-package/intent-transport-decision-package-manifest.json`

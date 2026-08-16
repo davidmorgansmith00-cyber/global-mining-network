@@ -279,6 +279,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Operation intent inspector JSON compatibility flags | Done | Inspector JSON output now includes `compact_summary_checks_performed` and `compact_summary_checks_skipped` for consistent compatibility-path visibility across tooling outputs |
 | Operation intent final summary-verification sequencing | Done | Builder now refreshes compact summary artifacts after final verification-state transition and executes a final verifier pass so summary files and verification output remain in sync |
 | Operation intent summary mismatch diagnostic propagation | Done | Builder and dry-run outputs now surface compact-summary mismatch count/details from verifier output for direct CI diagnostics |
+| Operation intent summary-artifact presence visibility | Done | Verifier output now includes `compact_summary_artifacts_present` so automation can distinguish absent-legacy vs present-validated summary artifact paths |
 | Optional CI workflow-dispatch DB baseline rerun | Done | Run `31956249661` succeeded end-to-end (`baseline` and `db-integration` both green); total run window was 67s (`15:38:16Z` to `15:39:23Z`) |
 | Local CI-mirrored full suite baseline | Done | Ran the same test selection as optional `db-integration` locally: `65` tests passed in `35.976s` |
 

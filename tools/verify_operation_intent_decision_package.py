@@ -85,6 +85,7 @@ def main() -> int:
     compact_summary_text_matches = True
     compact_summary_json_matches = True
     compact_summary_checks_performed = False
+    compact_summary_artifacts_present = False
     compact_summary_mismatch_details: list[str] = []
     mismatch_details = ""
     if not missing_artifacts:
@@ -199,6 +200,7 @@ def main() -> int:
         "verified": verified,
         "missing_artifacts": missing_artifacts,
         "evaluation_matches_memo": evaluation_matches_memo,
+        "compact_summary_artifacts_present": compact_summary_artifacts_present,
         "compact_summary_checks_performed": compact_summary_checks_performed,
         "compact_summary_checks_skipped": not compact_summary_checks_performed,
         "compact_summary_text_matches": compact_summary_text_matches,
