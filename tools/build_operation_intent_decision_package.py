@@ -153,6 +153,7 @@ def main() -> int:
     )
 
     manifest = {
+        "manifest_schema_version": "1.0",
         "generated_at": datetime.now(UTC).isoformat(),
         "inputs": {
             "input_glob": args.input_glob,

@@ -46,6 +46,8 @@ def main() -> int:
         raise RuntimeError(f"Manifest file does not exist: {manifest_path}")
 
     manifest = _load_json(manifest_path, "Manifest")
+    schema_version = str(manifest.get("manifest_schema_version", ""))
+    supported_schema_versions = {"1.0"}
     artifacts = manifest.get("artifacts", {})
     if not isinstance(artifacts, dict):
         raise RuntimeError("Manifest missing artifacts object")
@@ -92,10 +94,13 @@ def main() -> int:
                 f"evaluation={evaluation_view}, memo={embedded_view}"
             )
 
-    verified = (len(missing_artifacts) == 0) and evaluation_matches_memo
+    schema_supported = schema_version in supported_schema_versions
+    verified = (len(missing_artifacts) == 0) and evaluation_matches_memo and schema_supported
 
     result = {
         "manifest_file": str(manifest_path.resolve()).replace("\\", "/"),
+        "manifest_schema_version": schema_version,
+        "schema_supported": schema_supported,
         "verified": verified,
         "missing_artifacts": missing_artifacts,
         "evaluation_matches_memo": evaluation_matches_memo,

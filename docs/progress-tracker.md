@@ -262,6 +262,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Operation intent auto verification artifact emission | Done | Decision package builder now runs verifier automatically after manifest generation and writes `intent-transport-decision-package-verification.json` |
 | Operation intent dry-run decision-package parity | Done | Dry-run helper now also produces a nested decision package with manifest and verification artifacts for full rehearsal parity with production handoff flow |
 | Operation intent manifest verification-path enrichment | Done | Decision package manifest now records `artifacts.verification_file` so verification output is included in manifest-indexed artifact inventory |
+| Operation intent manifest schema version enforcement | Done | Added `manifest_schema_version` in package manifests and verifier `schema_supported` checks with test coverage for unsupported schema rejection |
 | Optional CI workflow-dispatch DB baseline rerun | Done | Run `31956249661` succeeded end-to-end (`baseline` and `db-integration` both green); total run window was 67s (`15:38:16Z` to `15:39:23Z`) |
 | Local CI-mirrored full suite baseline | Done | Ran the same test selection as optional `db-integration` locally: `65` tests passed in `35.976s` |
 
