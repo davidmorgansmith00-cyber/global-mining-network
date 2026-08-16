@@ -142,6 +142,7 @@ Build the full decision artifact package in one command:
 - Builder inspector status fields now prefer the verification payload over the raw inspector JSON, keeping the package summary aligned with the persisted contract.
 - Dry-run inspector status fields now prefer the builder's verification-backed inspector fields, removing the last raw inspector JSON fallback in the package summary.
 - Dry-run no longer loads the raw inspector JSON for status derivation, making the builder-backed contract explicit.
+- Builder no longer uses raw inspector JSON to backfill inspector status fields; the verification payload is now the sole source for those values.
 
 Verify generated package integrity:
 - PowerShell: `python tools/verify_operation_intent_decision_package.py --manifest artifacts/operation-intent-decision-package/intent-transport-decision-package-manifest.json`
