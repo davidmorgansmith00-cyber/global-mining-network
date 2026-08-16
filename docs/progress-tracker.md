@@ -243,6 +243,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Operation intent end-to-end dry-run workflow helper | Done | Added `tools/run_operation_intent_rollout_dry_run.py` to generate synthetic day files and verify bundle + prefill pipeline outputs in one command |
 | Operation intent rollout tooling unit coverage | Done | Added `tests/unit/test_operation_intent_rollout_tooling.py` to validate bundle builder, memo prefill helper, and dry-run generator pipeline behavior |
 | Operation intent threshold-check automation expansion | Done | Extended bundle `threshold_checks` with strict-rejection and mismatch-rate pass/fail flags and wired memo prefill auto-results to those checks |
+| Operation intent memo markdown renderer | Done | Added `tools/render_operation_intent_decision_memo.py` plus unit coverage to generate a readable markdown decision memo from prefilled JSON draft artifacts |
 | Optional CI workflow-dispatch DB baseline rerun | Done | Run `31956249661` succeeded end-to-end (`baseline` and `db-integration` both green); total run window was 67s (`15:38:16Z` to `15:39:23Z`) |
 | Local CI-mirrored full suite baseline | Done | Ran the same test selection as optional `db-integration` locally: `65` tests passed in `35.976s` |
 

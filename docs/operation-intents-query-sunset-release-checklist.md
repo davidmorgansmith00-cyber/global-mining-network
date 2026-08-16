@@ -54,22 +54,18 @@ Rollback to dual-mode (query + header accepted) if any trigger occurs:
 
 ## Commands
 Run full blockchain integration suite:
-- `python -m unittest tests/integration/test_blockchain_status_api.py -v`
 
 Run sunset-gated tests:
-- PowerShell: `$env:GMN_ENABLE_QUERY_SUNSET_TESTS='1'; python -m unittest tests/integration/test_blockchain_status_api.py -v`
 
 Capture a single transport metrics snapshot:
-- PowerShell: `$env:MAINTENANCE_AUTH_TOKEN='<token>'; python tools/capture_operation_intent_transport_metrics.py --base-url http://127.0.0.1:8000 --output artifacts/intent-transport-snapshot.json`
 
 Capture short trend evidence (example: 15 minutes at 60-second interval):
-- PowerShell: `$env:MAINTENANCE_AUTH_TOKEN='<token>'; python tools/capture_operation_intent_transport_metrics.py --base-url http://127.0.0.1:8000 --samples 15 --interval-seconds 60 --output artifacts/intent-transport-trend-15m.json`
 
 Build 14-day rollout bundle from daily captures:
-- PowerShell: `python tools/build_operation_intent_rollout_bundle.py --input-glob "artifacts/intent-transport-day*.json" --query-threshold-percent 1.0 --strict-rejection-max-delta 0 --mismatch-rate-max-per-minute 0.1 --output artifacts/intent-transport-rollout-bundle.json`
 
 Pre-fill production decision memo draft from rollout bundle:
-- PowerShell: `python tools/prefill_operation_intent_decision_memo.py --bundle artifacts/intent-transport-rollout-bundle.json --environment-scope pre-prod-canary --decision-owner backend-oncall --output artifacts/intent-transport-decision-memo-draft.json`
+Render a human-readable markdown memo draft from prefilled JSON:
+- PowerShell: `python tools/render_operation_intent_decision_memo.py --input artifacts/intent-transport-decision-memo-draft.json --output artifacts/intent-transport-decision-memo.md`
 
 Run a full offline dry run (synthetic 14-day artifacts + bundle + memo draft):
 - PowerShell: `python tools/run_operation_intent_rollout_dry_run.py --output-dir artifacts/operation-intent-dry-run --days 14 --query-threshold-percent 1.0`

@@ -181,6 +181,92 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertTrue((output_dir / "intent-transport-rollout-bundle.json").exists())
             self.assertTrue((output_dir / "intent-transport-decision-memo-draft.json").exists())
 
+    def test_markdown_renderer_outputs_decision_memo_sections(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            temp_root = Path(tmp)
+            draft_path = temp_root / "decision-memo-draft.json"
+            markdown_path = temp_root / "decision-memo.md"
+
+            draft_payload = {
+                "decision_summary": {
+                    "decision_date": "2026-08-30",
+                    "environment_scope": "pre-prod canary",
+                    "proposed_action": "promote strict mode",
+                    "decision_owner": "backend-owner",
+                },
+                "evidence_inputs": {
+                    "rollout_bundle_file": "artifacts/intent-transport-rollout-bundle.json",
+                    "strict_mode_sunset_test_log": "logs/sunset.log",
+                    "error_rate_comparison_report": "reports/error-rates.json",
+                    "client_compatibility_signoff_record": "docs/client-signoff.md",
+                },
+                "threshold_evaluation": {
+                    "query_share_threshold": {
+                        "overall_query_share_percent": 0.81,
+                        "days_below_threshold": 14,
+                        "query_share_window_pass": True,
+                        "auto_result": "pass_candidate",
+                    },
+                    "strict_rejection_stability": {
+                        "total_query_rejected_strict_delta": 0,
+                        "strict_mode_window_periods_reviewed": "window-a",
+                        "auto_result": "pass_candidate",
+                    },
+                    "mismatch_stability": {
+                        "max_mismatch_rate_per_minute": 0.02,
+                        "baseline_mismatch_rate_per_minute": 0.01,
+                        "sustained_duration_observed": "15m",
+                        "auto_result": "pass_candidate",
+                    },
+                    "error_rate_safety": {
+                        "baseline_400_401_rates": "{}",
+                        "canary_400_401_rates": "{}",
+                        "auto_result": "review_required",
+                    },
+                    "client_regression_gate": {
+                        "open_p1_count": 0,
+                        "open_p2_count": 0,
+                        "auto_result": "pass_candidate",
+                    },
+                },
+                "rollback_trigger_review": {
+                    "header_401_rate_exceeded_2x_for_30m": False,
+                    "mismatch_threshold_exceeded_for_30m": False,
+                    "critical_compatibility_cohort_blocked": False,
+                    "incident_ids_and_remediation": "",
+                },
+                "final_recommendation": {
+                    "recommended_action": "go",
+                    "rationale_summary": "all threshold checks pass",
+                    "required_followups_before_production": "none",
+                },
+                "approvals": {
+                    "backend_owner": "pending",
+                    "client_owner": "pending",
+                    "qa_owner": "pending",
+                    "operations_owner": "pending",
+                    "final_approver": "pending",
+                },
+            }
+            draft_path.write_text(json.dumps(draft_payload), encoding="utf-8")
+
+            render_result = self._run(
+                "tools/render_operation_intent_decision_memo.py",
+                "--input",
+                str(draft_path),
+                "--output",
+                str(markdown_path),
+            )
+            self.assertEqual(render_result.returncode, 0, msg=render_result.stderr)
+            self.assertTrue(markdown_path.exists())
+
+            markdown = markdown_path.read_text(encoding="utf-8")
+            self.assertIn("# Operation Intent Production Rollout Decision Memo", markdown)
+            self.assertIn("## Threshold Evaluation", markdown)
+            self.assertIn("- query_share_window_pass: True", markdown)
+            self.assertIn("- auto_result: pass_candidate", markdown)
+            self.assertIn("- recommended_action: go", markdown)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
