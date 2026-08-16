@@ -65,11 +65,22 @@ Capture a single transport metrics snapshot:
 Capture short trend evidence (example: 15 minutes at 60-second interval):
 - PowerShell: `$env:MAINTENANCE_AUTH_TOKEN='<token>'; python tools/capture_operation_intent_transport_metrics.py --base-url http://127.0.0.1:8000 --samples 15 --interval-seconds 60 --output artifacts/intent-transport-trend-15m.json`
 
+Build 14-day rollout bundle from daily captures:
+- PowerShell: `python tools/build_operation_intent_rollout_bundle.py --input-glob "artifacts/intent-transport-day*.json" --query-threshold-percent 1.0 --output artifacts/intent-transport-rollout-bundle.json`
+
 Read computed query share from helper output:
 - Use `query_share_from_deltas.query_share_percent` from the output JSON as the canonical query-share value for promotion gates.
 - Supporting fields:
 	- `query_share_from_deltas.query_delta`
 	- `query_share_from_deltas.total_transport_delta`
+
+Read promotion-gate summary from rollout bundle output:
+- `aggregate.overall_query_share_percent`
+- `aggregate.days_below_threshold`
+- `aggregate.all_days_below_threshold`
+- `aggregate.total_query_rejected_strict_delta`
+- `aggregate.max_mismatch_rate_per_minute`
+- `threshold_checks.query_share_window_pass`
 
 ## Owner Checklist
 1. Backend owner approves strict-mode metrics health.

@@ -20,6 +20,9 @@ Attach files generated from tools/capture_operation_intent_transport_metrics.py:
 2. Canary trend file path:
 3. Final 14-day summary file path:
 
+Attach rollout bundle generated from tools/build_operation_intent_rollout_bundle.py:
+1. Rollout bundle file path:
+
 Attach additional evidence:
 1. Strict-mode sunset test run log (GMN_ENABLE_QUERY_SUNSET_TESTS=1)
 2. 400 and 401 error-rate comparison report
@@ -30,6 +33,11 @@ The helper output JSON contains:
 - snapshots: list of captured counter maps by mode
 - summary: per-mode first, last, delta, and rate_per_minute
 - query_share_from_deltas: canonical query-share calculation derived from `query`, `header`, and `dual_match` deltas
+
+The rollout bundle JSON contains:
+- daily_entries: normalized per-capture summary rows
+- aggregate: combined window-level totals and maxima
+- threshold_checks: machine-evaluated pass/fail booleans for configured threshold gates
 
 Required mode keys for review:
 - query
@@ -44,15 +52,16 @@ Complete all checks with explicit pass/fail results.
 1. Query share threshold
 - Rule: query transport share is below 1% for 14 consecutive days.
 - Calculation input:
-  - query_share_from_deltas.query_delta:
-  - query_share_from_deltas.total_transport_delta:
-  - query_share_from_deltas.query_share_percent:
+  - aggregate.overall_query_share_percent:
+  - aggregate.days_below_threshold:
+  - aggregate.all_days_below_threshold:
+  - threshold_checks.query_share_window_pass:
 - Result: Pass or Fail
 
 2. Strict rejection stability
 - Rule: query_rejected_strict remains near zero outside planned strict-mode windows.
 - Calculation input:
-  - query_rejected_strict delta:
+  - aggregate.total_query_rejected_strict_delta:
   - strict-mode window periods reviewed:
 - Result: Pass or Fail
 
@@ -60,7 +69,7 @@ Complete all checks with explicit pass/fail results.
 - Rule: mismatch does not show sustained increase versus pre-canary baseline.
 - Calculation input:
   - baseline mismatch rate_per_minute:
-  - canary mismatch rate_per_minute:
+  - aggregate.max_mismatch_rate_per_minute:
   - sustained duration observed:
 - Result: Pass or Fail
 
