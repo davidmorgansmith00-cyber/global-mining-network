@@ -21,6 +21,7 @@ from domain.blockchain.store import InMemoryBlockchainStateStore
 from domain.difficulty.service import DifficultyAdjustmentService, DifficultyConfig
 from domain.economy.ledger import NoOpLedgerPoster
 from domain.mining.contracts import (
+    EVENT_COOLING_STATE_CHANGED,
     EVENT_HARDWARE_CHANGED,
     EVENT_MAINTENANCE_STATE_CHANGED,
     EVENT_MODIFIER_ENDED,
@@ -207,6 +208,39 @@ class MiningSimulationServiceIntegrationTests(unittest.TestCase):
         result = service.process_tick(operation_id="op_a", ended_at=tick_end)
 
         self.assertEqual(result.contribution_hashes, Decimal("140.000000"))
+        self.assertEqual(service.operations["op_a"].current_multiplier, Decimal("1.0"))
+        self.assertEqual(service.operations["op_a"].last_processed_at, tick_end)
+
+    def test_cooling_state_boundary_updates_effective_hashrate_multiplier(self) -> None:
+        started_at = datetime(2026, 8, 15, 15, 0, tzinfo=UTC)
+        thermal_throttle_at = started_at + timedelta(seconds=4)
+        cooling_recovered_at = started_at + timedelta(seconds=9)
+        tick_end = started_at + timedelta(seconds=12)
+
+        service = MiningSimulationService(required_work=Decimal("1000"))
+        service.register_operation(operation_id="op_a", base_hashrate_hps=Decimal("10"), started_at=started_at)
+        service.apply_boundary_event(
+            SimulationBoundaryEvent(
+                event_type=EVENT_COOLING_STATE_CHANGED,
+                player_id="player_a",
+                operation_id="op_a",
+                occurred_at=thermal_throttle_at,
+                payload={"hashrate_multiplier": "0.7"},
+            )
+        )
+        service.apply_boundary_event(
+            SimulationBoundaryEvent(
+                event_type=EVENT_COOLING_STATE_CHANGED,
+                player_id="player_a",
+                operation_id="op_a",
+                occurred_at=cooling_recovered_at,
+                payload={"hashrate_multiplier": "1.0"},
+            )
+        )
+
+        result = service.process_tick(operation_id="op_a", ended_at=tick_end)
+
+        self.assertEqual(result.contribution_hashes, Decimal("105.000000"))
         self.assertEqual(service.operations["op_a"].current_multiplier, Decimal("1.0"))
         self.assertEqual(service.operations["op_a"].last_processed_at, tick_end)
 
