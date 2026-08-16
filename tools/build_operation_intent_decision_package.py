@@ -80,6 +80,21 @@ def _run_command(command: list[str]) -> None:
         raise RuntimeError(message)
 
 
+def _run_command_capture_output(command: list[str]) -> str:
+    completed = subprocess.run(command, check=False, capture_output=True, text=True)
+    if completed.returncode != 0:
+        message = "\n".join(
+            [
+                "Command failed:",
+                " ".join(command),
+                completed.stdout.strip(),
+                completed.stderr.strip(),
+            ]
+        )
+        raise RuntimeError(message)
+    return completed.stdout.strip()
+
+
 def main() -> int:
     args = _parse_args()
 
@@ -186,40 +201,31 @@ def main() -> int:
             str(verification_path),
         ]
     )
-    evaluation_payload = json.loads(evaluation_path.read_text(encoding="utf-8"))
     verification_payload = json.loads(verification_path.read_text(encoding="utf-8"))
     verification_verified = bool(verification_payload.get("verified", False))
     verification_schema_supported = bool(verification_payload.get("schema_supported", False))
+    compact_summary_line = _run_command_capture_output(
+        [
+            sys.executable,
+            str(root / "tools" / "inspect_operation_intent_decision_package.py"),
+            "--manifest",
+            str(manifest_path),
+        ]
+    )
+    compact_summary_json_raw = _run_command_capture_output(
+        [
+            sys.executable,
+            str(root / "tools" / "inspect_operation_intent_decision_package.py"),
+            "--manifest",
+            str(manifest_path),
+            "--format",
+            "json",
+        ]
+    )
+    compact_summary_json = json.loads(compact_summary_json_raw)
 
-    decision = str(evaluation_payload.get("decision", ""))
-    promotion_ready_bool = bool(evaluation_payload.get("promotion_ready", False))
-    promotion_ready = str(promotion_ready_bool).lower()
-    passed_checks = int(evaluation_payload.get("passed_checks", 0))
-    total_checks = int(evaluation_payload.get("total_checks", 0))
-    failed_checks_payload = evaluation_payload.get("failed_checks", [])
-    failed_checks = (
-        ",".join(failed_checks_payload) if isinstance(failed_checks_payload, list) else str(failed_checks_payload)
-    )
-    compact_summary_json = {
-        "manifest": str(manifest_path.resolve()).replace("\\", "/"),
-        "decision": decision,
-        "promotion_ready": promotion_ready_bool,
-        "passed_checks": passed_checks,
-        "total_checks": total_checks,
-        "verified": verification_verified,
-        "schema_supported": verification_schema_supported,
-        "failed_checks": failed_checks_payload,
-    }
-    compact_summary_line = (
-        f"decision={decision} promotion_ready={promotion_ready} "
-        f"checks={passed_checks}/{total_checks} verified={str(verification_verified).lower()} "
-        f"schema_supported={str(verification_schema_supported).lower()} failed_checks={failed_checks}"
-    )
     compact_summary_path.write_text(compact_summary_line + "\n", encoding="utf-8")
-    compact_summary_json_path.write_text(
-        json.dumps(compact_summary_json, sort_keys=True) + "\n",
-        encoding="utf-8",
-    )
+    compact_summary_json_path.write_text(json.dumps(compact_summary_json, sort_keys=True) + "\n", encoding="utf-8")
 
     summary = {
         "output_dir": str(output_dir).replace("\\", "/"),

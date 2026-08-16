@@ -549,6 +549,25 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertIn("verified", compact_summary_json)
             self.assertIn("schema_supported", compact_summary_json)
 
+            manifest_path = output_dir / "intent-transport-decision-package-manifest.json"
+            inspect_text_result = self._run(
+                "tools/inspect_operation_intent_decision_package.py",
+                "--manifest",
+                str(manifest_path),
+            )
+            self.assertEqual(inspect_text_result.returncode, 0, msg=inspect_text_result.stderr)
+            self.assertEqual(compact_summary.strip(), inspect_text_result.stdout.strip())
+
+            inspect_json_result = self._run(
+                "tools/inspect_operation_intent_decision_package.py",
+                "--manifest",
+                str(manifest_path),
+                "--format",
+                "json",
+            )
+            self.assertEqual(inspect_json_result.returncode, 0, msg=inspect_json_result.stderr)
+            self.assertEqual(compact_summary_json, json.loads(inspect_json_result.stdout))
+
     def test_decision_package_builder_can_fail_on_blocked(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             temp_root = Path(tmp)
