@@ -32,6 +32,18 @@ def _parse_args() -> argparse.Namespace:
         default=1.0,
         help="Threshold used when building the rollout bundle (default: 1.0)",
     )
+    parser.add_argument(
+        "--strict-rejection-max-delta",
+        type=int,
+        default=0,
+        help="Maximum allowed query_rejected_strict delta over the window (default: 0)",
+    )
+    parser.add_argument(
+        "--mismatch-rate-max-per-minute",
+        type=float,
+        default=0.1,
+        help="Maximum allowed mismatch rate per minute over the window (default: 0.1)",
+    )
     return parser.parse_args()
 
 
@@ -154,6 +166,7 @@ def main() -> int:
 
     bundle_path = output_dir / "intent-transport-rollout-bundle.json"
     memo_draft_path = output_dir / "intent-transport-decision-memo-draft.json"
+    memo_markdown_path = output_dir / "intent-transport-decision-memo.md"
 
     _run_command(
         [
@@ -163,6 +176,10 @@ def main() -> int:
             str(output_dir / "intent-transport-day*.json"),
             "--query-threshold-percent",
             str(args.query_threshold_percent),
+            "--strict-rejection-max-delta",
+            str(args.strict_rejection_max_delta),
+            "--mismatch-rate-max-per-minute",
+            str(args.mismatch_rate_max_per_minute),
             "--output",
             str(bundle_path),
         ]
@@ -183,11 +200,23 @@ def main() -> int:
         ]
     )
 
+    _run_command(
+        [
+            sys.executable,
+            str(root / "tools" / "render_operation_intent_decision_memo.py"),
+            "--input",
+            str(memo_draft_path),
+            "--output",
+            str(memo_markdown_path),
+        ]
+    )
+
     result = {
         "output_dir": str(output_dir).replace("\\", "/"),
         "generated_daily_files": args.days,
         "bundle_file": str(bundle_path).replace("\\", "/"),
         "memo_draft_file": str(memo_draft_path).replace("\\", "/"),
+        "memo_markdown_file": str(memo_markdown_path).replace("\\", "/"),
     }
     print(json.dumps(result, indent=2, sort_keys=True))
     return 0

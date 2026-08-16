@@ -180,6 +180,7 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertTrue((output_dir / "intent-transport-day03.json").exists())
             self.assertTrue((output_dir / "intent-transport-rollout-bundle.json").exists())
             self.assertTrue((output_dir / "intent-transport-decision-memo-draft.json").exists())
+            self.assertTrue((output_dir / "intent-transport-decision-memo.md").exists())
 
     def test_markdown_renderer_outputs_decision_memo_sections(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
