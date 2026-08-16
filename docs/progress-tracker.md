@@ -139,6 +139,8 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Boundary-event timestamp contract hardening | Done | Removed the hidden default timestamp from mining boundary events so callers must provide authoritative times explicitly |
 | Auth session lifecycle baseline | Done | Added register/login/refresh/logout lifecycle support with session IDs and revocation handling |
 | Auth session lifecycle integration coverage | Done | Added persistence coverage for refresh rotation and logout revocation |
+| Auth HTTP lifecycle integration coverage | Done | Added API integration tests validating register/refresh/logout lifecycle and post-logout refresh rejection |
+| Auth refresh invalid-token rejection coverage | Done | Added API integration test ensuring refresh returns 401 for invalid refresh tokens |
 | Shared-block aggregation integration test | Done | Added and passed `tests/integration/test_mining_simulation_service.py::test_multiple_operations_contribute_to_same_active_block` |
 | Timestamp progression and boundary application test | Done | Added and passed `tests/integration/test_mining_simulation_service.py::test_operation_last_processed_timestamp_advances_and_boundaries_apply` |
 | Atomic finalization concurrency test | Done | Added and passed `tests/integration/test_mining_simulation_service.py::test_atomic_finalization_under_concurrency` |
