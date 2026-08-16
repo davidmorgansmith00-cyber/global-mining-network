@@ -80,21 +80,6 @@ def _run_command(command: list[str]) -> None:
         raise RuntimeError(message)
 
 
-def _run_command_capture_output(command: list[str]) -> str:
-    completed = subprocess.run(command, check=False, capture_output=True, text=True)
-    if completed.returncode != 0:
-        message = "\n".join(
-            [
-                "Command failed:",
-                " ".join(command),
-                completed.stdout.strip(),
-                completed.stderr.strip(),
-            ]
-        )
-        raise RuntimeError(message)
-    return completed.stdout.strip()
-
-
 def main() -> int:
     args = _parse_args()
 
@@ -201,15 +186,17 @@ def main() -> int:
             str(verification_path),
         ]
     )
-    compact_summary_line = _run_command_capture_output(
+    _run_command(
         [
             sys.executable,
             str(root / "tools" / "inspect_operation_intent_decision_package.py"),
             "--manifest",
             str(manifest_path),
+            "--output",
+            str(compact_summary_path),
         ]
     )
-    compact_summary_json_raw = _run_command_capture_output(
+    _run_command(
         [
             sys.executable,
             str(root / "tools" / "inspect_operation_intent_decision_package.py"),
@@ -217,12 +204,10 @@ def main() -> int:
             str(manifest_path),
             "--format",
             "json",
+            "--output",
+            str(compact_summary_json_path),
         ]
     )
-    compact_summary_json = json.loads(compact_summary_json_raw)
-
-    compact_summary_path.write_text(compact_summary_line + "\n", encoding="utf-8")
-    compact_summary_json_path.write_text(json.dumps(compact_summary_json, sort_keys=True) + "\n", encoding="utf-8")
 
     summary = {
         "output_dir": str(output_dir).replace("\\", "/"),
@@ -250,15 +235,17 @@ def main() -> int:
         ]
     )
     # Refresh compact summaries so inspector-derived JSON reflects final verification-state fields.
-    compact_summary_line = _run_command_capture_output(
+    _run_command(
         [
             sys.executable,
             str(root / "tools" / "inspect_operation_intent_decision_package.py"),
             "--manifest",
             str(manifest_path),
+            "--output",
+            str(compact_summary_path),
         ]
     )
-    compact_summary_json_raw = _run_command_capture_output(
+    _run_command(
         [
             sys.executable,
             str(root / "tools" / "inspect_operation_intent_decision_package.py"),
@@ -266,11 +253,10 @@ def main() -> int:
             str(manifest_path),
             "--format",
             "json",
+            "--output",
+            str(compact_summary_json_path),
         ]
     )
-    compact_summary_json = json.loads(compact_summary_json_raw)
-    compact_summary_path.write_text(compact_summary_line + "\n", encoding="utf-8")
-    compact_summary_json_path.write_text(json.dumps(compact_summary_json, sort_keys=True) + "\n", encoding="utf-8")
 
     _run_command(
         [
