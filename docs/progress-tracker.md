@@ -194,6 +194,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Checkpoint mismatched-binding auth coverage | Done | Added integration test asserting checkpoint GET/PUT return unauthorized when `player_id` and `session_id` do not belong to the same binding |
 | Checkpoint negative-cursor contract hardening | Done | Enforced non-negative reconnect cursor schema validation and added integration test asserting negative checkpoint cursor updates are rejected |
 | Checkpoint unsupported-channel contract coverage | Done | Added integration test asserting checkpoint GET/PUT reject unsupported channels with deterministic 400 responses |
+| Checkpoint bootstrap cursor contract coverage | Done | Added integration test asserting checkpoint GET with no stored checkpoint returns reconnect cursor derived from authoritative global event stream |
 | WebSocket auth/session binding | Done | WebSocket now validates `player_id` + `session_id` against active auth sessions |
 | Per-client channel filtering | Done | Added `global` and `player_rewards` channel filters with player-scoped event routing |
 | Event/checkpoint retention cleanup endpoint | Done | Added `POST /api/v1/blockchain/maintenance/cleanup` with age/cap cleanup for network events and checkpoints |

@@ -1308,6 +1308,41 @@ class BlockchainStatusApiTests(unittest.TestCase):
         payload = get_response.json()
         self.assertEqual(payload["reconnect_cursor"], 42)
 
+    def test_checkpoint_get_bootstraps_reconnect_cursor_without_existing_checkpoint(self) -> None:
+        started_at = datetime(2026, 8, 16, 0, 15, tzinfo=UTC)
+        player_id, session_id = self._create_player_session_binding()
+        service = MiningSimulationService(
+            required_work=Decimal("100"),
+            blockchain_state_store=PostgresBlockchainStateStore(required_work=Decimal("100")),
+            ledger_poster=PostgresLedgerPoster(),
+        )
+        service.register_operation(
+            operation_id="op_checkpoint_bootstrap_1",
+            player_id=player_id,
+            base_hashrate_hps=Decimal("20"),
+            started_at=started_at,
+        )
+        service.process_tick(operation_id="op_checkpoint_bootstrap_1", ended_at=started_at + timedelta(seconds=5))
+
+        with TestClient(app) as client:
+            with client.websocket_connect(
+                f"/api/v1/blockchain/network-events/ws?after_sequence=0&limit=50"
+                f"&player_id={player_id}&session_id={session_id}&channel=global"
+            ) as websocket:
+                websocket_payload = websocket.receive_json()
+
+            checkpoint_response = client.get(
+                f"/api/v1/blockchain/checkpoints/global?player_id={player_id}&session_id={session_id}"
+            )
+
+        self.assertEqual(checkpoint_response.status_code, 200)
+
+        checkpoint_payload = checkpoint_response.json()
+        self.assertEqual(checkpoint_payload["player_id"], player_id)
+        self.assertEqual(checkpoint_payload["session_id"], session_id)
+        self.assertEqual(checkpoint_payload["channel"], "global")
+        self.assertEqual(checkpoint_payload["reconnect_cursor"], websocket_payload["reconnect_cursor"])
+
     def test_checkpoint_endpoints_reject_revoked_session_binding(self) -> None:
         player_id, session_id = self._create_player_session_binding()
 
