@@ -270,6 +270,10 @@ def main() -> int:
         "rollout_evaluation_file": str(rollout_evaluation_path).replace("\\", "/"),
         "decision_package_manifest_file": str(package_summary.get("manifest_file", "")),
         "decision_package_verification_file": str(package_summary.get("verification_file", "")),
+        "decision_package_compact_summary_file": str(package_summary.get("compact_summary_file", "")),
+        "decision_package_compact_summary_json_file": str(
+            package_summary.get("compact_summary_json_file", "")
+        ),
     }
     print(json.dumps(result, indent=2, sort_keys=True))
     return 0

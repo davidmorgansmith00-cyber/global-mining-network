@@ -201,6 +201,8 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertIn("rollout_evaluation_file", summary)
             self.assertIn("decision_package_manifest_file", summary)
             self.assertIn("decision_package_verification_file", summary)
+            self.assertIn("decision_package_compact_summary_file", summary)
+            self.assertIn("decision_package_compact_summary_json_file", summary)
 
             self.assertTrue((output_dir / "intent-transport-day01.json").exists())
             self.assertTrue((output_dir / "intent-transport-day02.json").exists())
@@ -214,6 +216,12 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             )
             self.assertTrue(
                 (output_dir / "decision-package" / "intent-transport-decision-package-verification.json").exists()
+            )
+            self.assertTrue(
+                (output_dir / "decision-package" / "intent-transport-decision-package-summary.txt").exists()
+            )
+            self.assertTrue(
+                (output_dir / "decision-package" / "intent-transport-decision-package-summary.json").exists()
             )
 
             memo_draft = json.loads(
