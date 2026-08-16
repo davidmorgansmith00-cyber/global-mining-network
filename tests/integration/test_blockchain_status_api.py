@@ -196,6 +196,12 @@ class BlockchainStatusApiTests(unittest.TestCase):
         self.assertEqual(below_min.status_code, 422)
         self.assertEqual(above_max.status_code, 422)
 
+    def test_player_reward_history_endpoint_rejects_non_integer_recent_limit(self) -> None:
+        with TestClient(app) as client:
+            response = client.get("/api/v1/blockchain/players/player_a/rewards?recent_limit=not_an_int")
+
+        self.assertEqual(response.status_code, 422)
+
     def test_player_reward_balances_endpoint_replays_immutable_ledger_totals(self) -> None:
         started_at = datetime(2026, 8, 15, 21, 45, tzinfo=UTC)
         service = MiningSimulationService(

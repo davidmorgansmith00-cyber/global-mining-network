@@ -218,6 +218,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Network events non-integer limit coverage | Done | Added integration test asserting `limit` rejects non-integer values with HTTP 422 |
 | Blockchain status non-integer recent-limit coverage | Done | Added integration test asserting status `recent_limit` rejects non-integer values with HTTP 422 |
 | Network snapshot non-integer recent-limit coverage | Done | Added integration test asserting network snapshot `recent_limit` rejects non-integer values with HTTP 422 |
+| Player reward history non-integer recent-limit coverage | Done | Added integration test asserting reward history `recent_limit` rejects non-integer values with HTTP 422 |
 | WebSocket auth/session binding | Done | WebSocket now validates `player_id` + `session_id` against active auth sessions |
 | Per-client channel filtering | Done | Added `global` and `player_rewards` channel filters with player-scoped event routing |
 | Event/checkpoint retention cleanup endpoint | Done | Added `POST /api/v1/blockchain/maintenance/cleanup` with age/cap cleanup for network events and checkpoints |
