@@ -499,6 +499,8 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertIn("memo_markdown_file", summary)
             self.assertIn("manifest_file", summary)
             self.assertIn("verification_file", summary)
+            self.assertTrue(summary["verification_verified"])
+            self.assertTrue(summary["verification_schema_supported"])
 
             self.assertTrue((output_dir / "intent-transport-rollout-bundle.json").exists())
             self.assertTrue((output_dir / "intent-transport-rollout-evaluation.json").exists())

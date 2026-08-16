@@ -184,6 +184,9 @@ def main() -> int:
             str(verification_path),
         ]
     )
+    verification_payload = json.loads(verification_path.read_text(encoding="utf-8"))
+    verification_verified = bool(verification_payload.get("verified", False))
+    verification_schema_supported = bool(verification_payload.get("schema_supported", False))
 
     summary = {
         "output_dir": str(output_dir).replace("\\", "/"),
@@ -193,6 +196,8 @@ def main() -> int:
         "memo_markdown_file": str(memo_markdown_path).replace("\\", "/"),
         "manifest_file": str(manifest_path).replace("\\", "/"),
         "verification_file": str(verification_path).replace("\\", "/"),
+        "verification_verified": verification_verified,
+        "verification_schema_supported": verification_schema_supported,
     }
     print(json.dumps(summary, indent=2, sort_keys=True))
     return 0
