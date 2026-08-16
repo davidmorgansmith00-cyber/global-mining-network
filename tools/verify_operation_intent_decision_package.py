@@ -156,12 +156,19 @@ def main() -> int:
 
             json_summary_path = artifact_paths.get("compact_summary_json_file")
             if isinstance(json_summary_path, Path):
-                compact_summary_json_actual = _load_json(json_summary_path, "Compact summary JSON")
-                compact_summary_json_matches = compact_summary_json_actual == compact_summary_json_expected
-                if not compact_summary_json_matches:
+                try:
+                    compact_summary_json_actual = _load_json(json_summary_path, "Compact summary JSON")
+                except Exception as exc:  # noqa: BLE001
+                    compact_summary_json_matches = False
                     compact_summary_mismatch_details.append(
-                        "compact_summary_json_file content does not match expected inspector JSON summary"
+                        f"compact_summary_json_file could not be parsed: {exc}"
                     )
+                else:
+                    compact_summary_json_matches = compact_summary_json_actual == compact_summary_json_expected
+                    if not compact_summary_json_matches:
+                        compact_summary_mismatch_details.append(
+                            "compact_summary_json_file content does not match expected inspector JSON summary"
+                        )
 
     schema_supported = schema_version in supported_schema_versions
     verified = (
