@@ -1127,6 +1127,34 @@ class BlockchainStatusApiTests(unittest.TestCase):
         finally:
             settings.operation_intent_require_header_binding = original_strict_mode
 
+    def test_operation_intents_strict_mode_rejection_reports_configured_header_name(self) -> None:
+        _, session_id = self._create_player_session_binding()
+        header_name = settings.operation_intent_session_header
+        expected_detail = f"Session binding must be provided via {header_name} header"
+        original_strict_mode = settings.operation_intent_require_header_binding
+        settings.operation_intent_require_header_binding = True
+
+        try:
+            with TestClient(app) as client:
+                start_response = client.post(
+                    f"/api/v1/blockchain/operations/intents/start?session_id={session_id}",
+                    json={
+                        "operation_id": "op_strict_detail_start",
+                        "base_hashrate_hps": "20",
+                    },
+                )
+                stop_response = client.post(
+                    f"/api/v1/blockchain/operations/intents/stop?session_id={session_id}",
+                    json={"operation_id": "op_strict_detail_stop"},
+                )
+
+            self.assertEqual(start_response.status_code, 400)
+            self.assertEqual(stop_response.status_code, 400)
+            self.assertEqual(start_response.json().get("detail"), expected_detail)
+            self.assertEqual(stop_response.json().get("detail"), expected_detail)
+        finally:
+            settings.operation_intent_require_header_binding = original_strict_mode
+
     @unittest.skipUnless(
         os.getenv("GMN_ENABLE_QUERY_SUNSET_TESTS", "0") in {"1", "true", "TRUE"},
         "Query-sunset tests are gated behind GMN_ENABLE_QUERY_SUNSET_TESTS",
