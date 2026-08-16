@@ -131,6 +131,7 @@ Print compact package gate summary:
 - CI mode: append `--fail-on-unverified` to return non-zero when verification status is false.
 - Fresh-check mode: append `--verify-before-inspect` to recompute verification from current artifacts before printing summary.
 - Inspector JSON output includes compact summary verification path flags: `compact_summary_checks_performed` and `compact_summary_checks_skipped`.
+- Inspector JSON output includes compact summary mismatch diagnostics: `compact_summary_mismatch_count` and `compact_summary_mismatch_details`.
 - Inspector text output now includes compatibility-path fields: `summary_artifacts_present`, `summary_checks_performed`, and `summary_checks_skipped`.
 
 Read auto-filled draft memo fields:

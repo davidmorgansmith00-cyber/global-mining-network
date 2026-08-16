@@ -999,6 +999,8 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertTrue(summary["verified"])
             self.assertIn("compact_summary_checks_performed", summary)
             self.assertIn("compact_summary_checks_skipped", summary)
+            self.assertIn("compact_summary_mismatch_count", summary)
+            self.assertIn("compact_summary_mismatch_details", summary)
 
     def test_decision_package_inspector_can_fail_on_unverified(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

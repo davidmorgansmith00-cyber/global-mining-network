@@ -138,6 +138,13 @@ def main() -> int:
             verification_compact_summary_checks_skipped = bool(
                 verification_payload.get("compact_summary_checks_skipped", False)
             )
+            verification_compact_summary_mismatch_details = verification_payload.get(
+                "compact_summary_mismatch_details", []
+            )
+            if not isinstance(verification_compact_summary_mismatch_details, list):
+                verification_compact_summary_mismatch_details = [
+                    str(verification_compact_summary_mismatch_details)
+                ]
             failed_checks_payload = evaluation.get("failed_checks", [])
             failed_checks = (
                 ",".join(failed_checks_payload)
@@ -169,6 +176,8 @@ def main() -> int:
                 "compact_summary_checks_skipped": bool(
                     verification_payload.get("compact_summary_checks_skipped", False)
                 ),
+                "compact_summary_mismatch_count": len(verification_compact_summary_mismatch_details),
+                "compact_summary_mismatch_details": verification_compact_summary_mismatch_details,
                 "failed_checks": failed_checks_payload,
             }
 

@@ -284,6 +284,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Operation intent inspector text compatibility fields | Done | Inspector text output now includes summary artifact compatibility markers (`summary_artifacts_present`, `summary_checks_performed`, `summary_checks_skipped`) with verifier text-parity enforcement |
 | Operation intent inspector refresh mode | Done | Added `--verify-before-inspect` so inspector can recompute verification against current artifacts before output/fail-on-unverified checks, preventing stale-verification false positives |
 | Operation intent inspector refresh JSON coverage | Done | Added regression coverage asserting refresh mode updates JSON output (`verified=false`) after post-package artifact tampering |
+| Operation intent inspector mismatch diagnostic fields | Done | Inspector JSON now surfaces compact-summary mismatch count/details for parity with verifier and builder diagnostic outputs |
 | Optional CI workflow-dispatch DB baseline rerun | Done | Run `31956249661` succeeded end-to-end (`baseline` and `db-integration` both green); total run window was 67s (`15:38:16Z` to `15:39:23Z`) |
 | Local CI-mirrored full suite baseline | Done | Ran the same test selection as optional `db-integration` locally: `65` tests passed in `35.976s` |
 

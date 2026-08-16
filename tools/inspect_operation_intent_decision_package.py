@@ -129,6 +129,12 @@ def main() -> int:
         "compact_summary_checks_skipped": bool(
             verification.get("compact_summary_checks_skipped", False)
         ),
+        "compact_summary_mismatch_count": int(
+            len(verification.get("compact_summary_mismatch_details", []))
+            if isinstance(verification.get("compact_summary_mismatch_details", []), list)
+            else 1
+        ),
+        "compact_summary_mismatch_details": verification.get("compact_summary_mismatch_details", []),
         "failed_checks": evaluation.get("failed_checks", []),
     }
 
