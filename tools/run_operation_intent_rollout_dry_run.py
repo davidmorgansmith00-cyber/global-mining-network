@@ -299,8 +299,23 @@ def main() -> int:
     if inspector_summary_json_path.exists():
         inspector_summary_json_payload = json.loads(inspector_summary_json_path.read_text(encoding="utf-8"))
 
+    decision_package_decision = str(
+        package_summary.get("verification_decision", compact_summary_json_payload.get("decision", ""))
+    )
+    decision_package_promotion_ready = bool(
+        package_summary.get(
+            "verification_promotion_ready",
+            compact_summary_json_payload.get("promotion_ready", False),
+        )
+    )
+    decision_package_passed_checks = int(
+        package_summary.get("verification_passed_checks", compact_summary_json_payload.get("passed_checks", 0))
+    )
+    decision_package_total_checks = int(
+        package_summary.get("verification_total_checks", compact_summary_json_payload.get("total_checks", 0))
+    )
     decision_package_failed_checks = _normalize_string_list(
-        compact_summary_json_payload.get("failed_checks", [])
+        package_summary.get("verification_failed_checks", compact_summary_json_payload.get("failed_checks", []))
     )
 
     inspector_verified = bool(
@@ -332,10 +347,10 @@ def main() -> int:
         "decision_package_compact_summary_json_file": compact_summary_json_file,
         "decision_package_inspector_summary_file": str(inspector_summary_text_path).replace("\\", "/"),
         "decision_package_inspector_summary_json_file": str(inspector_summary_json_path).replace("\\", "/"),
-        "decision_package_decision": str(compact_summary_json_payload.get("decision", "")),
-        "decision_package_promotion_ready": bool(compact_summary_json_payload.get("promotion_ready", False)),
-        "decision_package_passed_checks": int(compact_summary_json_payload.get("passed_checks", 0)),
-        "decision_package_total_checks": int(compact_summary_json_payload.get("total_checks", 0)),
+        "decision_package_decision": decision_package_decision,
+        "decision_package_promotion_ready": decision_package_promotion_ready,
+        "decision_package_passed_checks": decision_package_passed_checks,
+        "decision_package_total_checks": decision_package_total_checks,
         "decision_package_failed_checks": decision_package_failed_checks,
         "decision_package_verified": decision_package_verified,
         "decision_package_schema_supported": decision_package_schema_supported,

@@ -132,6 +132,7 @@ Build the full decision artifact package in one command:
 - Dry-run output now includes `decision_package_failed_checks`, sourced from compact summary JSON, so blocked-gate reasons are immediately available in one payload.
 - Dry-run output now includes `decision_package_passed_checks` and `decision_package_total_checks` for compact gate-score reporting in the same payload.
 - Builder and dry-run outputs now also expose verifier compact-summary match booleans: `verification_compact_summary_text_matches`, `verification_compact_summary_json_matches`, `decision_package_compact_summary_text_matches`, and `decision_package_compact_summary_json_matches`.
+- Builder and dry-run outputs now also expose direct evaluation gate fields: `verification_decision`, `verification_promotion_ready`, `verification_passed_checks`, `verification_total_checks`, `verification_failed_checks`, and the matching `decision_package_*` fields.
 
 Verify generated package integrity:
 - PowerShell: `python tools/verify_operation_intent_decision_package.py --manifest artifacts/operation-intent-decision-package/intent-transport-decision-package-manifest.json`

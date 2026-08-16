@@ -301,12 +301,21 @@ def main() -> int:
         ]
     )
     verification_payload = json.loads(verification_path.read_text(encoding="utf-8"))
+    evaluation = json.loads(evaluation_path.read_text(encoding="utf-8"))
     inspector_summary_json_payload = json.loads(inspector_summary_json_path.read_text(encoding="utf-8"))
     summary["verification_verified"] = bool(verification_payload.get("verified", False))
     summary["verification_schema_supported"] = bool(verification_payload.get("schema_supported", False))
     summary["verification_evaluation_matches_memo"] = bool(
         verification_payload.get("evaluation_matches_memo", False)
     )
+    summary["verification_decision"] = str(evaluation.get("decision", ""))
+    summary["verification_promotion_ready"] = bool(evaluation.get("promotion_ready", False))
+    summary["verification_passed_checks"] = int(evaluation.get("passed_checks", 0))
+    summary["verification_total_checks"] = int(evaluation.get("total_checks", 0))
+    verification_failed_checks = evaluation.get("failed_checks", [])
+    if not isinstance(verification_failed_checks, list):
+        verification_failed_checks = [str(verification_failed_checks)]
+    summary["verification_failed_checks"] = [str(item) for item in verification_failed_checks]
     verification_missing_artifacts = verification_payload.get("missing_artifacts", [])
     if not isinstance(verification_missing_artifacts, list):
         verification_missing_artifacts = [str(verification_missing_artifacts)]
