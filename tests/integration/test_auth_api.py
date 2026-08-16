@@ -210,6 +210,38 @@ class AuthApiIntegrationTests(unittest.TestCase):
         finally:
             self._cleanup_player_by_email(email=email)
 
+    def test_auth_login_mints_distinct_session_bindings_per_success(self) -> None:
+        email = f"auth_login_rotate_{uuid4().hex[:10]}@example.com"
+        password = "password123"
+
+        try:
+            with TestClient(app) as client:
+                registered = client.post(
+                    "/api/v1/auth/register",
+                    json={"email": email, "password": password},
+                )
+                self.assertEqual(registered.status_code, 200)
+
+                login_one = client.post(
+                    "/api/v1/auth/login",
+                    json={"email": email, "password": password},
+                )
+                login_two = client.post(
+                    "/api/v1/auth/login",
+                    json={"email": email, "password": password},
+                )
+
+                self.assertEqual(login_one.status_code, 200)
+                self.assertEqual(login_two.status_code, 200)
+
+                login_one_payload = login_one.json()
+                login_two_payload = login_two.json()
+                self.assertEqual(login_one_payload["player_id"], login_two_payload["player_id"])
+                self.assertNotEqual(login_one_payload["session_id"], login_two_payload["session_id"])
+                self.assertNotEqual(login_one_payload["refresh_token"], login_two_payload["refresh_token"])
+        finally:
+            self._cleanup_player_by_email(email=email)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
