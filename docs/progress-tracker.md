@@ -153,6 +153,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Difficulty config DB baseline | Done | Added `database/migrations/0004_difficulty_config.sql` default singleton settings row |
 | Reward settlement calculation baseline | Done | Added `server/domain/economy/reward_settlement.py` and wired mining finalization reward amount computation |
 | Difficulty and reward unit tests | Done | Added and passed `tests/unit/test_difficulty_and_reward_settlement.py` |
+| Deterministic replay settlement integration test | Done | Added and passed `tests/integration/test_mining_simulation_service.py::test_deterministic_replay_produces_identical_settlement_outcomes` |
 | Difficulty-linked integration coverage | Done | Added and passed `tests/integration/test_mining_simulation_service.py::test_difficulty_adjusts_next_required_work_from_finalized_history` |
 | Immutable per-player reward ledger entries | Done | Added `database/migrations/0005_player_reward_ledger.sql` and posting integration in `server/domain/economy/ledger.py` |
 | Player-level reward allocation flow | Done | Mining service now allocates finalized reward by player contribution share and posts immutable entries |

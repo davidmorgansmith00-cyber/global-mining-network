@@ -205,6 +205,66 @@ class MiningSimulationServiceIntegrationTests(unittest.TestCase):
         self.assertIn("network.block_progress.v1", event_types)
         self.assertIn("network.block_finalized.v1", event_types)
 
+    def test_deterministic_replay_produces_identical_settlement_outcomes(self) -> None:
+        started_at = datetime(2026, 8, 15, 21, 0, tzinfo=UTC)
+
+        def run_sequence() -> tuple[tuple[int, Decimal, Decimal], list[int], list[tuple[int, Decimal]], list[tuple[int, str, Decimal, Decimal]]]:
+            ledger = NoOpLedgerPoster()
+            service = MiningSimulationService(required_work=Decimal("100"), ledger_poster=ledger)
+            service.register_operation(
+                operation_id="op_a",
+                player_id="player_a",
+                base_hashrate_hps=Decimal("12"),
+                started_at=started_at,
+            )
+            service.register_operation(
+                operation_id="op_b",
+                player_id="player_b",
+                base_hashrate_hps=Decimal("8"),
+                started_at=started_at,
+            )
+            service.apply_boundary_event(
+                SimulationBoundaryEvent(
+                    event_type=EVENT_OPERATION_PAUSE,
+                    player_id="player_a",
+                    operation_id="op_a",
+                    occurred_at=started_at + timedelta(seconds=4),
+                )
+            )
+            service.apply_boundary_event(
+                SimulationBoundaryEvent(
+                    event_type=EVENT_OPERATION_RESUME,
+                    player_id="player_a",
+                    operation_id="op_a",
+                    occurred_at=started_at + timedelta(seconds=7),
+                )
+            )
+
+            for tick_offset in (5, 10, 15):
+                tick_end = started_at + timedelta(seconds=tick_offset)
+                service.process_tick(operation_id="op_a", ended_at=tick_end)
+                service.process_tick(operation_id="op_b", ended_at=tick_end)
+
+            active = service.blockchain_state_store.get_active_block()
+            active_snapshot = (active.block_number, active.required_work, active.accumulated_work)
+            finalized_blocks = list(service.finalized_block_numbers)
+            reward_pool_entries = [(entry.block_number, entry.reward_amount) for entry in ledger.entries]
+            player_reward_entries = [
+                (
+                    entry.block_number,
+                    entry.player_id,
+                    entry.reward_amount,
+                    entry.contribution_hashes,
+                )
+                for entry in ledger.player_entries
+            ]
+            return active_snapshot, finalized_blocks, reward_pool_entries, player_reward_entries
+
+        first_run = run_sequence()
+        second_run = run_sequence()
+
+        self.assertEqual(first_run, second_run)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
