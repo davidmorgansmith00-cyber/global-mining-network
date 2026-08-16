@@ -79,6 +79,9 @@ def main() -> int:
         "total_checks": int(evaluation.get("total_checks", 0)),
         "verified": bool(verification.get("verified", False)),
         "schema_supported": bool(verification.get("schema_supported", False)),
+        "compact_summary_artifacts_present": bool(
+            verification.get("compact_summary_artifacts_present", False)
+        ),
         "compact_summary_checks_performed": bool(
             verification.get("compact_summary_checks_performed", False)
         ),
@@ -95,13 +98,19 @@ def main() -> int:
         failed_checks_text = ",".join(failed_checks) if isinstance(failed_checks, list) else str(failed_checks)
         print(
             "decision={decision} promotion_ready={promotion_ready} checks={passed_checks}/{total_checks} "
-            "verified={verified} schema_supported={schema_supported} failed_checks={failed_checks}".format(
+            "verified={verified} schema_supported={schema_supported} "
+            "summary_artifacts_present={summary_artifacts_present} "
+            "summary_checks_performed={summary_checks_performed} "
+            "summary_checks_skipped={summary_checks_skipped} failed_checks={failed_checks}".format(
                 decision=summary["decision"],
                 promotion_ready=str(summary["promotion_ready"]).lower(),
                 passed_checks=summary["passed_checks"],
                 total_checks=summary["total_checks"],
                 verified=str(summary["verified"]).lower(),
                 schema_supported=str(summary["schema_supported"]).lower(),
+                summary_artifacts_present=str(summary["compact_summary_artifacts_present"]).lower(),
+                summary_checks_performed=str(summary["compact_summary_checks_performed"]).lower(),
+                summary_checks_skipped=str(summary["compact_summary_checks_skipped"]).lower(),
                 failed_checks=failed_checks_text,
             )
         )

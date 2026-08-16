@@ -130,6 +130,7 @@ Print compact package gate summary:
 - JSON mode: append `--format json`.
 - CI mode: append `--fail-on-unverified` to return non-zero when verification status is false.
 - Inspector JSON output includes compact summary verification path flags: `compact_summary_checks_performed` and `compact_summary_checks_skipped`.
+- Inspector text output now includes compatibility-path fields: `summary_artifacts_present`, `summary_checks_performed`, and `summary_checks_skipped`.
 
 Read auto-filled draft memo fields:
 - `threshold_evaluation.query_share_threshold.auto_result`

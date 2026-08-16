@@ -984,6 +984,7 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertEqual(inspect_text_result.returncode, 0, msg=inspect_text_result.stderr)
             self.assertIn("decision=", inspect_text_result.stdout)
             self.assertIn("verified=true", inspect_text_result.stdout)
+            self.assertIn("summary_checks_performed=true", inspect_text_result.stdout)
 
             inspect_json_result = self._run(
                 "tools/inspect_operation_intent_decision_package.py",

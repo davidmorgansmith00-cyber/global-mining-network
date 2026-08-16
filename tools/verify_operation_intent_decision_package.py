@@ -129,6 +129,15 @@ def main() -> int:
             total_checks = int(evaluation.get("total_checks", 0))
             verification_verified = bool(verification_payload.get("verified", False))
             verification_schema_supported = bool(verification_payload.get("schema_supported", False))
+            verification_compact_summary_artifacts_present = bool(
+                verification_payload.get("compact_summary_artifacts_present", False)
+            )
+            verification_compact_summary_checks_performed = bool(
+                verification_payload.get("compact_summary_checks_performed", False)
+            )
+            verification_compact_summary_checks_skipped = bool(
+                verification_payload.get("compact_summary_checks_skipped", False)
+            )
             failed_checks_payload = evaluation.get("failed_checks", [])
             failed_checks = (
                 ",".join(failed_checks_payload)
@@ -139,7 +148,11 @@ def main() -> int:
             compact_summary_text_expected = (
                 f"decision={decision} promotion_ready={promotion_ready} "
                 f"checks={passed_checks}/{total_checks} verified={str(verification_verified).lower()} "
-                f"schema_supported={str(verification_schema_supported).lower()} failed_checks={failed_checks}"
+                f"schema_supported={str(verification_schema_supported).lower()} "
+                f"summary_artifacts_present={str(verification_compact_summary_artifacts_present).lower()} "
+                f"summary_checks_performed={str(verification_compact_summary_checks_performed).lower()} "
+                f"summary_checks_skipped={str(verification_compact_summary_checks_skipped).lower()} "
+                f"failed_checks={failed_checks}"
             )
             compact_summary_json_expected = {
                 "manifest": str(manifest_path.resolve()).replace("\\", "/"),
@@ -149,6 +162,7 @@ def main() -> int:
                 "total_checks": total_checks,
                 "verified": verification_verified,
                 "schema_supported": verification_schema_supported,
+                "compact_summary_artifacts_present": verification_compact_summary_artifacts_present,
                 "compact_summary_checks_performed": bool(
                     verification_payload.get("compact_summary_checks_performed", False)
                 ),
