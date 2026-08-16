@@ -194,18 +194,26 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertTrue((output_dir / "intent-transport-decision-memo.md").exists())
             self.assertTrue((output_dir / "intent-transport-rollout-evaluation.json").exists())
 
-            memo_draft = json.loads((output_dir / "intent-transport-decision-memo-draft.json").read_text(encoding="utf-8"))
+            memo_draft = json.loads(
+                (output_dir / "intent-transport-decision-memo-draft.json").read_text(encoding="utf-8")
+            )
             self.assertEqual(memo_draft["decision_summary"]["environment_scope"], "pre-prod-canary")
             self.assertEqual(memo_draft["decision_summary"]["decision_owner"], "backend-oncall")
 
-            evaluation = json.loads((output_dir / "intent-transport-rollout-evaluation.json").read_text(encoding="utf-8"))
+            evaluation = json.loads(
+                (output_dir / "intent-transport-rollout-evaluation.json").read_text(encoding="utf-8")
+            )
             self.assertFalse(evaluation["promotion_ready"])
             self.assertEqual(evaluation["decision"], "hold_candidate")
+
+            memo_markdown = (output_dir / "intent-transport-decision-memo.md").read_text(encoding="utf-8")
+            self.assertIn("## Rollout Gate Evaluation", memo_markdown)
 
     def test_markdown_renderer_outputs_decision_memo_sections(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             temp_root = Path(tmp)
             draft_path = temp_root / "decision-memo-draft.json"
+            evaluation_path = temp_root / "rollout-evaluation.json"
             markdown_path = temp_root / "decision-memo.md"
 
             draft_payload = {
@@ -270,11 +278,23 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
                 },
             }
             draft_path.write_text(json.dumps(draft_payload), encoding="utf-8")
+            evaluation_path.write_text(
+                json.dumps(
+                    {
+                        "promotion_ready": False,
+                        "decision": "hold_candidate",
+                        "failed_checks": ["query_share_window_pass"],
+                    }
+                ),
+                encoding="utf-8",
+            )
 
             render_result = self._run(
                 "tools/render_operation_intent_decision_memo.py",
                 "--input",
                 str(draft_path),
+                "--evaluation",
+                str(evaluation_path),
                 "--output",
                 str(markdown_path),
             )
@@ -287,6 +307,8 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertIn("- query_share_window_pass: True", markdown)
             self.assertIn("- auto_result: pass_candidate", markdown)
             self.assertIn("- recommended_action: go", markdown)
+            self.assertIn("## Rollout Gate Evaluation", markdown)
+            self.assertIn("- decision: hold_candidate", markdown)
 
     def test_threshold_failures_propagate_to_prefill_auto_results(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

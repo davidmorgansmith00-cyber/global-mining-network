@@ -251,6 +251,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Operation intent threshold-failure prefill coverage | Done | Added tooling unit test that forces query-share, strict-rejection, and mismatch threshold failures and verifies prefill helper emits `fail_candidate` auto-results |
 | Operation intent rollout gate evaluator helper | Done | Added `tools/evaluate_operation_intent_rollout_gate.py` to convert bundle threshold checks into a promotion-ready/hold decision summary with optional non-zero exit for CI gating |
 | Operation intent dry-run rollout evaluation wiring | Done | Updated dry-run helper to generate `intent-transport-rollout-evaluation.json` and added test coverage for emitted decision summary artifacts |
+| Operation intent memo evaluation snapshot rendering | Done | Extended memo markdown renderer with optional evaluation JSON input and included rollout gate decision section in dry-run generated memo artifacts |
 | Optional CI workflow-dispatch DB baseline rerun | Done | Run `31956249661` succeeded end-to-end (`baseline` and `db-integration` both green); total run window was 67s (`15:38:16Z` to `15:39:23Z`) |
 | Local CI-mirrored full suite baseline | Done | Ran the same test selection as optional `db-integration` locally: `65` tests passed in `35.976s` |
 

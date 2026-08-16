@@ -73,6 +73,7 @@ Pre-fill production decision memo draft from rollout bundle:
 
 Render a human-readable markdown memo draft from prefilled JSON:
 - PowerShell: `python tools/render_operation_intent_decision_memo.py --input artifacts/intent-transport-decision-memo-draft.json --output artifacts/intent-transport-decision-memo.md`
+- Optional gate context: add `--evaluation artifacts/intent-transport-rollout-evaluation.json` to include threshold gate decision snapshot in the markdown memo.
 
 Run a full offline dry run (synthetic 14-day artifacts + bundle + memo draft):
 - PowerShell: `python tools/run_operation_intent_rollout_dry_run.py --output-dir artifacts/operation-intent-dry-run --days 14 --query-threshold-percent 1.0 --strict-rejection-max-delta 0 --mismatch-rate-max-per-minute 0.1 --environment-scope pre-prod-canary --decision-owner backend-oncall`

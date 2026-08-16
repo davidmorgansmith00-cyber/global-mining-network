@@ -11,6 +11,11 @@ def _parse_args() -> argparse.Namespace:
         description="Render a markdown decision memo draft from prefill_operation_intent_decision_memo.py JSON output."
     )
     parser.add_argument("--input", required=True, help="Path to memo draft JSON")
+    parser.add_argument(
+        "--evaluation",
+        default="",
+        help="Optional rollout evaluation JSON path from evaluate_operation_intent_rollout_gate.py",
+    )
     parser.add_argument("--output", default="", help="Optional path to write markdown output")
     return parser.parse_args()
 
@@ -24,7 +29,7 @@ def _get(data: dict[str, object], *keys: str) -> object:
     return current
 
 
-def _markdown_from_draft(payload: dict[str, object]) -> str:
+def _markdown_from_draft(payload: dict[str, object], evaluation: dict[str, object] | None) -> str:
     lines = [
         "# Operation Intent Production Rollout Decision Memo",
         "",
@@ -89,6 +94,18 @@ def _markdown_from_draft(payload: dict[str, object]) -> str:
         f"- final_approver: {_get(payload, 'approvals', 'final_approver')}",
         "",
     ]
+
+    if isinstance(evaluation, dict):
+        failed_checks = evaluation.get("failed_checks", [])
+        lines.extend(
+            [
+                "## Rollout Gate Evaluation",
+                f"- promotion_ready: {evaluation.get('promotion_ready', '')}",
+                f"- decision: {evaluation.get('decision', '')}",
+                f"- failed_checks: {failed_checks}",
+                "",
+            ]
+        )
     return "\n".join(lines)
 
 
@@ -102,7 +119,17 @@ def main() -> int:
     if not isinstance(payload, dict):
         raise RuntimeError("Memo draft input must be a JSON object")
 
-    markdown = _markdown_from_draft(payload)
+    evaluation: dict[str, object] | None = None
+    if args.evaluation:
+        evaluation_path = Path(args.evaluation)
+        if not evaluation_path.exists():
+            raise RuntimeError(f"Evaluation file does not exist: {evaluation_path}")
+        loaded_evaluation = json.loads(evaluation_path.read_text(encoding="utf-8"))
+        if not isinstance(loaded_evaluation, dict):
+            raise RuntimeError("Evaluation input must be a JSON object")
+        evaluation = loaded_evaluation
+
+    markdown = _markdown_from_draft(payload, evaluation)
     if args.output:
         output_path = Path(args.output)
         output_path.parent.mkdir(parents=True, exist_ok=True)

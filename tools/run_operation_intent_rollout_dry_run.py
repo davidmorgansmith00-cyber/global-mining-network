@@ -214,22 +214,24 @@ def main() -> int:
     _run_command(
         [
             sys.executable,
-            str(root / "tools" / "render_operation_intent_decision_memo.py"),
-            "--input",
-            str(memo_draft_path),
+            str(root / "tools" / "evaluate_operation_intent_rollout_gate.py"),
+            "--bundle",
+            str(bundle_path),
             "--output",
-            str(memo_markdown_path),
+            str(rollout_evaluation_path),
         ]
     )
 
     _run_command(
         [
             sys.executable,
-            str(root / "tools" / "evaluate_operation_intent_rollout_gate.py"),
-            "--bundle",
-            str(bundle_path),
-            "--output",
+            str(root / "tools" / "render_operation_intent_decision_memo.py"),
+            "--input",
+            str(memo_draft_path),
+            "--evaluation",
             str(rollout_evaluation_path),
+            "--output",
+            str(memo_markdown_path),
         ]
     )
 
