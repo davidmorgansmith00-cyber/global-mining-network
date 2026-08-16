@@ -295,10 +295,6 @@ def main() -> int:
         )
     )
 
-    inspector_summary_json_payload: dict[str, object] = {}
-    if inspector_summary_json_path.exists():
-        inspector_summary_json_payload = json.loads(inspector_summary_json_path.read_text(encoding="utf-8"))
-
     decision_package_decision = str(
         package_summary.get("verification_decision", compact_summary_json_payload.get("decision", ""))
     )
