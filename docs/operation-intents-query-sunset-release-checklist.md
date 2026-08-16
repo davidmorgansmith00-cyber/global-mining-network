@@ -102,6 +102,7 @@ Evaluate promotion readiness from bundle thresholds:
 Build the full decision artifact package in one command:
 - PowerShell: `python tools/build_operation_intent_decision_package.py --input-glob "artifacts/intent-transport-day*.json" --output-dir artifacts/operation-intent-decision-package --query-threshold-percent 1.0 --strict-rejection-max-delta 0 --mismatch-rate-max-per-minute 0.1 --environment-scope pre-prod-canary --decision-owner backend-oncall`
 - Optional CI-gating mode: append `--fail-on-blocked` to return a non-zero exit if rollout thresholds do not pass.
+- Package outputs include `intent-transport-decision-package-manifest.json` as an index of inputs, thresholds, and generated artifact paths.
 
 Read auto-filled draft memo fields:
 - `threshold_evaluation.query_share_threshold.auto_result`

@@ -489,11 +489,13 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertIn("evaluation_file", summary)
             self.assertIn("memo_draft_file", summary)
             self.assertIn("memo_markdown_file", summary)
+            self.assertIn("manifest_file", summary)
 
             self.assertTrue((output_dir / "intent-transport-rollout-bundle.json").exists())
             self.assertTrue((output_dir / "intent-transport-rollout-evaluation.json").exists())
             self.assertTrue((output_dir / "intent-transport-decision-memo-draft.json").exists())
             self.assertTrue((output_dir / "intent-transport-decision-memo.md").exists())
+            self.assertTrue((output_dir / "intent-transport-decision-package-manifest.json").exists())
 
             memo_draft = json.loads(
                 (output_dir / "intent-transport-decision-memo-draft.json").read_text(encoding="utf-8")
@@ -501,6 +503,12 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertEqual(memo_draft["decision_summary"]["environment_scope"], "pre-prod-canary")
             self.assertEqual(memo_draft["decision_summary"]["decision_owner"], "backend-oncall")
             self.assertIn("rollout_gate_evaluation", memo_draft)
+
+            manifest = json.loads(
+                (output_dir / "intent-transport-decision-package-manifest.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(manifest["inputs"]["environment_scope"], "pre-prod-canary")
+            self.assertIn("bundle_file", manifest["artifacts"])
 
     def test_decision_package_builder_can_fail_on_blocked(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

@@ -4,6 +4,7 @@ import argparse
 import json
 import subprocess
 import sys
+from datetime import UTC, datetime
 from pathlib import Path
 
 
@@ -57,6 +58,11 @@ def _parse_args() -> argparse.Namespace:
         action="store_true",
         help="Exit non-zero when rollout gate evaluation is not promotion-ready",
     )
+    parser.add_argument(
+        "--manifest-name",
+        default="intent-transport-decision-package-manifest.json",
+        help="Filename for generated package manifest inside output-dir",
+    )
     return parser.parse_args()
 
 
@@ -85,6 +91,7 @@ def main() -> int:
     evaluation_path = output_dir / "intent-transport-rollout-evaluation.json"
     memo_draft_path = output_dir / "intent-transport-decision-memo-draft.json"
     memo_markdown_path = output_dir / "intent-transport-decision-memo.md"
+    manifest_path = output_dir / args.manifest_name
 
     _run_command(
         [
@@ -144,12 +151,33 @@ def main() -> int:
         ]
     )
 
+    manifest = {
+        "generated_at": datetime.now(UTC).isoformat(),
+        "inputs": {
+            "input_glob": args.input_glob,
+            "query_threshold_percent": args.query_threshold_percent,
+            "strict_rejection_max_delta": args.strict_rejection_max_delta,
+            "mismatch_rate_max_per_minute": args.mismatch_rate_max_per_minute,
+            "environment_scope": args.environment_scope,
+            "decision_owner": args.decision_owner,
+            "fail_on_blocked": args.fail_on_blocked,
+        },
+        "artifacts": {
+            "bundle_file": str(bundle_path).replace("\\", "/"),
+            "evaluation_file": str(evaluation_path).replace("\\", "/"),
+            "memo_draft_file": str(memo_draft_path).replace("\\", "/"),
+            "memo_markdown_file": str(memo_markdown_path).replace("\\", "/"),
+        },
+    }
+    manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
     summary = {
         "output_dir": str(output_dir).replace("\\", "/"),
         "bundle_file": str(bundle_path).replace("\\", "/"),
         "evaluation_file": str(evaluation_path).replace("\\", "/"),
         "memo_draft_file": str(memo_draft_path).replace("\\", "/"),
         "memo_markdown_file": str(memo_markdown_path).replace("\\", "/"),
+        "manifest_file": str(manifest_path).replace("\\", "/"),
     }
     print(json.dumps(summary, indent=2, sort_keys=True))
     return 0
