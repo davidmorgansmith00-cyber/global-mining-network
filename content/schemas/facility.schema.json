@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "gmn/content/facility.schema.json",
+  "title": "Facility Definition",
+  "type": "object",
+  "required": ["id", "name", "tier"],
+  "properties": {
+    "id": { "type": "string" },
+    "name": { "type": "string" },
+    "tier": { "type": "integer", "minimum": 0 },
+    "space_capacity": { "type": "integer", "minimum": 0 },
+    "power_capacity": { "type": "integer", "minimum": 0 },
+    "cooling_capacity": { "type": "integer", "minimum": 0 }
+  },
+  "additionalProperties": true
+}

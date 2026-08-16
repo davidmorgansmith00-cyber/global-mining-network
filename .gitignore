@@ -1,0 +1,23 @@
+# Python virtual environments
+.venv/
+venv/
+
+# Python cache and build artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+
+# Environment and secrets
+.env
+.env.*
+
+# Logs and local runtime artifacts
+*.log
+
+# OS/editor artifacts
+.DS_Store
+Thumbs.db
+.vscode/

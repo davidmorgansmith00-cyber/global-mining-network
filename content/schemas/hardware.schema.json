@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "gmn/content/hardware.schema.json",
+  "title": "Hardware Definition",
+  "type": "object",
+  "required": ["id", "name", "category", "tier"],
+  "properties": {
+    "id": { "type": "string" },
+    "name": { "type": "string" },
+    "category": { "type": "string" },
+    "tier": { "type": "integer", "minimum": 0 },
+    "hashrate_hps": { "type": "integer", "minimum": 0 },
+    "power_watts": { "type": "integer", "minimum": 0 },
+    "heat_units": { "type": "integer", "minimum": 0 }
+  },
+  "additionalProperties": true
+}

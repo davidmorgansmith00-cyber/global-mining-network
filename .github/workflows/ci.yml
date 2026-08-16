@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      run_db_integration:
+        description: Run optional DB-backed integration suite
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  baseline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install server dependencies
+        run: pip install -r server/requirements.txt
+
+      - name: Validate API import
+        run: |
+          cd server
+          python -c "from app.main import app; print(app.title)"
+
+      - name: Validate content schemas
+        run: python tools/validate_content.py
+
+  db-integration:
+    runs-on: ubuntu-latest
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.run_db_integration == true) || vars.CI_RUN_DB_INTEGRATION == 'true' }}
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: global_mining_network
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d global_mining_network"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/global_mining_network
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install server dependencies
+        run: pip install -r server/requirements.txt
+
+      - name: Run DB-backed integration and deterministic unit suite
+        run: |
+          python -m unittest \
+            tests/integration/test_persistence.py \
+            tests/integration/test_mining_simulation_service.py \
+            tests/integration/test_blockchain_persistence_and_ledger.py \
+            tests/integration/test_blockchain_status_api.py \
+            tests/integration/test_worker_cleanup_integration.py \
+            tests/unit/test_mining_interval_slicer.py \
+            tests/unit/test_difficulty_and_reward_settlement.py \
+            tests/unit/test_worker_cleanup_backoff.py -v

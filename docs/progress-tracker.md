@@ -1,0 +1,249 @@
+# Global Mining Network Progress Tracker
+
+**Status:** Active Tracking  
+**Version:** 1.0  
+**Date Initialized:** 2026-08-15
+
+---
+
+## 1. Purpose
+This document tracks actual delivery progress against:
+- docs/master-build-plan-v1.md
+- docs/implementation-plan-v1.md
+
+It is the working execution board for milestones, workstreams, blockers, risks, and next actions.
+
+---
+
+## 2. Status Vocabulary
+- Not Started
+- Planned
+- In Progress
+- Blocked
+- Done
+
+---
+
+## 3. Overall Program Status
+- Current Phase: M1 Simulation Core Vertical Slice
+- Current Slice: M1 Slice 1 - Simulation Kernel Implementation Kickoff
+- Overall Status: In Progress
+- Architecture Status: Ready
+- Implementation Status: M0 closed, M1 execution started
+
+---
+
+## 4. Milestone Status Board
+| Milestone | Status | Notes |
+|---|---|---|
+| M0 Foundations | Done | Closed after persistence test baseline passed and exit review completed |
+| M1 Simulation Core Vertical Slice | In Progress | Opened with Slice 1 planning for simulation kernel contracts |
+| M2 Constraint Systems and Economy Foundations | Not Started | Locked behind M1 proof |
+| M3 Social-Competitive Core | Not Started | Locked behind M2 baseline systems |
+| M4 Productization and Launcher Beta | Not Started | Launcher/update work begins after artifact pipeline exists |
+| M5 Content, Events, and Admin Operations | Not Started | Depends on content and admin platform baselines |
+| M6 Closed Beta Hardening | Not Started | Depends on product stability and ops tooling |
+| M7 Open Beta and Launch Readiness | Not Started | Depends on beta hardening |
+| Launch | Not Started | Depends on launch readiness gate |
+
+---
+
+## 5. Current Workstream Board
+| Workstream | Status | Owner | Notes |
+|---|---|---|---|
+| Architecture and Program Control | In Progress | Program Lead | Baseline docs are active and now guiding M1 execution |
+| Platform and Developer Experience | In Progress | Platform Lead | Root scaffold, compose stack, service skeleton, and CI baseline created |
+| Identity and Account Systems | In Progress | Backend Lead | Versioned auth route and session contract skeleton created |
+| Player State and Progression Core | In Progress | Backend Lead | Player bootstrap contract skeleton created |
+| Simulation Kernel | In Progress | Simulation Lead | Mining service now processes intervals with per-operation timestamps and boundary events |
+| Blockchain and Difficulty | In Progress | Simulation Lead | Persistent active/finalized block state store added with DB-backed integration coverage |
+| Economy and Ledger | In Progress | Economy Lead | Block finalization ledger posting contract added and DB-backed entry test coverage added |
+| Hardware, Power, Cooling, Facilities | Not Started | Economy Lead | Starts in M2 |
+| Marketplace and Trading | Not Started | Economy Lead | Starts after ledger/inventory baseline |
+| Research, Manufacturing, Automation | Not Started | Economy Lead | Starts after content and economy baseline |
+| Pools, Social, Notifications | Not Started | Gameplay Lead | Starts in M3 |
+| Client Gameplay and UX | Planned | Gameplay Lead | Minimal slice starts in M1 |
+| WebSocket and Realtime Delivery | Not Started | Backend Lead | Starts after event contract baseline |
+| Content Pipeline and Data Ops | In Progress | Content Lead | Initial content schema scaffold and validator created |
+| Launcher, Installer, Patcher | Not Started | Platform Lead | Starts in M3-M4 |
+| Admin, Analytics, Operations | In Progress | Operations Lead | Basic logging baseline started in M0 |
+| Security, Moderation, Support | In Progress | Security Lead | Request correlation baseline started; broader security work still pending |
+| QA, Simulation, Load Validation | In Progress | QA Lead | Automated persistence integration tests added and passing |
+
+---
+
+## 6. Current Slice Checklist
+### M0 Slice 1 - Execution Baseline and Authoritative Skeleton
+| Item | Status | Notes |
+|---|---|---|
+| Monorepo folder scaffold | Done | Root monorepo folders and placeholder docs created |
+| Docker Compose local stack | Done | Postgres, Redis, API, and worker services scaffolded |
+| CI pipeline baseline | Done | GitHub Actions baseline validates API import and content schemas |
+| Migration framework | Done | SQL migration runner scaffold created |
+| Initial core tables | Done | Initial players, auth_sessions, and domain_events tables defined |
+| Auth/session contract skeleton | Done | Versioned auth endpoints and request/response models created |
+| Player bootstrap contract skeleton | Done | Versioned player bootstrap contract created |
+| Domain event envelope standard | Done | Shared envelope model created in server shared layer |
+| Content schema scaffold | Done | Initial content schemas and validator created |
+| Structured logging baseline | Done | Server and worker logging baseline created |
+| Correlation ID baseline | Done | Middleware adds and returns request correlation IDs |
+
+### M0 Slice 2 - Service and Contract Baseline
+| Item | Status | Notes |
+|---|---|---|
+| Auth service implementation stub | Done | DB-backed registration/login validated successfully against local Postgres |
+| Player bootstrap service stub | Done | DB-backed player bootstrap validated successfully against local Postgres |
+| Database connection baseline | Done | Shared DB helper validated successfully against local Postgres |
+| Migration execution workflow | Done | Migrations executed successfully with the documented local workflow |
+| Request-scoped logging enrichment | Done | Correlation ID logging context is now wired into server log records |
+
+### M0 Slice 3 - Persistence Test Baseline
+| Item | Status | Notes |
+|---|---|---|
+| Migration automation test | Done | Verifies required tables exist after migration run |
+| DB-backed auth register/login test | Done | Verifies persisted register/login flow against local Postgres |
+| DB-backed player bootstrap test | Done | Verifies persisted starter profile retrieval |
+| Local persistence test command | Done | `python -m unittest tests/integration/test_persistence.py -v` |
+
+### M0 Exit Criteria Review
+| Criterion | Status | Notes |
+|---|---|---|
+| Monorepo structure and ownership map baseline | Done | Structure and role-based workstream ownership map are now defined in the tracker |
+| Local compose baseline and bootstrap | Done | Local stack scaffolding validated |
+| CI baseline and basic checks | Done | CI workflow validates API import and content schema syntax |
+| Migration framework and initial schema | Done | Migration runner plus core tables verified |
+| Auth and player bootstrap skeleton | Done | Versioned routes with DB-backed baseline are in place |
+| Domain event envelope and correlation ID baseline | Done | Envelope model and request-scoped logging are wired |
+| Initial automated persistence tests | Done | Migration + DB-backed auth/bootstrap tests passing |
+| M0 readiness for M1 handoff | Done | Approved to proceed to M1 with owner assignment tracked as a non-blocking governance follow-up |
+
+### M1 Slice 1 - Simulation Kernel and Tick Contract Planning
+| Item | Status | Notes |
+|---|---|---|
+| Define authoritative simulation tick contract | Done | Published in docs/m1-slice-1-simulation-kernel-tick-contract.md |
+| Define event-to-state reconstruction boundaries | Done | Boundary events and replay persistence rules documented in the contract |
+| Define tick processing sequence | Done | Ordered authoritative tick pipeline documented in the contract |
+| Define anti-cheat and authority invariants | Done | Server authority and one-chain invariants documented in the contract |
+| Define M1 Slice 1 acceptance criteria | Done | Pass/fail criteria published in the contract |
+| Break M1 Slice 1 into implementation tasks | Done | Task breakdown for kernel, event contracts, and validation added to the contract |
+
+### M1 Slice 1 - Simulation Kernel Implementation Kickoff
+| Item | Status | Notes |
+|---|---|---|
+| Server time abstraction baseline | Done | Added `server/shared/time.py` with system and fixed UTC clock models |
+| Piecewise interval slicer baseline | Done | Added deterministic interval slicing in `server/domain/mining/interval_slicer.py` |
+| Simulation boundary event contracts baseline | Done | Added boundary event type constants and schema model in `server/domain/mining/contracts.py` |
+| Mining package export surface updated | Done | Exposed contract and slicer primitives via `server/domain/mining/__init__.py` |
+| Deterministic interval unit tests | Done | Added and passed `tests/unit/test_mining_interval_slicer.py` |
+| Mining simulation service baseline | Done | Added `server/domain/mining/service.py` with per-operation last-processed timestamps and authoritative contribution processing |
+| Shared-block aggregation integration test | Done | Added and passed `tests/integration/test_mining_simulation_service.py::test_multiple_operations_contribute_to_same_active_block` |
+| Timestamp progression and boundary application test | Done | Added and passed `tests/integration/test_mining_simulation_service.py::test_operation_last_processed_timestamp_advances_and_boundaries_apply` |
+| Atomic finalization concurrency test | Done | Added and passed `tests/integration/test_mining_simulation_service.py::test_atomic_finalization_under_concurrency` |
+| DB-backed active/finalized block persistence | Done | Added `server/domain/blockchain/store.py` and migration table coverage |
+| DB-backed ledger posting contract wiring | Done | Added `server/domain/economy/ledger.py` and finalization-to-ledger integration in mining service |
+| Blockchain persistence and ledger integration tests | Done | Added and passed `tests/integration/test_blockchain_persistence_and_ledger.py` |
+| Difficulty adjustment baseline service | Done | Added `server/domain/difficulty/service.py` with bounded adjustment by finalized block timing window |
+| Difficulty config DB baseline | Done | Added `database/migrations/0004_difficulty_config.sql` default singleton settings row |
+| Reward settlement calculation baseline | Done | Added `server/domain/economy/reward_settlement.py` and wired mining finalization reward amount computation |
+| Difficulty and reward unit tests | Done | Added and passed `tests/unit/test_difficulty_and_reward_settlement.py` |
+| Difficulty-linked integration coverage | Done | Added and passed `tests/integration/test_mining_simulation_service.py::test_difficulty_adjusts_next_required_work_from_finalized_history` |
+| Immutable per-player reward ledger entries | Done | Added `database/migrations/0005_player_reward_ledger.sql` and posting integration in `server/domain/economy/ledger.py` |
+| Player-level reward allocation flow | Done | Mining service now allocates finalized reward by player contribution share and posts immutable entries |
+| Blockchain status read-model and API exposure | Done | Added `server/domain/blockchain/read_models.py` and `GET /api/v1/blockchain/status` endpoint |
+| Blockchain status API integration coverage | Done | Added and passed `tests/integration/test_blockchain_status_api.py` |
+| Per-player contribution transparency API | Done | Added `GET /api/v1/blockchain/players/{player_id}/rewards` backed by player reward history read-model |
+| WebSocket-ready network snapshot contract baseline | Done | Added `GET /api/v1/blockchain/network-snapshot` and `network.snapshot.v1` schema contract model |
+| Contribution-hash persistence on player ledger entries | Done | Added migration `0006_player_reward_contributions.sql` and persisted per-player finalized contribution hashes |
+| Network event stream scaffolding | Done | Added `server/domain/blockchain/network_stream.py` with sequence IDs and cursor-based retrieval |
+| Reconnect cursor semantics | Done | Added `snapshot_sequence` and `reconnect_cursor` in network snapshot and `GET /api/v1/blockchain/network-events` cursor endpoint |
+| Progress/finalization event publishing | Done | Mining service now emits `network.block_progress.v1` and `network.block_finalized.v1` events |
+| Persisted event stream storage | Done | Added `database/migrations/0007_network_events.sql` and Postgres-backed event stream implementation |
+| WebSocket transport baseline | Done | Added `/api/v1/blockchain/network-events/ws` live cursor stream endpoint scaffold |
+| WebSocket reconnect integration coverage | Done | Added websocket and cursor endpoint tests in `tests/integration/test_blockchain_status_api.py` |
+| Client replay checkpoint persistence | Done | Added `database/migrations/0008_client_event_checkpoints.sql` and checkpoint read/write APIs |
+| WebSocket auth/session binding | Done | WebSocket now validates `player_id` + `session_id` against active auth sessions |
+| Per-client channel filtering | Done | Added `global` and `player_rewards` channel filters with player-scoped event routing |
+| Event/checkpoint retention cleanup endpoint | Done | Added `POST /api/v1/blockchain/maintenance/cleanup` with age/cap cleanup for network events and checkpoints |
+| WebSocket heartbeat and stale-connection eviction | Done | Added server `ping` heartbeat plus stale timeout disconnect handling with configurable intervals |
+| Realtime lifecycle integration coverage | Done | Added cleanup retention and stale websocket eviction tests in `tests/integration/test_blockchain_status_api.py` |
+| Scheduled retention cleanup worker invocation | Done | Worker now performs periodic cleanup calls with environment-driven schedule and retention configuration |
+| Realtime cleanup and eviction observability counters | Done | Added structured logs with cumulative cleanup run/deletion totals and websocket stale-eviction totals |
+| Maintenance endpoint auth guardrails | Done | Added maintenance token header validation for blockchain cleanup endpoint with unauthorized-attempt logging |
+| Realtime operations runbook baseline | Done | Added docs/operations-runbook.md with scheduler controls, alert thresholds, and incident response steps |
+| Maintenance token rotation procedure | Done | Added runbook rotation steps and quarterly checklist requirements for shared API/worker maintenance token updates |
+| Cleanup endpoint rate limiting guard | Done | Added lightweight in-memory request window cap and 429 response with Retry-After for excess cleanup calls |
+| Maintenance access audit logging enrichment | Done | Cleanup endpoint logs now include source IP and user-agent on success, unauthorized, and rate-limited events |
+| Worker cleanup failure exponential backoff | Done | Added consecutive-failure backoff with configurable cap to reduce retry pressure during API outages |
+| Optional persisted cleanup rate-limit state | Done | Added DB-backed `maintenance_cleanup_rate_limit_state` limiter option to preserve windows across API restarts |
+| Maintenance metrics export contract | Done | Added authenticated `GET /api/v1/blockchain/maintenance/metrics` with `maintenance.metrics.v1` counters contract |
+| Worker cleanup startup jitter option | Done | Added configurable startup jitter delay for cleanup schedule staggering in multi-worker deployments |
+| Persisted limiter retry-after boundary coverage | Done | Added integration test coverage validating persisted limiter `Retry-After` behavior near window expiry |
+| Maintenance dual-token auth overlap support | Done | Maintenance endpoints now accept current and optional previous token during credential rotation windows |
+| Plaintext maintenance metrics endpoint | Done | Added authenticated Prometheus-style plaintext metrics endpoint aligned to maintenance metrics contract |
+| Maintenance token-scope observability labels | Done | Added configurable scope labels plus scope-attributed maintenance auth counters in logs and metrics exports |
+| Worker maintenance token file-secret support | Done | Worker now supports `MAINTENANCE_AUTH_TOKEN_FILE` with safe fallback to env token and startup source-mode logging |
+| Token-scope metrics dashboard and alert examples | Done | Added runbook guidance for unknown-scope spike detection and previous-token overlap decay monitoring |
+| Worker token file-mounted path integration coverage | Done | Added worker cleanup integration test that validates file-path token header usage against a local HTTP endpoint |
+| Worker startup missing-token validation warning | Done | Worker now emits explicit warning in non-local environments when both file and env maintenance token sources are unset |
+| Unknown token-scope metrics assertion coverage | Done | Maintenance metrics integration test now verifies unauthorized metrics calls increment the `unknown` token scope counter |
+| Missing-token incident troubleshooting guidance | Done | Added runbook section for `cleanup_scheduler_missing_maintenance_token` incident handling, rollback, and canary verification |
+| Unauthorized plaintext metrics unknown-scope coverage | Done | Integration test now verifies unauthorized plaintext metrics calls are reflected in unknown token-scope counters via authorized metrics fetch |
+| Staged token rotation rollback criteria guidance | Done | Added explicit stage-based rollback thresholds in runbook using `token_scope=previous` and `token_scope=unknown` metric signals |
+| Worker token-file fallback integration coverage | Done | Added integration tests validating fallback to env token when `MAINTENANCE_AUTH_TOKEN_FILE` is unreadable or empty |
+| Maintenance alert routing and escalation ownership guidance | Done | Added explicit owner/escalation mapping and handoff checklist for unknown scope, unauthorized attempts, and rate-limit spikes |
+| Previous token-scope overlap metrics integration coverage | Done | Added integration coverage validating `token_scope=previous` behavior for both JSON and plaintext metrics endpoints during overlap windows |
+| Overlap-window sunset verification guidance | Done | Added concrete metric query examples and 24h/48h recommended observation windows for rotation closure verification |
+| Unauthorized cleanup unknown-scope metrics coverage | Done | Added integration coverage verifying unauthorized cleanup calls increment `token_scope=unknown` when validated via authorized metrics retrieval |
+| Post-rotation audit evidence capture guidance | Done | Added runbook guidance for capturing query screenshots, deploy IDs, secret version IDs, and overlap timestamps with retention policy windows |
+| Mixed-request deterministic scope-counter integration coverage | Done | Added integration test validating deterministic per-scope counter totals across consecutive authorized and unauthorized maintenance requests |
+| Weekly maintenance security review checklist guidance | Done | Added concise runbook checklist for weekly review of unknown/previous/current scope trends and unauthorized-attempt follow-up |
+| Plaintext mixed-scope label integration coverage | Done | Added integration assertions that plaintext metrics include all observed scope labels after mixed authorized/unauthorized request sequences |
+| Monthly maintenance control self-audit guidance | Done | Added runbook checklist to baseline monthly unknown/previous/current/rate-limit metrics and tune alert thresholds with explicit action triggers |
+| Persisted vs in-memory mixed-scope parity integration coverage | Done | Added integration test validating identical unknown/current/previous scope counters under mixed maintenance traffic in both rate-limit modes |
+| Workstream ownership governance closure | Done | Assigned role-based owners across active and upcoming workstreams to close the M0 governance gap |
+| CI DB integration automation decision | Done | Decided to run optional CI-level DB integration automation as M1 hardening support work |
+| M1 contract sign-off sequencing decision | Done | Confirmed sign-off order: simulation kernel -> blockchain/difficulty -> economy/ledger |
+| Optional CI DB integration automation implementation | Done | Added optional `db-integration` GitHub Actions job with Postgres service and explicit DB-backed test suite trigger |
+| M1 ordered sign-off checklist documentation | Done | Added `docs/m1-slice-1-signoff-checklist.md` with required gate sequence and evidence expectations |
+| M1 client gameplay minimal slice planning baseline | Done | Added `docs/m1-client-gameplay-minimal-slice-plan.md` aligned with server-authoritative API/websocket contracts |
+| M1 client gameplay implementation ticketization | Done | Added `docs/m1-client-gameplay-implementation-tickets.md` covering session bootstrap, status HUD, reconnect stream, reward timeline, and shell orchestration |
+| M1 client gameplay shell scaffold baseline | Done | Added initial Godot network/shell scripts in `client-godot/scripts/network` and `client-godot/scripts/ui` plus README updates |
+| Optional CI workflow-dispatch DB baseline run | Blocked | `gh workflow run .github/workflows/ci.yml -f run_db_integration=true` failed because workspace is not a git repository; local regression baseline remains 59 tests in 19.584s |
+| Client gameplay shell HTTP execution wiring | Done | Added async request execution for register/login/status/snapshot/rewards/checkpoints in `client-godot/scripts/network/gmn_api_client.gd` |
+| Client gameplay websocket reconnect checkpoint wiring | Done | Added stream connect/poll/ping-pong/cursor ack plus checkpoint restore/persist orchestration in shell controller and stream client |
+| Client gameplay shell UI render adapter wiring | Done | Added `gameplay_shell_view_model.gd` and `gameplay_shell_panel.gd` to map authoritative payloads and bind label-based UI rendering |
+| Client-side contract and reconnect smoke validation baseline | Done | Added `gmn_contract_validation_smoke.gd`, `gmn_reconnect_smoke.gd`, and `gmn_gameplay_shell_smoke_runner.gd` |
+
+---
+
+## 7. Blockers
+- CI workflow-dispatch execution from this workspace is blocked because repository metadata is unavailable (`fatal: not a git repository`).
+
+---
+
+## 8. Active Risks
+- Risk: Starting gameplay implementation before repo and authority scaffolding exist.
+  - Mitigation: Do not widen scope before M0 Slice 1 is complete.
+- Risk: Progress drift between documents and actual work.
+  - Mitigation: Update this tracker whenever milestone or slice status changes.
+
+---
+
+## 9. Decisions Pending
+- None currently recorded.
+
+---
+
+## 10. Next Actions
+1. Run optional CI `workflow_dispatch` DB integration from a git-backed checkout (or with explicit repo slug) and record GitHub runtime baseline in tracker notes.
+2. Wire a concrete Godot scene that instantiates `GameplayShellController` and `GameplayShellPanel` with label node paths.
+3. Add operation start/stop intent command plumbing in the client shell while preserving server-authoritative state transitions.
+
+---
+
+## 11. Update Rule
+Whenever meaningful progress changes:
+1. Update milestone status.
+2. Update current slice checklist.
+3. Record blockers or risks.
+4. Update next actions.

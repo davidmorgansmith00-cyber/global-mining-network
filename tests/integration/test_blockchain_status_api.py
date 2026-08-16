@@ -1,0 +1,673 @@
+from __future__ import annotations
+
+import os
+import sys
+import unittest
+from datetime import UTC, datetime, timedelta
+from decimal import Decimal
+from pathlib import Path
+from uuid import UUID, uuid4
+
+import psycopg
+from fastapi.testclient import TestClient
+from starlette.websockets import WebSocketDisconnect
+
+
+ROOT = Path(__file__).resolve().parents[2]
+SERVER_ROOT = ROOT / "server"
+
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+if str(SERVER_ROOT) not in sys.path:
+    sys.path.insert(0, str(SERVER_ROOT))
+
+from app.main import app
+from api.v1.blockchain import reset_blockchain_runtime_counters_for_tests
+from domain.auth.schemas import RegisterRequest
+from domain.auth.service import AuthService
+from domain.blockchain.network_stream import reset_network_event_stream
+from domain.blockchain.store import PostgresBlockchainStateStore
+from domain.economy.ledger import PostgresLedgerPoster
+from domain.mining.service import MiningSimulationService
+from shared.settings import settings
+from tools.apply_migrations import apply_migrations
+
+
+DEFAULT_DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/global_mining_network"
+
+
+class BlockchainStatusApiTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        os.environ.setdefault("DATABASE_URL", DEFAULT_DATABASE_URL)
+        cls.database_url = os.environ["DATABASE_URL"]
+        apply_migrations()
+
+    def setUp(self) -> None:
+        reset_network_event_stream()
+        reset_blockchain_runtime_counters_for_tests()
+        with psycopg.connect(self.database_url) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute("DELETE FROM client_event_checkpoints")
+                cursor.execute("DELETE FROM economy_player_ledger_entries")
+                cursor.execute("DELETE FROM economy_ledger_entries")
+                cursor.execute("DELETE FROM blockchain_finalized_blocks")
+                cursor.execute("DELETE FROM blockchain_active_block")
+            connection.commit()
+
+    def _create_player_session_binding(self) -> tuple[str, str]:
+        email = f"ws_bind_{datetime.now(UTC).timestamp()}@example.com"
+        auth = AuthService()
+        registered = auth.register(RegisterRequest(email=email, password="password123"))
+        player_id = registered.player_id
+
+        with psycopg.connect(self.database_url) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT session_id
+                    FROM auth_sessions
+                    WHERE player_id = %s
+                    ORDER BY created_at DESC
+                    LIMIT 1
+                    """,
+                    (UUID(player_id),),
+                )
+                row = cursor.fetchone()
+        return player_id, str(row[0])
+
+    def test_status_endpoint_returns_active_progress_and_recent_outcomes(self) -> None:
+        started_at = datetime(2026, 8, 15, 21, 0, tzinfo=UTC)
+        service = MiningSimulationService(
+            required_work=Decimal("100"),
+            blockchain_state_store=PostgresBlockchainStateStore(required_work=Decimal("100")),
+            ledger_poster=PostgresLedgerPoster(),
+        )
+        service.register_operation(operation_id="op_a", player_id="player_a", base_hashrate_hps=Decimal("20"), started_at=started_at)
+        service.process_tick(operation_id="op_a", ended_at=started_at + timedelta(seconds=5))
+
+        with TestClient(app) as client:
+            response = client.get("/api/v1/blockchain/status?recent_limit=5")
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["active_block_number"], 2)
+        self.assertEqual(payload["active_required_work"], "100.000000")
+        self.assertEqual(payload["active_accumulated_work"], "0.000000")
+        self.assertEqual(payload["active_progress_ratio"], "0.000000")
+        self.assertEqual(len(payload["recent_outcomes"]), 1)
+        self.assertEqual(payload["recent_outcomes"][0]["block_number"], 1)
+        self.assertEqual(payload["recent_outcomes"][0]["reward_pool_amount"], "100.000000")
+        self.assertEqual(payload["recent_outcomes"][0]["player_reward_amount"], "100.000000")
+
+    def test_player_reward_history_endpoint_returns_contribution_transparency(self) -> None:
+        started_at = datetime(2026, 8, 15, 21, 30, tzinfo=UTC)
+        service = MiningSimulationService(
+            required_work=Decimal("100"),
+            blockchain_state_store=PostgresBlockchainStateStore(required_work=Decimal("100")),
+            ledger_poster=PostgresLedgerPoster(),
+        )
+        service.register_operation(operation_id="op_a", player_id="player_a", base_hashrate_hps=Decimal("20"), started_at=started_at)
+        service.process_tick(operation_id="op_a", ended_at=started_at + timedelta(seconds=5))
+
+        with TestClient(app) as client:
+            response = client.get("/api/v1/blockchain/players/player_a/rewards?recent_limit=10")
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["player_id"], "player_a")
+        self.assertEqual(payload["total_rewards"], "100.000000")
+        self.assertEqual(payload["total_contribution_hashes"], "100.000000")
+        self.assertEqual(len(payload["entries"]), 1)
+        self.assertEqual(payload["entries"][0]["block_number"], 1)
+        self.assertEqual(payload["entries"][0]["reward_amount"], "100.000000")
+        self.assertEqual(payload["entries"][0]["contribution_hashes"], "100.000000")
+
+    def test_network_snapshot_endpoint_returns_websocket_ready_contract(self) -> None:
+        started_at = datetime(2026, 8, 15, 22, 0, tzinfo=UTC)
+        service = MiningSimulationService(
+            required_work=Decimal("100"),
+            blockchain_state_store=PostgresBlockchainStateStore(required_work=Decimal("100")),
+            ledger_poster=PostgresLedgerPoster(),
+        )
+        service.register_operation(operation_id="op_a", player_id="player_a", base_hashrate_hps=Decimal("20"), started_at=started_at)
+        service.process_tick(operation_id="op_a", ended_at=started_at + timedelta(seconds=5))
+
+        with TestClient(app) as client:
+            response = client.get("/api/v1/blockchain/network-snapshot?recent_limit=5")
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["schema_version"], "network.snapshot.v1")
+        self.assertEqual(payload["active_block_number"], 2)
+        self.assertEqual(payload["active_progress_ratio"], "0.000000")
+        self.assertGreaterEqual(payload["snapshot_sequence"], 2)
+        self.assertEqual(payload["reconnect_cursor"], payload["snapshot_sequence"])
+        self.assertEqual(len(payload["recent_finalizations"]), 1)
+        self.assertEqual(payload["recent_finalizations"][0]["block_number"], 1)
+        self.assertEqual(payload["recent_finalizations"][0]["reward_pool_amount"], "100.000000")
+
+    def test_network_events_endpoint_supports_cursor_based_reconnect(self) -> None:
+        started_at = datetime(2026, 8, 15, 22, 30, tzinfo=UTC)
+        service = MiningSimulationService(
+            required_work=Decimal("100"),
+            blockchain_state_store=PostgresBlockchainStateStore(required_work=Decimal("100")),
+            ledger_poster=PostgresLedgerPoster(),
+        )
+        service.register_operation(operation_id="op_a", player_id="player_a", base_hashrate_hps=Decimal("20"), started_at=started_at)
+        service.process_tick(operation_id="op_a", ended_at=started_at + timedelta(seconds=5))
+
+        with TestClient(app) as client:
+            first = client.get("/api/v1/blockchain/network-events?limit=10")
+            self.assertEqual(first.status_code, 200)
+            first_payload = first.json()
+            self.assertEqual(first_payload["schema_version"], "network.events.v1")
+            self.assertGreaterEqual(first_payload["latest_sequence"], 2)
+            self.assertGreaterEqual(len(first_payload["events"]), 2)
+
+            reconnect_cursor = first_payload["reconnect_cursor"]
+            second = client.get(f"/api/v1/blockchain/network-events?after_sequence={reconnect_cursor}&limit=10")
+
+        self.assertEqual(second.status_code, 200)
+        second_payload = second.json()
+        self.assertEqual(second_payload["events"], [])
+        self.assertEqual(second_payload["reconnect_cursor"], reconnect_cursor)
+
+    def test_network_events_websocket_streams_cursor_based_payloads(self) -> None:
+        started_at = datetime(2026, 8, 15, 23, 0, tzinfo=UTC)
+        player_id, session_id = self._create_player_session_binding()
+        service = MiningSimulationService(
+            required_work=Decimal("100"),
+            blockchain_state_store=PostgresBlockchainStateStore(required_work=Decimal("100")),
+            ledger_poster=PostgresLedgerPoster(),
+        )
+        service.register_operation(operation_id="op_a", player_id=player_id, base_hashrate_hps=Decimal("20"), started_at=started_at)
+        service.process_tick(operation_id="op_a", ended_at=started_at + timedelta(seconds=5))
+
+        with TestClient(app) as client:
+            with client.websocket_connect(
+                f"/api/v1/blockchain/network-events/ws?after_sequence=0&limit=10"
+                f"&player_id={player_id}&session_id={session_id}&channel=global"
+            ) as websocket:
+                payload = websocket.receive_json()
+
+        self.assertEqual(payload["schema_version"], "network.events.v1")
+        self.assertGreaterEqual(payload["latest_sequence"], 2)
+        self.assertGreaterEqual(len(payload["events"]), 2)
+
+    def test_cleanup_endpoint_applies_retention_policies(self) -> None:
+        player_id, session_id = self._create_player_session_binding()
+
+        with psycopg.connect(self.database_url) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    INSERT INTO network_events (event_type, payload, occurred_at)
+                    VALUES
+                        (%s, %s::jsonb, NOW() - INTERVAL '3 days'),
+                        (%s, %s::jsonb, NOW() - INTERVAL '2 days'),
+                        (%s, %s::jsonb, NOW() - INTERVAL '1 hour')
+                    """,
+                    (
+                        "network.block_progress.v1",
+                        '{"a":1}',
+                        "network.block_progress.v1",
+                        '{"a":2}',
+                        "network.block_progress.v1",
+                        '{"a":3}',
+                    ),
+                )
+                cursor.execute(
+                    """
+                    INSERT INTO client_event_checkpoints
+                        (checkpoint_id, player_id, session_id, channel, reconnect_cursor, updated_at)
+                    VALUES
+                        (%s, %s, %s, %s, %s, NOW() - INTERVAL '20 days'),
+                        (%s, %s, %s, %s, %s, NOW())
+                    """,
+                    (
+                        str(uuid4()),
+                        player_id,
+                        session_id,
+                        "global",
+                        1,
+                        str(uuid4()),
+                        player_id,
+                        session_id,
+                        "player_rewards",
+                        2,
+                    ),
+                )
+            connection.commit()
+
+        with TestClient(app) as client:
+            response = client.post(
+                "/api/v1/blockchain/maintenance/cleanup"
+                "?event_retention_seconds=172800"
+                "&checkpoint_retention_seconds=604800"
+                "&max_network_events=1",
+                headers={settings.maintenance_auth_header: settings.maintenance_auth_token},
+            )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertGreaterEqual(payload["deleted_network_events_by_age"], 1)
+        self.assertGreaterEqual(payload["deleted_network_events_by_count"], 0)
+        self.assertEqual(payload["deleted_client_checkpoints"], 1)
+
+        with psycopg.connect(self.database_url) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT COUNT(*) FROM network_events")
+                self.assertEqual(cursor.fetchone()[0], 1)
+                cursor.execute("SELECT COUNT(*) FROM client_event_checkpoints")
+                self.assertEqual(cursor.fetchone()[0], 1)
+
+    def test_cleanup_endpoint_rejects_unauthorized_requests(self) -> None:
+        with TestClient(app) as client:
+            unauthorized = client.post("/api/v1/blockchain/maintenance/cleanup")
+            headers = {settings.maintenance_auth_header: settings.maintenance_auth_token}
+            authorized_metrics = client.get("/api/v1/blockchain/maintenance/metrics", headers=headers)
+
+        self.assertEqual(unauthorized.status_code, 401)
+        self.assertEqual(authorized_metrics.status_code, 200)
+        payload = authorized_metrics.json()
+        self.assertGreaterEqual(
+            payload["maintenance_auth_scope_requests_total"].get(
+                settings.maintenance_auth_unknown_token_scope_label,
+                0,
+            ),
+            1,
+        )
+
+    def test_cleanup_endpoint_accepts_previous_rotation_token(self) -> None:
+        original_previous_token = settings.maintenance_auth_previous_token
+        original_current_label = settings.maintenance_auth_current_token_scope_label
+        original_previous_label = settings.maintenance_auth_previous_token_scope_label
+        original_unknown_label = settings.maintenance_auth_unknown_token_scope_label
+        settings.maintenance_auth_previous_token = "rotation-overlap-token"
+        settings.maintenance_auth_current_token_scope_label = "primary"
+        settings.maintenance_auth_previous_token_scope_label = "overlap"
+        settings.maintenance_auth_unknown_token_scope_label = "invalid"
+
+        try:
+            with TestClient(app) as client:
+                headers = {settings.maintenance_auth_header: "rotation-overlap-token"}
+                response = client.post("/api/v1/blockchain/maintenance/cleanup", headers=headers)
+                metrics = client.get("/api/v1/blockchain/maintenance/metrics", headers=headers)
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(metrics.status_code, 200)
+            payload = metrics.json()
+            self.assertEqual(payload["maintenance_auth_current_token_scope_label"], "primary")
+            self.assertEqual(payload["maintenance_auth_previous_token_scope_label"], "overlap")
+            self.assertEqual(payload["maintenance_auth_unknown_token_scope_label"], "invalid")
+            self.assertGreaterEqual(payload["maintenance_auth_scope_requests_total"].get("overlap", 0), 2)
+        finally:
+            settings.maintenance_auth_previous_token = original_previous_token
+            settings.maintenance_auth_current_token_scope_label = original_current_label
+            settings.maintenance_auth_previous_token_scope_label = original_previous_label
+            settings.maintenance_auth_unknown_token_scope_label = original_unknown_label
+
+    def test_maintenance_metrics_endpoints_record_previous_scope_during_overlap_window(self) -> None:
+        original_previous_token = settings.maintenance_auth_previous_token
+        original_previous_label = settings.maintenance_auth_previous_token_scope_label
+        settings.maintenance_auth_previous_token = "rotation-overlap-token"
+        settings.maintenance_auth_previous_token_scope_label = "overlap"
+
+        try:
+            with TestClient(app) as client:
+                overlap_headers = {settings.maintenance_auth_header: "rotation-overlap-token"}
+                cleanup = client.post("/api/v1/blockchain/maintenance/cleanup", headers=overlap_headers)
+                json_metrics = client.get("/api/v1/blockchain/maintenance/metrics", headers=overlap_headers)
+                plaintext_metrics = client.get(
+                    "/api/v1/blockchain/maintenance/metrics/plaintext",
+                    headers=overlap_headers,
+                )
+
+            self.assertEqual(cleanup.status_code, 200)
+            self.assertEqual(json_metrics.status_code, 200)
+            self.assertEqual(plaintext_metrics.status_code, 200)
+
+            payload = json_metrics.json()
+            self.assertGreaterEqual(payload["maintenance_auth_scope_requests_total"].get("overlap", 0), 2)
+            body = plaintext_metrics.text
+            self.assertIn('token_scope="overlap"', body)
+            self.assertIn("gmn_maintenance_auth_requests_total", body)
+        finally:
+            settings.maintenance_auth_previous_token = original_previous_token
+            settings.maintenance_auth_previous_token_scope_label = original_previous_label
+
+    def test_maintenance_scope_counters_accumulate_deterministically_for_mixed_requests(self) -> None:
+        original_previous_token = settings.maintenance_auth_previous_token
+        previous_label = settings.maintenance_auth_previous_token_scope_label
+        unknown_label = settings.maintenance_auth_unknown_token_scope_label
+        current_label = settings.maintenance_auth_current_token_scope_label
+        settings.maintenance_auth_previous_token = "rotation-overlap-token"
+
+        try:
+            with TestClient(app) as client:
+                unauthorized_cleanup = client.post("/api/v1/blockchain/maintenance/cleanup")
+                current_headers = {settings.maintenance_auth_header: settings.maintenance_auth_token}
+                previous_headers = {settings.maintenance_auth_header: "rotation-overlap-token"}
+                current_cleanup = client.post("/api/v1/blockchain/maintenance/cleanup", headers=current_headers)
+                previous_cleanup = client.post("/api/v1/blockchain/maintenance/cleanup", headers=previous_headers)
+                metrics = client.get("/api/v1/blockchain/maintenance/metrics", headers=current_headers)
+                plaintext_metrics = client.get("/api/v1/blockchain/maintenance/metrics/plaintext", headers=current_headers)
+
+            self.assertEqual(unauthorized_cleanup.status_code, 401)
+            self.assertEqual(current_cleanup.status_code, 200)
+            self.assertEqual(previous_cleanup.status_code, 200)
+            self.assertEqual(metrics.status_code, 200)
+            self.assertEqual(plaintext_metrics.status_code, 200)
+
+            payload = metrics.json()
+            counters = payload["maintenance_auth_scope_requests_total"]
+
+            # One unknown cleanup attempt, one current cleanup, one previous cleanup,
+            # and one current metrics request used to read counters.
+            self.assertEqual(counters.get(unknown_label, 0), 1)
+            self.assertEqual(counters.get(current_label, 0), 2)
+            self.assertEqual(counters.get(previous_label, 0), 1)
+
+            plaintext = plaintext_metrics.text
+            self.assertIn(f'token_scope="{unknown_label}"', plaintext)
+            self.assertIn(f'token_scope="{current_label}"', plaintext)
+            self.assertIn(f'token_scope="{previous_label}"', plaintext)
+        finally:
+            settings.maintenance_auth_previous_token = original_previous_token
+
+    def test_maintenance_scope_counters_are_consistent_between_persisted_and_in_memory_rate_limit_modes(self) -> None:
+        original_previous_token = settings.maintenance_auth_previous_token
+        original_window = settings.maintenance_cleanup_rate_limit_window_seconds
+        original_max = settings.maintenance_cleanup_rate_limit_max_requests
+        original_persistence = settings.maintenance_cleanup_rate_limit_persistence_enabled
+        previous_label = settings.maintenance_auth_previous_token_scope_label
+        unknown_label = settings.maintenance_auth_unknown_token_scope_label
+        current_label = settings.maintenance_auth_current_token_scope_label
+        settings.maintenance_auth_previous_token = "rotation-overlap-token"
+        settings.maintenance_cleanup_rate_limit_window_seconds = 300
+        settings.maintenance_cleanup_rate_limit_max_requests = 50
+
+        def run_mixed_sequence(*, persistence_enabled: bool) -> dict[str, int]:
+            settings.maintenance_cleanup_rate_limit_persistence_enabled = persistence_enabled
+            reset_blockchain_runtime_counters_for_tests(include_persisted_rate_limit_state=True)
+
+            with TestClient(app) as client:
+                unauthorized_cleanup = client.post("/api/v1/blockchain/maintenance/cleanup")
+                current_headers = {settings.maintenance_auth_header: settings.maintenance_auth_token}
+                previous_headers = {settings.maintenance_auth_header: "rotation-overlap-token"}
+                current_cleanup = client.post("/api/v1/blockchain/maintenance/cleanup", headers=current_headers)
+                previous_cleanup = client.post("/api/v1/blockchain/maintenance/cleanup", headers=previous_headers)
+                metrics = client.get("/api/v1/blockchain/maintenance/metrics", headers=current_headers)
+
+            self.assertEqual(unauthorized_cleanup.status_code, 401)
+            self.assertEqual(current_cleanup.status_code, 200)
+            self.assertEqual(previous_cleanup.status_code, 200)
+            self.assertEqual(metrics.status_code, 200)
+
+            payload = metrics.json()
+            counters = payload["maintenance_auth_scope_requests_total"]
+            return {
+                unknown_label: counters.get(unknown_label, 0),
+                current_label: counters.get(current_label, 0),
+                previous_label: counters.get(previous_label, 0),
+            }
+
+        try:
+            persisted_counters = run_mixed_sequence(persistence_enabled=True)
+            in_memory_counters = run_mixed_sequence(persistence_enabled=False)
+
+            expected_counters = {
+                unknown_label: 1,
+                current_label: 2,
+                previous_label: 1,
+            }
+            self.assertEqual(persisted_counters, expected_counters)
+            self.assertEqual(in_memory_counters, expected_counters)
+            self.assertEqual(persisted_counters, in_memory_counters)
+        finally:
+            settings.maintenance_auth_previous_token = original_previous_token
+            settings.maintenance_cleanup_rate_limit_window_seconds = original_window
+            settings.maintenance_cleanup_rate_limit_max_requests = original_max
+            settings.maintenance_cleanup_rate_limit_persistence_enabled = original_persistence
+
+    def test_cleanup_endpoint_rate_limits_excess_requests(self) -> None:
+        original_window = settings.maintenance_cleanup_rate_limit_window_seconds
+        original_max = settings.maintenance_cleanup_rate_limit_max_requests
+        original_persistence = settings.maintenance_cleanup_rate_limit_persistence_enabled
+        settings.maintenance_cleanup_rate_limit_window_seconds = 60
+        settings.maintenance_cleanup_rate_limit_max_requests = 2
+        settings.maintenance_cleanup_rate_limit_persistence_enabled = False
+
+        try:
+            with TestClient(app) as client:
+                headers = {settings.maintenance_auth_header: settings.maintenance_auth_token}
+                first = client.post("/api/v1/blockchain/maintenance/cleanup", headers=headers)
+                second = client.post("/api/v1/blockchain/maintenance/cleanup", headers=headers)
+                third = client.post("/api/v1/blockchain/maintenance/cleanup", headers=headers)
+
+            self.assertEqual(first.status_code, 200)
+            self.assertEqual(second.status_code, 200)
+            self.assertEqual(third.status_code, 429)
+            self.assertEqual(third.headers.get("Retry-After"), "60")
+        finally:
+            settings.maintenance_cleanup_rate_limit_window_seconds = original_window
+            settings.maintenance_cleanup_rate_limit_max_requests = original_max
+            settings.maintenance_cleanup_rate_limit_persistence_enabled = original_persistence
+
+    def test_cleanup_rate_limit_persistence_survives_in_memory_counter_reset(self) -> None:
+        original_window = settings.maintenance_cleanup_rate_limit_window_seconds
+        original_max = settings.maintenance_cleanup_rate_limit_max_requests
+        original_persistence = settings.maintenance_cleanup_rate_limit_persistence_enabled
+        settings.maintenance_cleanup_rate_limit_window_seconds = 120
+        settings.maintenance_cleanup_rate_limit_max_requests = 2
+        settings.maintenance_cleanup_rate_limit_persistence_enabled = True
+
+        try:
+            with TestClient(app) as client:
+                headers = {settings.maintenance_auth_header: settings.maintenance_auth_token}
+                first = client.post("/api/v1/blockchain/maintenance/cleanup", headers=headers)
+                second = client.post("/api/v1/blockchain/maintenance/cleanup", headers=headers)
+
+                # Simulate process-level in-memory metric reset; persisted limiter should still enforce.
+                reset_blockchain_runtime_counters_for_tests(include_persisted_rate_limit_state=False)
+                third = client.post("/api/v1/blockchain/maintenance/cleanup", headers=headers)
+
+            self.assertEqual(first.status_code, 200)
+            self.assertEqual(second.status_code, 200)
+            self.assertEqual(third.status_code, 429)
+        finally:
+            settings.maintenance_cleanup_rate_limit_window_seconds = original_window
+            settings.maintenance_cleanup_rate_limit_max_requests = original_max
+            settings.maintenance_cleanup_rate_limit_persistence_enabled = original_persistence
+
+    def test_cleanup_rate_limit_persistence_retry_after_near_window_boundary(self) -> None:
+        original_window = settings.maintenance_cleanup_rate_limit_window_seconds
+        original_max = settings.maintenance_cleanup_rate_limit_max_requests
+        original_persistence = settings.maintenance_cleanup_rate_limit_persistence_enabled
+        settings.maintenance_cleanup_rate_limit_window_seconds = 5
+        settings.maintenance_cleanup_rate_limit_max_requests = 1
+        settings.maintenance_cleanup_rate_limit_persistence_enabled = True
+
+        try:
+            with TestClient(app) as client:
+                headers = {settings.maintenance_auth_header: settings.maintenance_auth_token}
+                first = client.post("/api/v1/blockchain/maintenance/cleanup", headers=headers)
+                self.assertEqual(first.status_code, 200)
+
+                with psycopg.connect(self.database_url) as connection:
+                    with connection.cursor() as cursor:
+                        cursor.execute(
+                            """
+                            UPDATE maintenance_cleanup_rate_limit_state
+                            SET window_started_at = NOW() - INTERVAL '4 seconds',
+                                request_count = 1,
+                                updated_at = NOW()
+                            WHERE state_key = 'cleanup'
+                            """
+                        )
+                    connection.commit()
+
+                second = client.post("/api/v1/blockchain/maintenance/cleanup", headers=headers)
+
+            self.assertEqual(second.status_code, 429)
+            retry_after = int(second.headers.get("Retry-After", "0"))
+            self.assertGreaterEqual(retry_after, 1)
+            self.assertLessEqual(retry_after, 2)
+        finally:
+            settings.maintenance_cleanup_rate_limit_window_seconds = original_window
+            settings.maintenance_cleanup_rate_limit_max_requests = original_max
+            settings.maintenance_cleanup_rate_limit_persistence_enabled = original_persistence
+
+    def test_cleanup_endpoint_accepts_forwarded_source_headers(self) -> None:
+        with TestClient(app) as client:
+            headers = {
+                settings.maintenance_auth_header: settings.maintenance_auth_token,
+                "X-Forwarded-For": "203.0.113.42",
+                "User-Agent": "gmn-maintenance-test/1.0",
+            }
+            response = client.post("/api/v1/blockchain/maintenance/cleanup", headers=headers)
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_maintenance_metrics_endpoint_returns_contract(self) -> None:
+        with TestClient(app) as client:
+            headers = {settings.maintenance_auth_header: settings.maintenance_auth_token}
+            cleanup = client.post("/api/v1/blockchain/maintenance/cleanup", headers=headers)
+            self.assertEqual(cleanup.status_code, 200)
+
+            response = client.get("/api/v1/blockchain/maintenance/metrics", headers=headers)
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["schema_version"], "maintenance.metrics.v1")
+        self.assertIn(payload["cleanup_rate_limit_mode"], {"persisted", "in_memory"})
+        self.assertGreaterEqual(payload["cleanup_runs_total"], 1)
+        self.assertEqual(payload["maintenance_auth_current_token_scope_label"], settings.maintenance_auth_current_token_scope_label)
+        self.assertEqual(payload["maintenance_auth_previous_token_scope_label"], settings.maintenance_auth_previous_token_scope_label)
+        self.assertEqual(payload["maintenance_auth_unknown_token_scope_label"], settings.maintenance_auth_unknown_token_scope_label)
+        self.assertIn(settings.maintenance_auth_current_token_scope_label, payload["maintenance_auth_scope_requests_total"])
+        self.assertIn("generated_at", payload)
+
+    def test_maintenance_metrics_endpoint_rejects_unauthorized_requests(self) -> None:
+        with TestClient(app) as client:
+            unauthorized = client.get("/api/v1/blockchain/maintenance/metrics")
+            headers = {settings.maintenance_auth_header: settings.maintenance_auth_token}
+            authorized = client.get("/api/v1/blockchain/maintenance/metrics", headers=headers)
+
+        self.assertEqual(unauthorized.status_code, 401)
+        self.assertEqual(authorized.status_code, 200)
+        payload = authorized.json()
+        self.assertGreaterEqual(
+            payload["maintenance_auth_scope_requests_total"].get(
+                settings.maintenance_auth_unknown_token_scope_label,
+                0,
+            ),
+            1,
+        )
+
+    def test_maintenance_metrics_plaintext_endpoint_returns_prometheus_style_payload(self) -> None:
+        with TestClient(app) as client:
+            headers = {settings.maintenance_auth_header: settings.maintenance_auth_token}
+            cleanup = client.post("/api/v1/blockchain/maintenance/cleanup", headers=headers)
+            self.assertEqual(cleanup.status_code, 200)
+
+            response = client.get("/api/v1/blockchain/maintenance/metrics/plaintext", headers=headers)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("text/plain", response.headers.get("content-type", ""))
+        body = response.text
+        self.assertIn("gmn_maintenance_cleanup_runs_total", body)
+        self.assertIn("gmn_maintenance_cleanup_rate_limit_requests_in_window", body)
+        self.assertIn("gmn_maintenance_auth_requests_total", body)
+        self.assertIn(f'token_scope="{settings.maintenance_auth_current_token_scope_label}"', body)
+
+    def test_maintenance_metrics_plaintext_endpoint_rejects_unauthorized_requests(self) -> None:
+        with TestClient(app) as client:
+            unauthorized = client.get("/api/v1/blockchain/maintenance/metrics/plaintext")
+            headers = {settings.maintenance_auth_header: settings.maintenance_auth_token}
+            authorized_metrics = client.get("/api/v1/blockchain/maintenance/metrics", headers=headers)
+
+        self.assertEqual(unauthorized.status_code, 401)
+        self.assertEqual(authorized_metrics.status_code, 200)
+        payload = authorized_metrics.json()
+        self.assertGreaterEqual(
+            payload["maintenance_auth_scope_requests_total"].get(
+                settings.maintenance_auth_unknown_token_scope_label,
+                0,
+            ),
+            1,
+        )
+
+    def test_websocket_stale_connections_are_evicted(self) -> None:
+        player_id, session_id = self._create_player_session_binding()
+
+        with TestClient(app) as client:
+            with self.assertRaises(WebSocketDisconnect):
+                with client.websocket_connect(
+                    "/api/v1/blockchain/network-events/ws"
+                    f"?player_id={player_id}&session_id={session_id}&channel=global"
+                    "&heartbeat_seconds=1&stale_timeout_seconds=2"
+                ) as ws:
+                    while True:
+                        ws.receive_json()
+
+    def test_network_events_websocket_requires_valid_session_binding(self) -> None:
+        with TestClient(app) as client:
+            with self.assertRaises(WebSocketDisconnect):
+                with client.websocket_connect(
+                    "/api/v1/blockchain/network-events/ws?player_id=bad&session_id=bad&channel=global"
+                ) as websocket:
+                    websocket.receive_json()
+
+    def test_checkpoint_endpoints_persist_and_return_reconnect_cursor(self) -> None:
+        player_id, session_id = self._create_player_session_binding()
+
+        with TestClient(app) as client:
+            put_response = client.put(
+                f"/api/v1/blockchain/checkpoints/global?player_id={player_id}&session_id={session_id}",
+                json={"reconnect_cursor": 42},
+            )
+            self.assertEqual(put_response.status_code, 200)
+
+            get_response = client.get(
+                f"/api/v1/blockchain/checkpoints/global?player_id={player_id}&session_id={session_id}"
+            )
+
+        self.assertEqual(get_response.status_code, 200)
+        payload = get_response.json()
+        self.assertEqual(payload["reconnect_cursor"], 42)
+
+    def test_player_rewards_channel_filters_to_bound_player(self) -> None:
+        started_at = datetime(2026, 8, 15, 23, 30, tzinfo=UTC)
+        player_a, session_a = self._create_player_session_binding()
+        player_b, session_b = self._create_player_session_binding()
+        service = MiningSimulationService(
+            required_work=Decimal("100"),
+            blockchain_state_store=PostgresBlockchainStateStore(required_work=Decimal("100")),
+            ledger_poster=PostgresLedgerPoster(),
+        )
+        service.register_operation(operation_id="op_a", player_id=player_a, base_hashrate_hps=Decimal("20"), started_at=started_at)
+        service.register_operation(operation_id="op_b", player_id=player_b, base_hashrate_hps=Decimal("20"), started_at=started_at)
+        service.process_tick(operation_id="op_a", ended_at=started_at + timedelta(seconds=3))
+        service.process_tick(operation_id="op_b", ended_at=started_at + timedelta(seconds=5))
+
+        with TestClient(app) as client:
+            with client.websocket_connect(
+                f"/api/v1/blockchain/network-events/ws?after_sequence=0&limit=20"
+                f"&player_id={player_a}&session_id={session_a}&channel=player_rewards"
+            ) as ws_a:
+                payload_a = ws_a.receive_json()
+            with client.websocket_connect(
+                f"/api/v1/blockchain/network-events/ws?after_sequence=0&limit=20"
+                f"&player_id={player_b}&session_id={session_b}&channel=player_rewards"
+            ) as ws_b:
+                payload_b = ws_b.receive_json()
+
+        self.assertGreaterEqual(len(payload_a["events"]), 1)
+        self.assertTrue(all(item["payload"]["player_id"] == player_a for item in payload_a["events"]))
+        self.assertGreaterEqual(len(payload_b["events"]), 1)
+        self.assertTrue(all(item["payload"]["player_id"] == player_b for item in payload_b["events"]))
+
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)

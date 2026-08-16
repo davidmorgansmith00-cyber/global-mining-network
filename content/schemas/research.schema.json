@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "gmn/content/research.schema.json",
+  "title": "Research Definition",
+  "type": "object",
+  "required": ["id", "name", "category"],
+  "properties": {
+    "id": { "type": "string" },
+    "name": { "type": "string" },
+    "category": { "type": "string" },
+    "duration_seconds": { "type": "integer", "minimum": 0 },
+    "prerequisites": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "additionalProperties": true
+}
