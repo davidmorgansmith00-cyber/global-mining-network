@@ -80,6 +80,22 @@ def _extract_request_source_ip(request: Request) -> str:
     return "unknown"
 
 
+def _resolve_operation_intent_session_id(request: Request, session_id_query: str | None) -> str:
+    header_name = settings.operation_intent_session_header
+    session_id_header = request.headers.get(header_name)
+
+    if session_id_query and session_id_header and session_id_query != session_id_header:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Session binding mismatch between query and {header_name} header",
+        )
+
+    resolved = session_id_header or session_id_query
+    if not resolved:
+        raise HTTPException(status_code=401, detail="Invalid session binding")
+    return resolved
+
+
 def _maintenance_scope_labels() -> tuple[str, str, str]:
     current = settings.maintenance_auth_current_token_scope_label or "current"
     previous = settings.maintenance_auth_previous_token_scope_label or "previous"
@@ -298,11 +314,16 @@ def upsert_client_checkpoint(
     response_model=OperationIntentResponse,
     status_code=status.HTTP_200_OK,
 )
-def start_operation_intent(payload: OperationStartIntentRequest, session_id: str) -> OperationIntentResponse:
+def start_operation_intent(
+    request: Request,
+    payload: OperationStartIntentRequest,
+    session_id: str | None = Query(default=None),
+) -> OperationIntentResponse:
     if payload.base_hashrate_hps <= 0:
         raise HTTPException(status_code=400, detail="base_hashrate_hps must be positive")
 
-    player_id = client_sessions.resolve_player_id_from_session(session_id=session_id)
+    resolved_session_id = _resolve_operation_intent_session_id(request=request, session_id_query=session_id)
+    player_id = client_sessions.resolve_player_id_from_session(session_id=resolved_session_id)
     if player_id is None:
         raise HTTPException(status_code=401, detail="Invalid session binding")
 
@@ -337,8 +358,13 @@ def start_operation_intent(payload: OperationStartIntentRequest, session_id: str
     response_model=OperationIntentResponse,
     status_code=status.HTTP_200_OK,
 )
-def stop_operation_intent(payload: OperationStopIntentRequest, session_id: str) -> OperationIntentResponse:
-    player_id = client_sessions.resolve_player_id_from_session(session_id=session_id)
+def stop_operation_intent(
+    request: Request,
+    payload: OperationStopIntentRequest,
+    session_id: str | None = Query(default=None),
+) -> OperationIntentResponse:
+    resolved_session_id = _resolve_operation_intent_session_id(request=request, session_id_query=session_id)
+    player_id = client_sessions.resolve_player_id_from_session(session_id=resolved_session_id)
     if player_id is None:
         raise HTTPException(status_code=401, detail="Invalid session binding")
 

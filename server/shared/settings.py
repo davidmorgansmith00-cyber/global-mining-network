@@ -41,6 +41,7 @@ class Settings(BaseModel):
         os.getenv("MAINTENANCE_CLEANUP_RATE_LIMIT_PERSISTENCE_ENABLED"),
         default=True,
     )
+    operation_intent_session_header: str = os.getenv("OPERATION_INTENT_SESSION_HEADER", "X-Session-Id")
 
 
 settings = Settings()

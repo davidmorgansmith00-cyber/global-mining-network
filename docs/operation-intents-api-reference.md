@@ -97,3 +97,6 @@ Migration guidance:
 - During rollout planning, validate both transport modes in client integration tests.
 - Do not add `player_id` back into client request payloads during transition.
 - Keep response contract fields stable (`operation_id`, `player_id`, `accepted`, `status`, `detail`) to avoid client parser churn.
+
+Concrete rollout plan:
+- See `docs/operation-intents-transport-migration-proposal.md` for header shape, compatibility window, deprecation milestones, and rollback criteria.

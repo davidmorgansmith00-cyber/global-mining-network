@@ -229,6 +229,8 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Operation intent response contract assertion hardening | Done | Expanded blockchain integration tests to assert response fields (`operation_id`, `player_id`, `accepted`, `status`, `detail`) across start/stop intent flows |
 | Operation intent transport transition guidance note | Done | Added migration note documenting query-to-header transport planning while preserving server-derived identity and stable response contract fields |
 | Operation intent expired-session unauthorized coverage | Done | Added integration test asserting both start and stop intents return 401 with `Invalid session binding` when session binding is expired |
+| Operation intent transport migration proposal baseline | Done | Added `docs/operation-intents-transport-migration-proposal.md` covering header shape, compatibility window, deprecation milestones, and rollback criteria |
+| Operation intent dual-mode transport integration scaffolding | Done | Added server support for query-plus-header session transport (`X-Session-Id`), plus integration coverage for header-only success and query/header mismatch rejection |
 | Optional CI workflow-dispatch DB baseline rerun | Done | Run `31956249661` succeeded end-to-end (`baseline` and `db-integration` both green); total run window was 67s (`15:38:16Z` to `15:39:23Z`) |
 | Local CI-mirrored full suite baseline | Done | Ran the same test selection as optional `db-integration` locally: `65` tests passed in `35.976s` |
 
@@ -253,9 +255,9 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 ---
 
 ## 10. Next Actions
-1. Evaluate moving operation-intent session binding from query parameter to standardized auth header/token flow while preserving server-authoritative identity resolution.
-2. Draft a concrete API transport migration proposal (header shape, compatibility window, deprecation milestones, and rollback criteria).
-3. Add dual-mode integration coverage scaffolding for query-plus-header acceptance during migration rollout tests.
+1. Add response/metrics instrumentation to distinguish query-mode versus header-mode operation-intent usage during migration monitoring.
+2. Add release-note style client migration checklist and timeline dates for query-mode deprecation communication.
+3. Plan and stage query-mode sunset test cases (header-only required) behind an environment-gated rollout flag.
 
 ---
 

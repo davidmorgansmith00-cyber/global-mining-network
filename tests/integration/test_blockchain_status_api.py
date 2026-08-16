@@ -517,6 +517,59 @@ class BlockchainStatusApiTests(unittest.TestCase):
         self.assertEqual(expired_stop.status_code, 401)
         self.assertEqual(expired_stop.json().get("detail"), "Invalid session binding")
 
+    def test_operation_intents_accept_header_based_session_binding(self) -> None:
+        player_id, session_id = self._create_player_session_binding()
+        header_name = settings.operation_intent_session_header
+
+        with TestClient(app) as client:
+            started = client.post(
+                "/api/v1/blockchain/operations/intents/start",
+                json={
+                    "operation_id": "op_header_1",
+                    "base_hashrate_hps": "20",
+                },
+                headers={header_name: session_id},
+            )
+            stopped = client.post(
+                "/api/v1/blockchain/operations/intents/stop",
+                json={
+                    "operation_id": "op_header_1",
+                },
+                headers={header_name: session_id},
+            )
+
+        self.assertEqual(started.status_code, 200)
+        self.assertEqual(started.json().get("player_id"), player_id)
+        self.assertEqual(stopped.status_code, 200)
+        self.assertEqual(stopped.json().get("player_id"), player_id)
+
+    def test_operation_intents_reject_mismatched_query_and_header_session_binding(self) -> None:
+        _, session_a = self._create_player_session_binding()
+        _, session_b = self._create_player_session_binding()
+        header_name = settings.operation_intent_session_header
+
+        with TestClient(app) as client:
+            mismatch_start = client.post(
+                f"/api/v1/blockchain/operations/intents/start?session_id={session_a}",
+                json={
+                    "operation_id": "op_header_mismatch",
+                    "base_hashrate_hps": "20",
+                },
+                headers={header_name: session_b},
+            )
+            mismatch_stop = client.post(
+                f"/api/v1/blockchain/operations/intents/stop?session_id={session_a}",
+                json={
+                    "operation_id": "op_header_mismatch",
+                },
+                headers={header_name: session_b},
+            )
+
+        self.assertEqual(mismatch_start.status_code, 400)
+        self.assertIn("Session binding mismatch", mismatch_start.json().get("detail", ""))
+        self.assertEqual(mismatch_stop.status_code, 400)
+        self.assertIn("Session binding mismatch", mismatch_stop.json().get("detail", ""))
+
     def test_operation_intents_drive_authoritative_progression_and_reconnect_safe_events(self) -> None:
         player_id, session_id = self._create_player_session_binding()
 
