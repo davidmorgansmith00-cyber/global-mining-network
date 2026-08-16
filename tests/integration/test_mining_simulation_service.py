@@ -20,7 +20,14 @@ from domain.blockchain.network_stream import get_network_event_stream, reset_net
 from domain.blockchain.store import InMemoryBlockchainStateStore
 from domain.difficulty.service import DifficultyAdjustmentService, DifficultyConfig
 from domain.economy.ledger import NoOpLedgerPoster
-from domain.mining.contracts import EVENT_HARDWARE_CHANGED, EVENT_OPERATION_PAUSE, EVENT_OPERATION_RESUME, SimulationBoundaryEvent
+from domain.mining.contracts import (
+    EVENT_HARDWARE_CHANGED,
+    EVENT_MAINTENANCE_STATE_CHANGED,
+    EVENT_OPERATION_PAUSE,
+    EVENT_OPERATION_RESUME,
+    EVENT_THROTTLE_STATE_CHANGED,
+    SimulationBoundaryEvent,
+)
 from domain.mining.service import MiningSimulationService
 
 
@@ -98,6 +105,40 @@ class MiningSimulationServiceIntegrationTests(unittest.TestCase):
 
         self.assertEqual(result.contribution_hashes, Decimal("150.000000"))
         self.assertEqual(service.operations["op_a"].current_multiplier, Decimal("2"))
+        self.assertEqual(service.operations["op_a"].last_processed_at, tick_end)
+
+    def test_throttle_and_maintenance_boundaries_update_multiplier_and_pause_state(self) -> None:
+        started_at = datetime(2026, 8, 15, 14, 45, tzinfo=UTC)
+        throttle_at = started_at + timedelta(seconds=3)
+        maintenance_at = started_at + timedelta(seconds=6)
+        tick_end = started_at + timedelta(seconds=10)
+
+        service = MiningSimulationService(required_work=Decimal("1000"))
+        service.register_operation(operation_id="op_a", base_hashrate_hps=Decimal("10"), started_at=started_at)
+        service.apply_boundary_event(
+            SimulationBoundaryEvent(
+                event_type=EVENT_THROTTLE_STATE_CHANGED,
+                player_id="player_a",
+                operation_id="op_a",
+                occurred_at=throttle_at,
+                payload={"hashrate_multiplier": "0.5", "paused": False},
+            )
+        )
+        service.apply_boundary_event(
+            SimulationBoundaryEvent(
+                event_type=EVENT_MAINTENANCE_STATE_CHANGED,
+                player_id="player_a",
+                operation_id="op_a",
+                occurred_at=maintenance_at,
+                payload={"hashrate_multiplier": "0.5", "paused": True},
+            )
+        )
+
+        result = service.process_tick(operation_id="op_a", ended_at=tick_end)
+
+        self.assertEqual(result.contribution_hashes, Decimal("45.000000"))
+        self.assertEqual(service.operations["op_a"].current_multiplier, Decimal("0.5"))
+        self.assertTrue(service.operations["op_a"].current_paused)
         self.assertEqual(service.operations["op_a"].last_processed_at, tick_end)
 
     def test_atomic_finalization_under_concurrency(self) -> None:
