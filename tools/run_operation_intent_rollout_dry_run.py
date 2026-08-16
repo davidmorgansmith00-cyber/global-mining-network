@@ -44,6 +44,16 @@ def _parse_args() -> argparse.Namespace:
         default=0.1,
         help="Maximum allowed mismatch rate per minute over the window (default: 0.1)",
     )
+    parser.add_argument(
+        "--environment-scope",
+        default="dry-run",
+        help="Environment scope value forwarded to memo prefill (default: dry-run)",
+    )
+    parser.add_argument(
+        "--decision-owner",
+        default="dry-run-operator",
+        help="Decision owner value forwarded to memo prefill (default: dry-run-operator)",
+    )
     return parser.parse_args()
 
 
@@ -192,9 +202,9 @@ def main() -> int:
             "--bundle",
             str(bundle_path),
             "--environment-scope",
-            "dry-run",
+            args.environment_scope,
             "--decision-owner",
-            "dry-run-operator",
+            args.decision_owner,
             "--output",
             str(memo_draft_path),
         ]

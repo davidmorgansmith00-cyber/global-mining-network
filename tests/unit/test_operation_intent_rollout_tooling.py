@@ -172,6 +172,10 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
                 "3",
                 "--query-threshold-percent",
                 "1.0",
+                "--environment-scope",
+                "pre-prod-canary",
+                "--decision-owner",
+                "backend-oncall",
             )
             self.assertEqual(dry_run_result.returncode, 0, msg=dry_run_result.stderr)
 
@@ -187,6 +191,10 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertTrue((output_dir / "intent-transport-rollout-bundle.json").exists())
             self.assertTrue((output_dir / "intent-transport-decision-memo-draft.json").exists())
             self.assertTrue((output_dir / "intent-transport-decision-memo.md").exists())
+
+            memo_draft = json.loads((output_dir / "intent-transport-decision-memo-draft.json").read_text(encoding="utf-8"))
+            self.assertEqual(memo_draft["decision_summary"]["environment_scope"], "pre-prod-canary")
+            self.assertEqual(memo_draft["decision_summary"]["decision_owner"], "backend-oncall")
 
     def test_markdown_renderer_outputs_decision_memo_sections(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

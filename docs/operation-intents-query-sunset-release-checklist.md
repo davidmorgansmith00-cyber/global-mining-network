@@ -75,7 +75,7 @@ Render a human-readable markdown memo draft from prefilled JSON:
 - PowerShell: `python tools/render_operation_intent_decision_memo.py --input artifacts/intent-transport-decision-memo-draft.json --output artifacts/intent-transport-decision-memo.md`
 
 Run a full offline dry run (synthetic 14-day artifacts + bundle + memo draft):
-- PowerShell: `python tools/run_operation_intent_rollout_dry_run.py --output-dir artifacts/operation-intent-dry-run --days 14 --query-threshold-percent 1.0 --strict-rejection-max-delta 0 --mismatch-rate-max-per-minute 0.1`
+- PowerShell: `python tools/run_operation_intent_rollout_dry_run.py --output-dir artifacts/operation-intent-dry-run --days 14 --query-threshold-percent 1.0 --strict-rejection-max-delta 0 --mismatch-rate-max-per-minute 0.1 --environment-scope pre-prod-canary --decision-owner backend-oncall`
 
 Read computed query share from helper output:
 - Use `query_share_from_deltas.query_share_percent` from the output JSON as the canonical query-share value for promotion gates.
