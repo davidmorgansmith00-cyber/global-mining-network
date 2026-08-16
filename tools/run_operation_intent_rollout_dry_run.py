@@ -288,6 +288,12 @@ def main() -> int:
         "decision_package_compact_summary_checks_skipped": bool(
             package_summary.get("verification_compact_summary_checks_skipped", False)
         ),
+        "decision_package_compact_summary_mismatch_count": int(
+            package_summary.get("verification_compact_summary_mismatch_count", 0)
+        ),
+        "decision_package_compact_summary_mismatch_details": package_summary.get(
+            "verification_compact_summary_mismatch_details", []
+        ),
     }
     print(json.dumps(result, indent=2, sort_keys=True))
     return 0

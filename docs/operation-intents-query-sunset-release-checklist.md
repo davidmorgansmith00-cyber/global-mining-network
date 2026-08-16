@@ -113,6 +113,7 @@ Build the full decision artifact package in one command:
 - Manifest schema is versioned (`manifest_schema_version`) and verifier output includes `schema_supported` for compatibility checks.
 - Decision-package command output now includes `verification_verified` and `verification_schema_supported` for quick pass/fail parsing in CI logs.
 - Decision-package command output also includes `verification_compact_summary_checks_performed` and `verification_compact_summary_checks_skipped` to make compatibility-path verification behavior explicit.
+- Decision-package command output includes `verification_compact_summary_mismatch_count` and `verification_compact_summary_mismatch_details` for machine-readable compact-summary mismatch diagnostics.
 
 Verify generated package integrity:
 - PowerShell: `python tools/verify_operation_intent_decision_package.py --manifest artifacts/operation-intent-decision-package/intent-transport-decision-package-manifest.json`
@@ -154,6 +155,8 @@ Dry-run quick gate fields in command JSON output:
 - `decision_package_schema_supported`
 - `decision_package_compact_summary_checks_performed`
 - `decision_package_compact_summary_checks_skipped`
+- `decision_package_compact_summary_mismatch_count`
+- `decision_package_compact_summary_mismatch_details`
 
 ## Owner Checklist
 1. Backend owner approves strict-mode metrics health.

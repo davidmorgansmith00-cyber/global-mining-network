@@ -291,6 +291,11 @@ def main() -> int:
     summary["verification_compact_summary_checks_skipped"] = bool(
         verification_payload.get("compact_summary_checks_skipped", False)
     )
+    compact_summary_mismatch_details = verification_payload.get("compact_summary_mismatch_details", [])
+    if not isinstance(compact_summary_mismatch_details, list):
+        compact_summary_mismatch_details = [str(compact_summary_mismatch_details)]
+    summary["verification_compact_summary_mismatch_count"] = len(compact_summary_mismatch_details)
+    summary["verification_compact_summary_mismatch_details"] = compact_summary_mismatch_details
     print(json.dumps(summary, indent=2, sort_keys=True))
     return 0
 
