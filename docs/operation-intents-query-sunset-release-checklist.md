@@ -58,6 +58,12 @@ Run full blockchain integration suite:
 Run sunset-gated tests:
 - PowerShell: `$env:GMN_ENABLE_QUERY_SUNSET_TESTS='1'; python -m unittest tests/integration/test_blockchain_status_api.py -v`
 
+Capture a single transport metrics snapshot:
+- PowerShell: `$env:MAINTENANCE_AUTH_TOKEN='<token>'; python tools/capture_operation_intent_transport_metrics.py --base-url http://127.0.0.1:8000 --output artifacts/intent-transport-snapshot.json`
+
+Capture short trend evidence (example: 15 minutes at 60-second interval):
+- PowerShell: `$env:MAINTENANCE_AUTH_TOKEN='<token>'; python tools/capture_operation_intent_transport_metrics.py --base-url http://127.0.0.1:8000 --samples 15 --interval-seconds 60 --output artifacts/intent-transport-trend-15m.json`
+
 ## Owner Checklist
 1. Backend owner approves strict-mode metrics health.
 2. Client owner confirms header transport rollout completion.
