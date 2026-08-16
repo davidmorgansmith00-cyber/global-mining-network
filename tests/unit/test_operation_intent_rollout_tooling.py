@@ -230,6 +230,8 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertFalse(summary["decision_package_compact_summary_checks_skipped"])
             self.assertEqual(summary["decision_package_compact_summary_mismatch_count"], 0)
             self.assertEqual(summary["decision_package_compact_summary_mismatch_details"], [])
+            self.assertTrue(summary["decision_package_verified"])
+            self.assertTrue(summary["decision_package_schema_supported"])
             self.assertTrue(summary["decision_package_inspector_summary_artifacts_present"])
             self.assertTrue(summary["decision_package_inspector_summary_checks_performed"])
             self.assertFalse(summary["decision_package_inspector_summary_checks_skipped"])

@@ -285,6 +285,16 @@ def main() -> int:
         if compact_summary_path.exists():
             compact_summary_json_payload = json.loads(compact_summary_path.read_text(encoding="utf-8"))
 
+    decision_package_verified = bool(
+        package_summary.get("verification_verified", compact_summary_json_payload.get("verified", False))
+    )
+    decision_package_schema_supported = bool(
+        package_summary.get(
+            "verification_schema_supported",
+            compact_summary_json_payload.get("schema_supported", False),
+        )
+    )
+
     inspector_summary_json_payload: dict[str, object] = {}
     if inspector_summary_json_path.exists():
         inspector_summary_json_payload = json.loads(inspector_summary_json_path.read_text(encoding="utf-8"))
@@ -320,8 +330,8 @@ def main() -> int:
         "decision_package_inspector_summary_json_file": str(inspector_summary_json_path).replace("\\", "/"),
         "decision_package_decision": str(compact_summary_json_payload.get("decision", "")),
         "decision_package_promotion_ready": bool(compact_summary_json_payload.get("promotion_ready", False)),
-        "decision_package_verified": bool(compact_summary_json_payload.get("verified", False)),
-        "decision_package_schema_supported": bool(compact_summary_json_payload.get("schema_supported", False)),
+        "decision_package_verified": decision_package_verified,
+        "decision_package_schema_supported": decision_package_schema_supported,
         "decision_package_evaluation_matches_memo": bool(
             package_summary.get("verification_evaluation_matches_memo", False)
         ),
