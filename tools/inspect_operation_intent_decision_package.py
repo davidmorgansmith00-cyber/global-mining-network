@@ -130,7 +130,7 @@ def main() -> int:
     compact_summary_mismatch_count = int(
         verification.get("compact_summary_mismatch_count", len(compact_summary_mismatch_details))
     )
-    checks = evaluation.get("checks", [])
+    checks = verification.get("checks", evaluation.get("checks", []))
     if not isinstance(checks, list):
         checks = [checks]
 

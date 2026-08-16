@@ -698,6 +698,7 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertIn("checks", inspect_summary)
             self.assertIsInstance(inspect_summary["checks"], list)
             self.assertEqual(len(inspect_summary["checks"]), 3)
+            self.assertEqual(inspect_summary["checks"], verification["checks"])
 
     def test_decision_package_builder_can_fail_on_blocked(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
