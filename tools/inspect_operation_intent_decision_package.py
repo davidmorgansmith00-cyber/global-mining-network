@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
+import sys
 from pathlib import Path
 
 
@@ -24,6 +26,14 @@ def _parse_args() -> argparse.Namespace:
         action="store_true",
         help="Exit non-zero when verification status is not true",
     )
+    parser.add_argument(
+        "--verify-before-inspect",
+        action="store_true",
+        help=(
+            "Recompute verification via verify_operation_intent_decision_package.py before "
+            "rendering summary output"
+        ),
+    )
     return parser.parse_args()
 
 
@@ -39,6 +49,34 @@ def _resolve_artifact(path_text: str, parent: Path) -> Path:
     if candidate.is_absolute():
         return candidate
     return (parent / candidate).resolve()
+
+
+def _refresh_verification(manifest_path: Path, verification_path: Path) -> None:
+    completed = subprocess.run(
+        [
+            sys.executable,
+            str(Path(__file__).resolve().parents[1] / "tools" / "verify_operation_intent_decision_package.py"),
+            "--manifest",
+            str(manifest_path),
+            "--output",
+            str(verification_path),
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if completed.returncode not in (0, 1):
+        message = "\n".join(
+            [
+                "Verification refresh command failed:",
+                completed.stdout.strip(),
+                completed.stderr.strip(),
+            ]
+        )
+        raise RuntimeError(message)
+
+    if not verification_path.exists():
+        raise RuntimeError(f"Verification refresh did not write expected output file: {verification_path}")
 
 
 def main() -> int:
@@ -67,6 +105,9 @@ def main() -> int:
         raise RuntimeError(f"Evaluation file does not exist: {evaluation_path}")
     if not verification_path.exists():
         raise RuntimeError(f"Verification file does not exist: {verification_path}")
+
+    if args.verify_before_inspect:
+        _refresh_verification(manifest_path.resolve(), verification_path)
 
     evaluation = _load_json(evaluation_path, "Evaluation")
     verification = _load_json(verification_path, "Verification")

@@ -129,6 +129,7 @@ Print compact package gate summary:
 - PowerShell: `python tools/inspect_operation_intent_decision_package.py --manifest artifacts/operation-intent-decision-package/intent-transport-decision-package-manifest.json`
 - JSON mode: append `--format json`.
 - CI mode: append `--fail-on-unverified` to return non-zero when verification status is false.
+- Fresh-check mode: append `--verify-before-inspect` to recompute verification from current artifacts before printing summary.
 - Inspector JSON output includes compact summary verification path flags: `compact_summary_checks_performed` and `compact_summary_checks_skipped`.
 - Inspector text output now includes compatibility-path fields: `summary_artifacts_present`, `summary_checks_performed`, and `summary_checks_skipped`.
 
