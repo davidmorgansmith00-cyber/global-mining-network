@@ -222,12 +222,12 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Operation runtime tick orchestration loop | Done | Added authoritative runtime tick advancement for active operations on status/snapshot/network-events and websocket loop paths |
 | Operation intent reconnect-event coverage | Done | Added integration tests validating operation-intent progression and reconnect-safe network event cursor behavior |
 | Operation intent websocket global-channel coverage | Done | Added integration test asserting operation-intent-driven `network.block_progress.v1` events stream over authenticated `channel=global` websocket sessions |
-| Optional CI workflow-dispatch DB baseline rerun | Blocked | Rerun `31956075842` failed in `db-integration` with missing `httpx` on remote `main`; local fix is in `server/requirements.txt` and needs push before CI can validate |
+| Optional CI workflow-dispatch DB baseline rerun | In Progress | Pushed commit `d4dcb7c` (includes `httpx` in `server/requirements.txt`) and triggered rerun `31956249661`; db-integration job is now executing against updated remote `main` |
 
 ---
 
 ## 7. Blockers
-- CI `db-integration` workflow run `31956075842` fails before tests execute because runner environment is missing `httpx`; local dependency fix is complete but not yet reflected on remote `main`.
+- None currently recorded.
 
 ---
 
@@ -245,7 +245,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 ---
 
 ## 10. Next Actions
-1. Push the local dependency fix (`server/requirements.txt` includes `httpx`) and rerun optional CI `db-integration` to clear the current blocker.
+1. Record final outcome/runtime for CI run `31956249661` and close or re-open blocker status based on db-integration result.
 2. Add API contract notes for operation-intent `session_id` requirements in client-facing docs to keep request schemas synchronized.
 3. Expand websocket contract assertions for operation stop-state visibility (no new progress after stop across reconnect cursor windows).
 
