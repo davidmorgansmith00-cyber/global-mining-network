@@ -188,8 +188,6 @@ def main() -> int:
     memo_markdown_path = output_dir / "intent-transport-decision-memo.md"
     rollout_evaluation_path = output_dir / "intent-transport-rollout-evaluation.json"
     decision_package_dir = output_dir / "decision-package"
-    inspector_summary_text_path = decision_package_dir / "intent-transport-decision-package-inspector-summary.txt"
-    inspector_summary_json_path = decision_package_dir / "intent-transport-decision-package-inspector-summary.json"
 
     _run_command(
         [
@@ -271,10 +269,6 @@ def main() -> int:
     )
     package_summary = json.loads(package_output) if package_output.strip() else {}
     manifest_file = str(package_summary.get("manifest_file", ""))
-    inspector_summary_text_file = str(package_summary.get("inspector_summary_file", ""))
-    inspector_summary_json_file = str(package_summary.get("inspector_summary_json_file", ""))
-
-    compact_summary_json_file = str(package_summary.get("compact_summary_json_file", ""))
 
     decision_package_verified = bool(package_summary.get("verification_verified", False))
     decision_package_schema_supported = bool(
@@ -314,9 +308,9 @@ def main() -> int:
         "decision_package_manifest_file": manifest_file,
         "decision_package_verification_file": str(package_summary.get("verification_file", "")),
         "decision_package_compact_summary_file": str(package_summary.get("compact_summary_file", "")),
-        "decision_package_compact_summary_json_file": compact_summary_json_file,
-        "decision_package_inspector_summary_file": inspector_summary_text_file,
-        "decision_package_inspector_summary_json_file": inspector_summary_json_file,
+        "decision_package_compact_summary_json_file": str(package_summary.get("compact_summary_json_file", "")),
+        "decision_package_inspector_summary_file": str(package_summary.get("inspector_summary_file", "")),
+        "decision_package_inspector_summary_json_file": str(package_summary.get("inspector_summary_json_file", "")),
         "decision_package_decision": decision_package_decision,
         "decision_package_promotion_ready": decision_package_promotion_ready,
         "decision_package_passed_checks": decision_package_passed_checks,

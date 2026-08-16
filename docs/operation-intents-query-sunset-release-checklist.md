@@ -147,6 +147,8 @@ Build the full decision artifact package in one command:
 - Builder and inspector now carry `checks` strictly from the verification payload, removing the last evaluation fallback for the per-check vector.
 - Builder no longer reads the raw inspector JSON payload at all; the package summary is now derived entirely from verification-backed fields.
 - Dry-run now uses the package-summary inspector artifact strings directly instead of rehydrating them into Path locals.
+- Dry-run now inlines one-use package-summary artifact strings directly in the final result payload, removing redundant locals.
+- Dry-run no longer allocates dead inspector-summary path locals during setup; the package-summary strings are used directly.
 
 Verify generated package integrity:
 - PowerShell: `python tools/verify_operation_intent_decision_package.py --manifest artifacts/operation-intent-decision-package/intent-transport-decision-package-manifest.json`
