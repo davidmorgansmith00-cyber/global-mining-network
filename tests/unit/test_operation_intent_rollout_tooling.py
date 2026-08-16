@@ -445,6 +445,63 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             )
             self.assertEqual(fail_result.returncode, 1)
 
+    def test_decision_package_builder_generates_full_artifact_set(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            temp_root = Path(tmp)
+            captures_dir = temp_root / "captures"
+            captures_dir.mkdir(parents=True, exist_ok=True)
+
+            self._write_capture_file(
+                captures_dir / "intent-transport-day01.json",
+                finished_at="2026-08-16T00:00:00+00:00",
+                query_delta=1,
+                header_delta=120,
+                dual_match_delta=4,
+                mismatch_delta=0,
+                query_rejected_strict_delta=0,
+            )
+            self._write_capture_file(
+                captures_dir / "intent-transport-day02.json",
+                finished_at="2026-08-17T00:00:00+00:00",
+                query_delta=1,
+                header_delta=150,
+                dual_match_delta=4,
+                mismatch_delta=0,
+                query_rejected_strict_delta=0,
+            )
+
+            output_dir = temp_root / "decision-package"
+            package_result = self._run(
+                "tools/build_operation_intent_decision_package.py",
+                "--input-glob",
+                str(captures_dir / "intent-transport-day*.json"),
+                "--output-dir",
+                str(output_dir),
+                "--environment-scope",
+                "pre-prod-canary",
+                "--decision-owner",
+                "backend-oncall",
+            )
+            self.assertEqual(package_result.returncode, 0, msg=package_result.stderr)
+
+            summary = json.loads(package_result.stdout)
+            self.assertIn("bundle_file", summary)
+            self.assertIn("evaluation_file", summary)
+            self.assertIn("memo_draft_file", summary)
+            self.assertIn("memo_markdown_file", summary)
+
+            self.assertTrue((output_dir / "intent-transport-rollout-bundle.json").exists())
+            self.assertTrue((output_dir / "intent-transport-rollout-evaluation.json").exists())
+            self.assertTrue((output_dir / "intent-transport-decision-memo-draft.json").exists())
+            self.assertTrue((output_dir / "intent-transport-decision-memo.md").exists())
+
+            memo_draft = json.loads(
+                (output_dir / "intent-transport-decision-memo-draft.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(memo_draft["decision_summary"]["environment_scope"], "pre-prod-canary")
+            self.assertEqual(memo_draft["decision_summary"]["decision_owner"], "backend-oncall")
+            self.assertIn("rollout_gate_evaluation", memo_draft)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

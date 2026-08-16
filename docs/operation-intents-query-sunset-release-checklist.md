@@ -99,6 +99,9 @@ Evaluate promotion readiness from bundle thresholds:
 - Optional CI-gating mode: `python tools/evaluate_operation_intent_rollout_gate.py --bundle artifacts/intent-transport-rollout-bundle.json --fail-on-blocked`
 - Read summary fields from evaluation output: `promotion_ready`, `decision`, `passed_checks`, `total_checks`, `failed_checks`.
 
+Build the full decision artifact package in one command:
+- PowerShell: `python tools/build_operation_intent_decision_package.py --input-glob "artifacts/intent-transport-day*.json" --output-dir artifacts/operation-intent-decision-package --query-threshold-percent 1.0 --strict-rejection-max-delta 0 --mismatch-rate-max-per-minute 0.1 --environment-scope pre-prod-canary --decision-owner backend-oncall`
+
 Read auto-filled draft memo fields:
 - `threshold_evaluation.query_share_threshold.auto_result`
 - `threshold_evaluation.strict_rejection_stability.auto_result`
