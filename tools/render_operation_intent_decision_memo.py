@@ -30,6 +30,12 @@ def _get(data: dict[str, object], *keys: str) -> object:
 
 
 def _markdown_from_draft(payload: dict[str, object], evaluation: dict[str, object] | None) -> str:
+    resolved_evaluation = evaluation
+    if resolved_evaluation is None:
+        embedded_evaluation = payload.get("rollout_gate_evaluation", {})
+        if isinstance(embedded_evaluation, dict):
+            resolved_evaluation = embedded_evaluation
+
     lines = [
         "# Operation Intent Production Rollout Decision Memo",
         "",
@@ -95,13 +101,13 @@ def _markdown_from_draft(payload: dict[str, object], evaluation: dict[str, objec
         "",
     ]
 
-    if isinstance(evaluation, dict):
-        failed_checks = evaluation.get("failed_checks", [])
+    if isinstance(resolved_evaluation, dict) and resolved_evaluation:
+        failed_checks = resolved_evaluation.get("failed_checks", [])
         lines.extend(
             [
                 "## Rollout Gate Evaluation",
-                f"- promotion_ready: {evaluation.get('promotion_ready', '')}",
-                f"- decision: {evaluation.get('decision', '')}",
+                f"- promotion_ready: {resolved_evaluation.get('promotion_ready', '')}",
+                f"- decision: {resolved_evaluation.get('decision', '')}",
                 f"- failed_checks: {failed_checks}",
                 "",
             ]

@@ -253,6 +253,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Operation intent dry-run rollout evaluation wiring | Done | Updated dry-run helper to generate `intent-transport-rollout-evaluation.json` and added test coverage for emitted decision summary artifacts |
 | Operation intent memo evaluation snapshot rendering | Done | Extended memo markdown renderer with optional evaluation JSON input and included rollout gate decision section in dry-run generated memo artifacts |
 | Operation intent evaluator readiness count summary | Done | Added `passed_checks` and `total_checks` to rollout evaluation output and validated these fields in tooling unit tests and checklist guidance |
+| Operation intent embedded gate-evaluation memo prefill | Done | Updated prefill helper to ingest rollout evaluation JSON and embed `rollout_gate_evaluation` in memo draft so markdown rendering can use draft-contained decision context by default |
 | Optional CI workflow-dispatch DB baseline rerun | Done | Run `31956249661` succeeded end-to-end (`baseline` and `db-integration` both green); total run window was 67s (`15:38:16Z` to `15:39:23Z`) |
 | Local CI-mirrored full suite baseline | Done | Ran the same test selection as optional `db-integration` locally: `65` tests passed in `35.976s` |
 

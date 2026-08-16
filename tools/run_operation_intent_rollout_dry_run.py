@@ -199,26 +199,28 @@ def main() -> int:
     _run_command(
         [
             sys.executable,
-            str(root / "tools" / "prefill_operation_intent_decision_memo.py"),
+            str(root / "tools" / "evaluate_operation_intent_rollout_gate.py"),
             "--bundle",
             str(bundle_path),
-            "--environment-scope",
-            args.environment_scope,
-            "--decision-owner",
-            args.decision_owner,
             "--output",
-            str(memo_draft_path),
+            str(rollout_evaluation_path),
         ]
     )
 
     _run_command(
         [
             sys.executable,
-            str(root / "tools" / "evaluate_operation_intent_rollout_gate.py"),
+            str(root / "tools" / "prefill_operation_intent_decision_memo.py"),
             "--bundle",
             str(bundle_path),
-            "--output",
+            "--evaluation",
             str(rollout_evaluation_path),
+            "--environment-scope",
+            args.environment_scope,
+            "--decision-owner",
+            args.decision_owner,
+            "--output",
+            str(memo_draft_path),
         ]
     )
 

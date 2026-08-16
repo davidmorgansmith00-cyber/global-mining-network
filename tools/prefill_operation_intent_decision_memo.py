@@ -29,6 +29,11 @@ def _parse_args() -> argparse.Namespace:
         help="Optional decision owner identifier",
     )
     parser.add_argument(
+        "--evaluation",
+        default="",
+        help="Optional rollout evaluation JSON path from evaluate_operation_intent_rollout_gate.py",
+    )
+    parser.add_argument(
         "--output",
         default="",
         help="Optional output path for draft JSON",
@@ -57,6 +62,13 @@ def _load_bundle(path: Path) -> dict[str, object]:
     return payload
 
 
+def _load_evaluation(path: Path) -> dict[str, object]:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise RuntimeError("Evaluation file is not a JSON object")
+    return payload
+
+
 def _auto_result(flag: bool) -> str:
     return "pass_candidate" if flag else "fail_candidate"
 
@@ -66,6 +78,8 @@ def _build_memo_draft(
     bundle_path: Path,
     environment_scope: str,
     decision_owner: str,
+    evaluation: dict[str, object] | None,
+    evaluation_path: Path | None,
 ) -> dict[str, object]:
     aggregate = bundle.get("aggregate", {})
     threshold_checks = bundle.get("threshold_checks", {})
@@ -89,6 +103,9 @@ def _build_memo_draft(
         },
         "evidence_inputs": {
             "rollout_bundle_file": str(bundle_path).replace("\\", "/"),
+            "rollout_evaluation_file": (
+                str(evaluation_path).replace("\\", "/") if evaluation_path is not None else ""
+            ),
             "strict_mode_sunset_test_log": "",
             "error_rate_comparison_report": "",
             "client_compatibility_signoff_record": "",
@@ -145,6 +162,7 @@ def _build_memo_draft(
             "operations_owner": "",
             "final_approver": "",
         },
+        "rollout_gate_evaluation": evaluation if isinstance(evaluation, dict) else {},
     }
 
 
@@ -155,11 +173,21 @@ def main() -> int:
         raise RuntimeError(f"Bundle file does not exist: {bundle_path}")
 
     bundle = _load_bundle(bundle_path)
+    evaluation: dict[str, object] | None = None
+    evaluation_path: Path | None = None
+    if args.evaluation:
+        evaluation_path = Path(args.evaluation)
+        if not evaluation_path.exists():
+            raise RuntimeError(f"Evaluation file does not exist: {evaluation_path}")
+        evaluation = _load_evaluation(evaluation_path)
+
     memo = _build_memo_draft(
         bundle=bundle,
         bundle_path=bundle_path,
         environment_scope=args.environment_scope,
         decision_owner=args.decision_owner,
+        evaluation=evaluation,
+        evaluation_path=evaluation_path,
     )
 
     text = json.dumps(memo, indent=2, sort_keys=True)

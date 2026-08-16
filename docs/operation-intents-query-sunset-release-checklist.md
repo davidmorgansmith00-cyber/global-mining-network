@@ -69,11 +69,11 @@ Build 14-day rollout bundle from daily captures:
 - PowerShell: `python tools/build_operation_intent_rollout_bundle.py --input-glob "artifacts/intent-transport-day*.json" --query-threshold-percent 1.0 --strict-rejection-max-delta 0 --mismatch-rate-max-per-minute 0.1 --output artifacts/intent-transport-rollout-bundle.json`
 
 Pre-fill production decision memo draft from rollout bundle:
-- PowerShell: `python tools/prefill_operation_intent_decision_memo.py --bundle artifacts/intent-transport-rollout-bundle.json --environment-scope pre-prod-canary --decision-owner backend-oncall --output artifacts/intent-transport-decision-memo-draft.json`
+- PowerShell: `python tools/prefill_operation_intent_decision_memo.py --bundle artifacts/intent-transport-rollout-bundle.json --evaluation artifacts/intent-transport-rollout-evaluation.json --environment-scope pre-prod-canary --decision-owner backend-oncall --output artifacts/intent-transport-decision-memo-draft.json`
 
 Render a human-readable markdown memo draft from prefilled JSON:
 - PowerShell: `python tools/render_operation_intent_decision_memo.py --input artifacts/intent-transport-decision-memo-draft.json --output artifacts/intent-transport-decision-memo.md`
-- Optional gate context: add `--evaluation artifacts/intent-transport-rollout-evaluation.json` to include threshold gate decision snapshot in the markdown memo.
+- Optional override: add `--evaluation artifacts/intent-transport-rollout-evaluation.json` to override embedded gate data with a specific evaluation snapshot.
 
 Run a full offline dry run (synthetic 14-day artifacts + bundle + memo draft):
 - PowerShell: `python tools/run_operation_intent_rollout_dry_run.py --output-dir artifacts/operation-intent-dry-run --days 14 --query-threshold-percent 1.0 --strict-rejection-max-delta 0 --mismatch-rate-max-per-minute 0.1 --environment-scope pre-prod-canary --decision-owner backend-oncall`
@@ -103,6 +103,8 @@ Read auto-filled draft memo fields:
 - `threshold_evaluation.query_share_threshold.auto_result`
 - `threshold_evaluation.strict_rejection_stability.auto_result`
 - `threshold_evaluation.mismatch_stability.auto_result`
+- `rollout_gate_evaluation.decision`
+- `rollout_gate_evaluation.promotion_ready`
 - `final_recommendation.recommended_action` (manual decision required)
 
 Dry-run expected outputs:
