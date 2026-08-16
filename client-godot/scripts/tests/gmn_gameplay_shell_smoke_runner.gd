@@ -4,6 +4,7 @@ class_name GmnGameplayShellSmokeRunner
 func run_all() -> Dictionary:
 	var suites := {
 		"contracts": GmnContractValidationSmoke.new().run(),
+		"operation_intents": GmnOperationIntentContractSmoke.new().run(),
 		"reconnect": GmnReconnectSmoke.new().run(),
 	}
 	var failures: Array[String] = []

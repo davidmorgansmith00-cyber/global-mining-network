@@ -12,6 +12,7 @@ Current scaffold:
 - `scripts/ui/gameplay_shell_scene_root.gd`: scene-level coordinator that binds controller + panel and drives periodic refresh/render.
 - `scenes/gameplay_shell.tscn`: concrete gameplay shell scene with controller/panel nodes and label bindings.
 - `scripts/tests/gmn_contract_validation_smoke.gd`: client-side contract key validation smoke suite.
+- `scripts/tests/gmn_operation_intent_contract_smoke.gd`: validates operation-intent request shape (`session_id` query requirement and no `player_id` payload field).
 - `scripts/tests/gmn_reconnect_smoke.gd`: reconnect cursor monotonicity smoke suite.
 - `scripts/tests/gmn_gameplay_shell_smoke_runner.gd`: aggregate smoke runner for client shell checks.
 

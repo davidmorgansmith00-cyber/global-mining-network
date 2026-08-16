@@ -77,12 +77,26 @@ func upsert_checkpoint(channel: String, target_player_id: String, target_session
 	var payload := {"reconnect_cursor": reconnect_cursor}
 	return await _request_json(HTTPClient.METHOD_PUT, url, payload)
 
-func send_operation_start_intent(operation_id: String, base_hashrate_hps: float) -> Dictionary:
-	var payload := {
+func build_operation_start_intent_url() -> String:
+	return "%s%s?session_id=%s" % [base_url, OPERATION_START_INTENT_PATH, session_id]
+
+func build_operation_stop_intent_url() -> String:
+	return "%s%s?session_id=%s" % [base_url, OPERATION_STOP_INTENT_PATH, session_id]
+
+func build_operation_start_intent_payload(operation_id: String, base_hashrate_hps: float) -> Dictionary:
+	return {
 		"operation_id": operation_id,
 		"base_hashrate_hps": base_hashrate_hps,
 	}
-	var url := "%s%s?session_id=%s" % [base_url, OPERATION_START_INTENT_PATH, session_id]
+
+func build_operation_stop_intent_payload(operation_id: String) -> Dictionary:
+	return {
+		"operation_id": operation_id,
+	}
+
+func send_operation_start_intent(operation_id: String, base_hashrate_hps: float) -> Dictionary:
+	var payload := build_operation_start_intent_payload(operation_id, base_hashrate_hps)
+	var url := build_operation_start_intent_url()
 	return await _request_json(
 		HTTPClient.METHOD_POST,
 		url,
@@ -90,10 +104,8 @@ func send_operation_start_intent(operation_id: String, base_hashrate_hps: float)
 	)
 
 func send_operation_stop_intent(operation_id: String) -> Dictionary:
-	var payload := {
-		"operation_id": operation_id,
-	}
-	var url := "%s%s?session_id=%s" % [base_url, OPERATION_STOP_INTENT_PATH, session_id]
+	var payload := build_operation_stop_intent_payload(operation_id)
+	var url := build_operation_stop_intent_url()
 	return await _request_json(
 		HTTPClient.METHOD_POST,
 		url,

@@ -224,6 +224,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Operation intent websocket global-channel coverage | Done | Added integration test asserting operation-intent-driven `network.block_progress.v1` events stream over authenticated `channel=global` websocket sessions |
 | Operation intent stop-state websocket reconnect coverage | Done | Added integration test asserting no new `network.block_progress.v1` events after stop intent when reconnecting from saved websocket cursor |
 | Operation intent client contract documentation alignment | Done | Updated client-facing docs with session-bound intent contracts (`session_id` query + no client `player_id` payload field) across gameplay plan, ticket map, and client README |
+| Operation intent client request-shape smoke coverage | Done | Added `gmn_operation_intent_contract_smoke.gd` and wired it into `gmn_gameplay_shell_smoke_runner.gd` to assert `session_id` query usage and payload exclusion of `player_id` |
 | Optional CI workflow-dispatch DB baseline rerun | Done | Run `31956249661` succeeded end-to-end (`baseline` and `db-integration` both green); total run window was 67s (`15:38:16Z` to `15:39:23Z`) |
 | Local CI-mirrored full suite baseline | Done | Ran the same test selection as optional `db-integration` locally: `65` tests passed in `35.976s` |
 
@@ -249,8 +250,8 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 
 ## 10. Next Actions
 1. Add a small API reference note (request/response examples) for operation intents in docs to reduce integration ambiguity for future client consumers.
-2. Add client smoke coverage asserting operation-intent payload shape excludes `player_id` and includes `session_id` query usage.
-3. Evaluate moving operation-intent session binding from query parameter to standardized auth header/token flow while preserving server-authoritative identity resolution.
+2. Evaluate moving operation-intent session binding from query parameter to standardized auth header/token flow while preserving server-authoritative identity resolution.
+3. Add explicit integration assertions for operation-intent response payload contract fields (`operation_id`, server-derived `player_id`, `accepted`, `status`, `detail`) to lock API compatibility.
 
 ---
 
