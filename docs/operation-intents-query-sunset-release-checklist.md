@@ -158,6 +158,7 @@ Dry-run expected outputs:
 - `artifacts/operation-intent-dry-run/decision-package/intent-transport-decision-package-summary.json`
 - `artifacts/operation-intent-dry-run/decision-package/intent-transport-decision-package-inspector-summary.txt`
 - `artifacts/operation-intent-dry-run/decision-package/intent-transport-decision-package-inspector-summary.json`
+- Dry-run now reuses inspector summary artifacts emitted by `build_operation_intent_decision_package.py` rather than invoking inspector separately.
 
 Dry-run quick gate fields in command JSON output:
 - `decision_package_decision`

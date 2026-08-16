@@ -263,31 +263,12 @@ def main() -> int:
     )
     package_summary = json.loads(package_output) if package_output.strip() else {}
     manifest_file = str(package_summary.get("manifest_file", ""))
-    if manifest_file:
-        _run_command(
-            [
-                sys.executable,
-                str(root / "tools" / "inspect_operation_intent_decision_package.py"),
-                "--manifest",
-                manifest_file,
-                "--verify-before-inspect",
-                "--output",
-                str(inspector_summary_text_path),
-            ]
-        )
-        _run_command(
-            [
-                sys.executable,
-                str(root / "tools" / "inspect_operation_intent_decision_package.py"),
-                "--manifest",
-                manifest_file,
-                "--verify-before-inspect",
-                "--format",
-                "json",
-                "--output",
-                str(inspector_summary_json_path),
-            ]
-        )
+    inspector_summary_text_file = str(package_summary.get("inspector_summary_file", ""))
+    inspector_summary_json_file = str(package_summary.get("inspector_summary_json_file", ""))
+    if inspector_summary_text_file:
+        inspector_summary_text_path = Path(inspector_summary_text_file)
+    if inspector_summary_json_file:
+        inspector_summary_json_path = Path(inspector_summary_json_file)
 
     compact_summary_json_file = str(package_summary.get("compact_summary_json_file", ""))
     compact_summary_json_payload: dict[str, object] = {}
