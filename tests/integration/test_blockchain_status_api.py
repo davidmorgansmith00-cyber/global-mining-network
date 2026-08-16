@@ -508,6 +508,26 @@ class BlockchainStatusApiTests(unittest.TestCase):
             1,
         )
 
+    def test_cleanup_endpoint_rejects_out_of_range_query_parameters(self) -> None:
+        headers = {settings.maintenance_auth_header: settings.maintenance_auth_token}
+        with TestClient(app) as client:
+            event_retention_too_low = client.post(
+                "/api/v1/blockchain/maintenance/cleanup?event_retention_seconds=59",
+                headers=headers,
+            )
+            checkpoint_retention_too_low = client.post(
+                "/api/v1/blockchain/maintenance/cleanup?checkpoint_retention_seconds=59",
+                headers=headers,
+            )
+            max_network_events_too_low = client.post(
+                "/api/v1/blockchain/maintenance/cleanup?max_network_events=0",
+                headers=headers,
+            )
+
+        self.assertEqual(event_retention_too_low.status_code, 422)
+        self.assertEqual(checkpoint_retention_too_low.status_code, 422)
+        self.assertEqual(max_network_events_too_low.status_code, 422)
+
     def test_operation_start_intent_endpoint_enforces_server_authoritative_binding(self) -> None:
         player_a, session_a = self._create_player_session_binding()
         _, session_b = self._create_player_session_binding()
