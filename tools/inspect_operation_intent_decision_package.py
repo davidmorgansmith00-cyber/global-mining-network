@@ -34,6 +34,11 @@ def _parse_args() -> argparse.Namespace:
             "rendering summary output"
         ),
     )
+    parser.add_argument(
+        "--output",
+        default="",
+        help="Optional file path to write inspector output payload",
+    )
     return parser.parse_args()
 
 
@@ -139,11 +144,11 @@ def main() -> int:
     }
 
     if args.format == "json":
-        print(json.dumps(summary, sort_keys=True))
+        rendered = json.dumps(summary, sort_keys=True)
     else:
         failed_checks = summary["failed_checks"]
         failed_checks_text = ",".join(failed_checks) if isinstance(failed_checks, list) else str(failed_checks)
-        print(
+        rendered = (
             "decision={decision} promotion_ready={promotion_ready} checks={passed_checks}/{total_checks} "
             "verified={verified} schema_supported={schema_supported} "
             "summary_artifacts_present={summary_artifacts_present} "
@@ -163,6 +168,13 @@ def main() -> int:
                 failed_checks=failed_checks_text,
             )
         )
+
+    if args.output:
+        output_path = Path(args.output)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(rendered + "\n", encoding="utf-8")
+
+    print(rendered)
 
     if args.fail_on_unverified and not summary["verified"]:
         return 1

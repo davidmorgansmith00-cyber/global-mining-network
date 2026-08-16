@@ -286,6 +286,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Operation intent inspector refresh JSON coverage | Done | Added regression coverage asserting refresh mode updates JSON output (`verified=false`) after post-package artifact tampering |
 | Operation intent inspector mismatch diagnostic fields | Done | Inspector JSON now surfaces compact-summary mismatch count/details for parity with verifier and builder diagnostic outputs |
 | Operation intent inspector text mismatch visibility | Done | Inspector text output now includes `summary_mismatch_count`, with verifier text-parity enforcement and regression coverage |
+| Operation intent inspector output file mode | Done | Added `--output` support to inspector for writing rendered text/JSON payloads to disk, with regression tests validating file content parity |
 | Optional CI workflow-dispatch DB baseline rerun | Done | Run `31956249661` succeeded end-to-end (`baseline` and `db-integration` both green); total run window was 67s (`15:38:16Z` to `15:39:23Z`) |
 | Local CI-mirrored full suite baseline | Done | Ran the same test selection as optional `db-integration` locally: `65` tests passed in `35.976s` |
 

@@ -987,6 +987,21 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertIn("summary_checks_performed=true", inspect_text_result.stdout)
             self.assertIn("summary_mismatch_count=0", inspect_text_result.stdout)
 
+            text_output_path = output_dir / "inspector-summary.txt"
+            inspect_text_output_result = self._run(
+                "tools/inspect_operation_intent_decision_package.py",
+                "--manifest",
+                str(manifest_path),
+                "--output",
+                str(text_output_path),
+            )
+            self.assertEqual(inspect_text_output_result.returncode, 0, msg=inspect_text_output_result.stderr)
+            self.assertTrue(text_output_path.exists())
+            self.assertEqual(
+                inspect_text_output_result.stdout.strip(),
+                text_output_path.read_text(encoding="utf-8").strip(),
+            )
+
             inspect_json_result = self._run(
                 "tools/inspect_operation_intent_decision_package.py",
                 "--manifest",
@@ -1002,6 +1017,23 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertIn("compact_summary_checks_skipped", summary)
             self.assertIn("compact_summary_mismatch_count", summary)
             self.assertIn("compact_summary_mismatch_details", summary)
+
+            json_output_path = output_dir / "inspector-summary.json"
+            inspect_json_output_result = self._run(
+                "tools/inspect_operation_intent_decision_package.py",
+                "--manifest",
+                str(manifest_path),
+                "--format",
+                "json",
+                "--output",
+                str(json_output_path),
+            )
+            self.assertEqual(inspect_json_output_result.returncode, 0, msg=inspect_json_output_result.stderr)
+            self.assertTrue(json_output_path.exists())
+            self.assertEqual(
+                json.loads(inspect_json_output_result.stdout),
+                json.loads(json_output_path.read_text(encoding="utf-8")),
+            )
 
     def test_decision_package_inspector_can_fail_on_unverified(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
