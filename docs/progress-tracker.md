@@ -227,6 +227,8 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Operation intent client request-shape smoke coverage | Done | Added `gmn_operation_intent_contract_smoke.gd` and wired it into `gmn_gameplay_shell_smoke_runner.gd` to assert `session_id` query usage and payload exclusion of `player_id` |
 | Operation intent API reference note | Done | Added `docs/operation-intents-api-reference.md` with start/stop request/response examples plus standard error cases |
 | Operation intent response contract assertion hardening | Done | Expanded blockchain integration tests to assert response fields (`operation_id`, `player_id`, `accepted`, `status`, `detail`) across start/stop intent flows |
+| Operation intent transport transition guidance note | Done | Added migration note documenting query-to-header transport planning while preserving server-derived identity and stable response contract fields |
+| Operation intent expired-session unauthorized coverage | Done | Added integration test asserting both start and stop intents return 401 with `Invalid session binding` when session binding is expired |
 | Optional CI workflow-dispatch DB baseline rerun | Done | Run `31956249661` succeeded end-to-end (`baseline` and `db-integration` both green); total run window was 67s (`15:38:16Z` to `15:39:23Z`) |
 | Local CI-mirrored full suite baseline | Done | Ran the same test selection as optional `db-integration` locally: `65` tests passed in `35.976s` |
 
@@ -252,8 +254,8 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 
 ## 10. Next Actions
 1. Evaluate moving operation-intent session binding from query parameter to standardized auth header/token flow while preserving server-authoritative identity resolution.
-2. Add a migration-friendly transition note for clients so both query-based and header-based identity modes can be validated during rollout planning.
-3. Add integration coverage for explicit expired-session behavior on operation intents to lock unauthorized semantics before auth transport changes.
+2. Draft a concrete API transport migration proposal (header shape, compatibility window, deprecation milestones, and rollback criteria).
+3. Add dual-mode integration coverage scaffolding for query-plus-header acceptance during migration rollout tests.
 
 ---
 

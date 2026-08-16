@@ -473,6 +473,50 @@ class BlockchainStatusApiTests(unittest.TestCase):
         self.assertEqual(stopped_again.status_code, 404)
         self.assertEqual(invalid_session.status_code, 401)
 
+    def test_operation_intents_reject_expired_session_bindings(self) -> None:
+        player_id, session_id = self._create_player_session_binding()
+
+        with TestClient(app) as client:
+            started = client.post(
+                f"/api/v1/blockchain/operations/intents/start?session_id={session_id}",
+                json={
+                    "operation_id": "op_expire_1",
+                    "base_hashrate_hps": "15",
+                },
+            )
+            self.assertEqual(started.status_code, 200)
+
+            with psycopg.connect(self.database_url) as connection:
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        """
+                        UPDATE auth_sessions
+                        SET expires_at = NOW() - INTERVAL '1 second'
+                        WHERE session_id = %s
+                        """,
+                        (UUID(session_id),),
+                    )
+                connection.commit()
+
+            expired_start = client.post(
+                f"/api/v1/blockchain/operations/intents/start?session_id={session_id}",
+                json={
+                    "operation_id": "op_expire_2",
+                    "base_hashrate_hps": "15",
+                },
+            )
+            expired_stop = client.post(
+                f"/api/v1/blockchain/operations/intents/stop?session_id={session_id}",
+                json={
+                    "operation_id": "op_expire_1",
+                },
+            )
+
+        self.assertEqual(expired_start.status_code, 401)
+        self.assertEqual(expired_start.json().get("detail"), "Invalid session binding")
+        self.assertEqual(expired_stop.status_code, 401)
+        self.assertEqual(expired_stop.json().get("detail"), "Invalid session binding")
+
     def test_operation_intents_drive_authoritative_progression_and_reconnect_safe_events(self) -> None:
         player_id, session_id = self._create_player_session_binding()
 

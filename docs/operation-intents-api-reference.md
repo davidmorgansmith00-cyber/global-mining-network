@@ -84,3 +84,16 @@ Required response fields for successful start and stop intent responses:
 - accepted (boolean)
 - status (string)
 - detail (string)
+
+## Transport Transition Note (Query -> Header)
+Current mode:
+- Session binding uses `session_id` query parameter on operation-intent endpoints.
+
+Planned mode:
+- Session binding can move to a standardized auth header/token transport.
+- Identity remains server-derived from validated session context in either mode.
+
+Migration guidance:
+- During rollout planning, validate both transport modes in client integration tests.
+- Do not add `player_id` back into client request payloads during transition.
+- Keep response contract fields stable (`operation_id`, `player_id`, `accepted`, `status`, `detail`) to avoid client parser churn.
