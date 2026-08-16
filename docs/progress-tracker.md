@@ -230,6 +230,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Operation intent invalid-session header coverage | Done | Added integration test asserting operation start/stop reject invalid session header transport with deterministic invalid-session responses |
 | Checkpoint invalid-binding auth coverage | Done | Added integration test asserting checkpoint GET/PUT for `global` and `player_rewards` reject invalid non-empty `player_id`/`session_id` values with deterministic invalid-session responses |
 | Operation intent invalid-session query coverage | Done | Added integration test asserting operation start/stop reject invalid query `session_id` transport with deterministic invalid-session responses |
+| Operation intent mismatch-detail header-name coverage | Done | Added integration test asserting query/header session mismatch errors for start/stop return the exact configured header-name detail string |
 | Checkpoint case-variant channel coverage | Done | Added integration test asserting checkpoint GET/PUT reject case-variant channel names (for example `GLOBAL`) with deterministic unsupported-channel responses |
 | WebSocket auth/session binding | Done | WebSocket now validates `player_id` + `session_id` against active auth sessions |
 | Per-client channel filtering | Done | Added `global` and `player_rewards` channel filters with player-scoped event routing |

@@ -975,6 +975,32 @@ class BlockchainStatusApiTests(unittest.TestCase):
         self.assertEqual(mismatch_stop.status_code, 400)
         self.assertIn("Session binding mismatch", mismatch_stop.json().get("detail", ""))
 
+    def test_operation_intents_mismatch_error_reports_configured_header_name(self) -> None:
+        _, session_a = self._create_player_session_binding()
+        _, session_b = self._create_player_session_binding()
+        header_name = settings.operation_intent_session_header
+        expected_detail = f"Session binding mismatch between query and {header_name} header"
+
+        with TestClient(app) as client:
+            mismatch_start = client.post(
+                f"/api/v1/blockchain/operations/intents/start?session_id={session_a}",
+                json={
+                    "operation_id": "op_header_mismatch_detail_start",
+                    "base_hashrate_hps": "20",
+                },
+                headers={header_name: session_b},
+            )
+            mismatch_stop = client.post(
+                f"/api/v1/blockchain/operations/intents/stop?session_id={session_a}",
+                json={"operation_id": "op_header_mismatch_detail_stop"},
+                headers={header_name: session_b},
+            )
+
+        self.assertEqual(mismatch_start.status_code, 400)
+        self.assertEqual(mismatch_stop.status_code, 400)
+        self.assertEqual(mismatch_start.json().get("detail"), expected_detail)
+        self.assertEqual(mismatch_stop.json().get("detail"), expected_detail)
+
     def test_operation_intent_transport_metrics_track_query_header_and_mismatch_modes(self) -> None:
         _, session_a = self._create_player_session_binding()
         _, session_b = self._create_player_session_binding()
