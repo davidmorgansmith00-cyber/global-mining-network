@@ -11,6 +11,9 @@ Recommended preparation flow:
 2. Generate draft memo JSON with `tools/prefill_operation_intent_decision_memo.py`.
 3. Copy generated values into this template and complete manual-review sections.
 
+Optional dry run:
+- Execute `tools/run_operation_intent_rollout_dry_run.py` to generate a synthetic 14-day artifact set and verify the full workflow before canary week.
+
 ## 1. Decision Summary
 - Decision date:
 - Environment scope:

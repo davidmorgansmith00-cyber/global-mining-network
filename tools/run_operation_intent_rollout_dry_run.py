@@ -1,0 +1,197 @@
+from __future__ import annotations
+
+import argparse
+import json
+import subprocess
+import sys
+from datetime import UTC, datetime, timedelta
+from pathlib import Path
+
+
+def _parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description=(
+            "Generate synthetic operation-intent transport capture artifacts and run "
+            "the bundle + memo prefill helpers for an end-to-end dry run."
+        )
+    )
+    parser.add_argument(
+        "--output-dir",
+        default="artifacts/operation-intent-dry-run",
+        help="Directory to place generated artifacts",
+    )
+    parser.add_argument(
+        "--days",
+        type=int,
+        default=14,
+        help="Number of synthetic daily captures to generate (default: 14)",
+    )
+    parser.add_argument(
+        "--query-threshold-percent",
+        type=float,
+        default=1.0,
+        help="Threshold used when building the rollout bundle (default: 1.0)",
+    )
+    return parser.parse_args()
+
+
+def _build_daily_capture(index: int, total_days: int) -> dict[str, object]:
+    now = datetime.now(UTC) - timedelta(days=(total_days - index))
+
+    # Synthetic migration profile: query steadily decreases while header usage dominates.
+    query_delta = max(1, 12 - index)
+    header_delta = 120 + index * 4
+    dual_match_delta = 4
+    mismatch_delta = 0 if index % 5 else 1
+    strict_rejected_delta = 0
+    total_transport_delta = query_delta + header_delta + dual_match_delta
+    query_share_ratio = query_delta / total_transport_delta
+
+    return {
+        "started_at": (now - timedelta(minutes=15)).isoformat(),
+        "finished_at": now.isoformat(),
+        "elapsed_seconds": 900.0,
+        "base_url": "http://127.0.0.1:8000",
+        "token_header": "X-Maintenance-Token",
+        "samples": 15,
+        "interval_seconds": 60.0,
+        "snapshots": [
+            {
+                "sample_index": 0,
+                "captured_at": (now - timedelta(minutes=15)).isoformat(),
+                "operation_intent_session_header_name": "X-Session-Id",
+                "counters": {
+                    "query": 1000,
+                    "header": 3000,
+                    "dual_match": 100,
+                    "mismatch": 5,
+                    "query_rejected_strict": 0,
+                },
+            },
+            {
+                "sample_index": 14,
+                "captured_at": now.isoformat(),
+                "operation_intent_session_header_name": "X-Session-Id",
+                "counters": {
+                    "query": 1000 + query_delta,
+                    "header": 3000 + header_delta,
+                    "dual_match": 100 + dual_match_delta,
+                    "mismatch": 5 + mismatch_delta,
+                    "query_rejected_strict": strict_rejected_delta,
+                },
+            },
+        ],
+        "summary": {
+            "query": {
+                "first": 1000,
+                "last": 1000 + query_delta,
+                "delta": query_delta,
+                "rate_per_minute": round(query_delta / 15.0, 4),
+            },
+            "header": {
+                "first": 3000,
+                "last": 3000 + header_delta,
+                "delta": header_delta,
+                "rate_per_minute": round(header_delta / 15.0, 4),
+            },
+            "dual_match": {
+                "first": 100,
+                "last": 100 + dual_match_delta,
+                "delta": dual_match_delta,
+                "rate_per_minute": round(dual_match_delta / 15.0, 4),
+            },
+            "mismatch": {
+                "first": 5,
+                "last": 5 + mismatch_delta,
+                "delta": mismatch_delta,
+                "rate_per_minute": round(mismatch_delta / 15.0, 4),
+            },
+            "query_rejected_strict": {
+                "first": 0,
+                "last": strict_rejected_delta,
+                "delta": strict_rejected_delta,
+                "rate_per_minute": 0.0,
+            },
+        },
+        "query_share_from_deltas": {
+            "query_delta": query_delta,
+            "header_delta": header_delta,
+            "dual_match_delta": dual_match_delta,
+            "total_transport_delta": total_transport_delta,
+            "query_share_ratio": round(query_share_ratio, 6),
+            "query_share_percent": round(query_share_ratio * 100.0, 4),
+        },
+    }
+
+
+def _run_command(command: list[str]) -> None:
+    completed = subprocess.run(command, check=False, capture_output=True, text=True)
+    if completed.returncode != 0:
+        message = "\n".join(
+            [
+                "Command failed:",
+                " ".join(command),
+                completed.stdout.strip(),
+                completed.stderr.strip(),
+            ]
+        )
+        raise RuntimeError(message)
+
+
+def main() -> int:
+    args = _parse_args()
+    if args.days < 1:
+        raise RuntimeError("--days must be >= 1")
+
+    root = Path(__file__).resolve().parents[1]
+    output_dir = (root / args.output_dir).resolve()
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    for day in range(1, args.days + 1):
+        payload = _build_daily_capture(day, args.days)
+        path = output_dir / f"intent-transport-day{day:02d}.json"
+        path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+    bundle_path = output_dir / "intent-transport-rollout-bundle.json"
+    memo_draft_path = output_dir / "intent-transport-decision-memo-draft.json"
+
+    _run_command(
+        [
+            sys.executable,
+            str(root / "tools" / "build_operation_intent_rollout_bundle.py"),
+            "--input-glob",
+            str(output_dir / "intent-transport-day*.json"),
+            "--query-threshold-percent",
+            str(args.query_threshold_percent),
+            "--output",
+            str(bundle_path),
+        ]
+    )
+
+    _run_command(
+        [
+            sys.executable,
+            str(root / "tools" / "prefill_operation_intent_decision_memo.py"),
+            "--bundle",
+            str(bundle_path),
+            "--environment-scope",
+            "dry-run",
+            "--decision-owner",
+            "dry-run-operator",
+            "--output",
+            str(memo_draft_path),
+        ]
+    )
+
+    result = {
+        "output_dir": str(output_dir).replace("\\", "/"),
+        "generated_daily_files": args.days,
+        "bundle_file": str(bundle_path).replace("\\", "/"),
+        "memo_draft_file": str(memo_draft_path).replace("\\", "/"),
+    }
+    print(json.dumps(result, indent=2, sort_keys=True))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

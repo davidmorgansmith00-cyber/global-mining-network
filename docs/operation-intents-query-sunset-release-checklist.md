@@ -71,6 +71,9 @@ Build 14-day rollout bundle from daily captures:
 Pre-fill production decision memo draft from rollout bundle:
 - PowerShell: `python tools/prefill_operation_intent_decision_memo.py --bundle artifacts/intent-transport-rollout-bundle.json --environment-scope pre-prod-canary --decision-owner backend-oncall --output artifacts/intent-transport-decision-memo-draft.json`
 
+Run a full offline dry run (synthetic 14-day artifacts + bundle + memo draft):
+- PowerShell: `python tools/run_operation_intent_rollout_dry_run.py --output-dir artifacts/operation-intent-dry-run --days 14 --query-threshold-percent 1.0`
+
 Read computed query share from helper output:
 - Use `query_share_from_deltas.query_share_percent` from the output JSON as the canonical query-share value for promotion gates.
 - Supporting fields:
@@ -90,6 +93,11 @@ Read auto-filled draft memo fields:
 - `threshold_evaluation.strict_rejection_stability.auto_result`
 - `threshold_evaluation.mismatch_stability.auto_result` (manual review expected)
 - `final_recommendation.recommended_action` (manual decision required)
+
+Dry-run expected outputs:
+- `artifacts/operation-intent-dry-run/intent-transport-day01.json` ... `intent-transport-day14.json`
+- `artifacts/operation-intent-dry-run/intent-transport-rollout-bundle.json`
+- `artifacts/operation-intent-dry-run/intent-transport-decision-memo-draft.json`
 
 ## Owner Checklist
 1. Backend owner approves strict-mode metrics health.
