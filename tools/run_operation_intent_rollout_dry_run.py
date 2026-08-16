@@ -348,6 +348,12 @@ def main() -> int:
         "decision_package_verification_mismatch_details": str(
             package_summary.get("verification_mismatch_details", "")
         ),
+        "decision_package_compact_summary_text_matches": bool(
+            package_summary.get("verification_compact_summary_text_matches", False)
+        ),
+        "decision_package_compact_summary_json_matches": bool(
+            package_summary.get("verification_compact_summary_json_matches", False)
+        ),
         "decision_package_compact_summary_artifacts_present": bool(
             package_summary.get("verification_compact_summary_artifacts_present", False)
         ),

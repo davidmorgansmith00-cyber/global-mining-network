@@ -321,6 +321,12 @@ def main() -> int:
     summary["verification_compact_summary_checks_skipped"] = bool(
         verification_payload.get("compact_summary_checks_skipped", False)
     )
+    summary["verification_compact_summary_text_matches"] = bool(
+        verification_payload.get("compact_summary_text_matches", False)
+    )
+    summary["verification_compact_summary_json_matches"] = bool(
+        verification_payload.get("compact_summary_json_matches", False)
+    )
     compact_summary_mismatch_details = verification_payload.get("compact_summary_mismatch_details", [])
     if not isinstance(compact_summary_mismatch_details, list):
         compact_summary_mismatch_details = [str(compact_summary_mismatch_details)]

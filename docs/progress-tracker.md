@@ -308,6 +308,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Operation intent verifier failure-context propagation | Done | Builder and dry-run outputs now expose verifier `missing_artifacts` and `mismatch_details` fields for direct CI/debug consumption |
 | Operation intent dry-run failed-checks field | Done | Dry-run summary now includes `decision_package_failed_checks` so blocked rollout checks are available without extra artifact reads |
 | Operation intent dry-run gate-score fields | Done | Dry-run summary now includes `decision_package_passed_checks` and `decision_package_total_checks` for direct gate-score reporting |
+| Operation intent compact-summary match booleans | Done | Builder and dry-run summaries now surface verifier compact-summary text/json match booleans directly for CI checks |
 | Optional CI workflow-dispatch DB baseline rerun | Done | Run `31956249661` succeeded end-to-end (`baseline` and `db-integration` both green); total run window was 67s (`15:38:16Z` to `15:39:23Z`) |
 | Local CI-mirrored full suite baseline | Done | Ran the same test selection as optional `db-integration` locally: `65` tests passed in `35.976s` |
 
