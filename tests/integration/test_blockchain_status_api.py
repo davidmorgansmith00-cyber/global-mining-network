@@ -1541,6 +1541,24 @@ class BlockchainStatusApiTests(unittest.TestCase):
         self.assertEqual(put_response.json()["detail"], "Unsupported channel")
         self.assertEqual(get_response.json()["detail"], "Unsupported channel")
 
+    def test_checkpoint_endpoints_require_player_and_session_query_parameters(self) -> None:
+        with TestClient(app) as client:
+            get_missing_player = client.get("/api/v1/blockchain/checkpoints/global?session_id=session_only")
+            get_missing_session = client.get("/api/v1/blockchain/checkpoints/global?player_id=player_only")
+            put_missing_player = client.put(
+                "/api/v1/blockchain/checkpoints/global?session_id=session_only",
+                json={"reconnect_cursor": 3},
+            )
+            put_missing_session = client.put(
+                "/api/v1/blockchain/checkpoints/global?player_id=player_only",
+                json={"reconnect_cursor": 3},
+            )
+
+        self.assertEqual(get_missing_player.status_code, 422)
+        self.assertEqual(get_missing_session.status_code, 422)
+        self.assertEqual(put_missing_player.status_code, 422)
+        self.assertEqual(put_missing_session.status_code, 422)
+
     def test_player_rewards_channel_filters_to_bound_player(self) -> None:
         started_at = datetime(2026, 8, 15, 23, 30, tzinfo=UTC)
         player_a, session_a = self._create_player_session_binding()

@@ -204,6 +204,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Player reward history recent-limit bounds coverage | Done | Added integration test asserting reward history `recent_limit` values outside [1, 200] are rejected with HTTP 422 |
 | Cleanup query-parameter bounds coverage | Done | Added integration test asserting cleanup rejects `event_retention_seconds<60`, `checkpoint_retention_seconds<60`, and `max_network_events<1` with HTTP 422 |
 | Operation start required-field schema coverage | Done | Added integration test asserting operation start rejects payloads missing `operation_id` or `base_hashrate_hps` with HTTP 422 |
+| Checkpoint required-query schema coverage | Done | Added integration test asserting checkpoint GET/PUT reject requests missing required `player_id` or `session_id` query parameters with HTTP 422 |
 | WebSocket auth/session binding | Done | WebSocket now validates `player_id` + `session_id` against active auth sessions |
 | Per-client channel filtering | Done | Added `global` and `player_rewards` channel filters with player-scoped event routing |
 | Event/checkpoint retention cleanup endpoint | Done | Added `POST /api/v1/blockchain/maintenance/cleanup` with age/cap cleanup for network events and checkpoints |
