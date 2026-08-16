@@ -21,6 +21,7 @@ if str(SERVER_ROOT) not in sys.path:
 
 from domain.blockchain.store import PostgresBlockchainStateStore
 from domain.economy.ledger import PostgresLedgerPoster
+from domain.economy.read_models import project_player_reward_balances
 from domain.mining.service import MiningSimulationService
 from tools.apply_migrations import apply_migrations
 
@@ -167,6 +168,44 @@ class BlockchainPersistenceAndLedgerTests(unittest.TestCase):
                     (1,),
                 )
                 self.assertEqual(cursor.fetchone()[0], 1)
+
+    def test_player_reward_ledger_replay_projects_deterministic_balances(self) -> None:
+        started_at = datetime(2026, 8, 15, 18, 30, tzinfo=UTC)
+
+        service = MiningSimulationService(
+            required_work=Decimal("100"),
+            blockchain_state_store=PostgresBlockchainStateStore(required_work=Decimal("100")),
+            ledger_poster=PostgresLedgerPoster(),
+        )
+        service.register_operation(
+            operation_id="op_a",
+            player_id="player_a",
+            base_hashrate_hps=Decimal("8"),
+            started_at=started_at,
+        )
+        service.register_operation(
+            operation_id="op_b",
+            player_id="player_b",
+            base_hashrate_hps=Decimal("2"),
+            started_at=started_at,
+        )
+
+        service.process_tick(operation_id="op_a", ended_at=started_at + timedelta(seconds=10))
+        service.process_tick(operation_id="op_b", ended_at=started_at + timedelta(seconds=10))
+
+        first_projection = {
+            entry.player_id: entry.reward_balance
+            for entry in project_player_reward_balances()
+        }
+        second_projection = {
+            entry.player_id: entry.reward_balance
+            for entry in project_player_reward_balances()
+        }
+
+        self.assertEqual(first_projection, second_projection)
+        self.assertEqual(first_projection["player_a"], Decimal("80.000000"))
+        self.assertEqual(first_projection["player_b"], Decimal("20.000000"))
+        self.assertEqual(sum(first_projection.values(), Decimal("0")), Decimal("100.000000"))
 
 
 if __name__ == "__main__":

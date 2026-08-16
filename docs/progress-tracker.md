@@ -153,6 +153,8 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Difficulty-linked integration coverage | Done | Added and passed `tests/integration/test_mining_simulation_service.py::test_difficulty_adjusts_next_required_work_from_finalized_history` |
 | Immutable per-player reward ledger entries | Done | Added `database/migrations/0005_player_reward_ledger.sql` and posting integration in `server/domain/economy/ledger.py` |
 | Player-level reward allocation flow | Done | Mining service now allocates finalized reward by player contribution share and posts immutable entries |
+| Player reward ledger replay projection baseline | Done | Added economy read-model projection that reconstructs per-player reward balances from immutable ledger entries |
+| Player reward replay determinism integration coverage | Done | Added DB-backed test asserting repeated replay projections return identical per-player balances and totals |
 | Blockchain status read-model and API exposure | Done | Added `server/domain/blockchain/read_models.py` and `GET /api/v1/blockchain/status` endpoint |
 | Blockchain status API integration coverage | Done | Added and passed `tests/integration/test_blockchain_status_api.py` |
 | Per-player contribution transparency API | Done | Added `GET /api/v1/blockchain/players/{player_id}/rewards` backed by player reward history read-model |
