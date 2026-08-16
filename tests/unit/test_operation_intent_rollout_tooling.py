@@ -736,11 +736,13 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertFalse(verification["compact_summary_checks_skipped"])
             self.assertTrue(verification["compact_summary_text_matches"])
             self.assertTrue(verification["compact_summary_json_matches"])
+            self.assertEqual(verification["compact_summary_mismatch_count"], 0)
             self.assertTrue(verification["inspector_summary_artifacts_present"])
             self.assertTrue(verification["inspector_summary_checks_performed"])
             self.assertFalse(verification["inspector_summary_checks_skipped"])
             self.assertTrue(verification["inspector_summary_text_matches"])
             self.assertTrue(verification["inspector_summary_json_matches"])
+            self.assertEqual(verification["inspector_summary_mismatch_count"], 0)
             self.assertTrue((output_dir / "verification-copy.json").exists())
 
     def test_decision_package_verifier_detects_memo_evaluation_mismatch(self) -> None:
@@ -922,6 +924,7 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertFalse(verification["verified"])
             self.assertFalse(verification["inspector_summary_text_matches"])
             self.assertTrue(verification["inspector_summary_json_matches"])
+            self.assertEqual(verification["inspector_summary_mismatch_count"], 1)
 
     def test_decision_package_verifier_detects_missing_artifacts(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -1003,6 +1006,7 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertFalse(verification["verified"])
             self.assertFalse(verification["compact_summary_text_matches"])
             self.assertTrue(verification["compact_summary_json_matches"])
+            self.assertEqual(verification["compact_summary_mismatch_count"], 1)
 
     def test_decision_package_verifier_detects_malformed_compact_summary_json(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
