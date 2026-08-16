@@ -1,6 +1,7 @@
 import asyncio
 import time
 from datetime import UTC, datetime
+from decimal import Decimal
 from threading import Lock
 
 from fastapi import APIRouter, Query, Request, status
@@ -17,10 +18,16 @@ from domain.blockchain.schemas import (
     ClientCheckpointUpdateRequest,
     CleanupResponse,
     MaintenanceMetricsResponse,
+    OperationIntentResponse,
+    OperationStartIntentRequest,
+    OperationStopIntentRequest,
     NetworkEventsResponse,
     NetworkSnapshotContract,
     PlayerRewardHistoryResponse,
 )
+from domain.blockchain.store import PostgresBlockchainStateStore
+from domain.economy.ledger import PostgresLedgerPoster
+from domain.mining.service import MiningSimulationService
 from shared.database import database_is_configured, open_connection
 from shared.logging import get_logger
 from shared.settings import settings
@@ -32,6 +39,16 @@ client_sessions = ClientSessionService()
 retention = BlockchainRetentionService()
 logger = get_logger("gmn.blockchain.realtime")
 
+
+def _build_runtime_mining_service() -> MiningSimulationService:
+    if database_is_configured():
+        return MiningSimulationService(
+            required_work=Decimal("100"),
+            blockchain_state_store=PostgresBlockchainStateStore(required_work=Decimal("100")),
+            ledger_poster=PostgresLedgerPoster(),
+        )
+    return MiningSimulationService(required_work=Decimal("100"))
+
 _metrics_lock = Lock()
 _cleanup_runs_total = 0
 _cleanup_deleted_network_events_total = 0
@@ -40,6 +57,16 @@ _websocket_stale_evictions_total = 0
 _cleanup_rate_limit_rejections_total = 0
 _cleanup_request_timestamps: list[float] = []
 _maintenance_auth_scope_requests_total: dict[str, int] = {}
+_runtime_mining_service = _build_runtime_mining_service()
+_operation_runtime_lock = Lock()
+
+
+def _advance_operation_runtime_once() -> None:
+    with _operation_runtime_lock:
+        operation_ids = list(_runtime_mining_service.operations.keys())
+        for operation_id in operation_ids:
+            # Process each active operation using authoritative server time.
+            _runtime_mining_service.process_tick(operation_id=operation_id)
 
 
 def _extract_request_source_ip(request: Request) -> str:
@@ -130,7 +157,11 @@ def _enforce_persisted_cleanup_rate_limit(*, window_seconds: int, max_requests: 
     return True, window_seconds
 
 
-def reset_blockchain_runtime_counters_for_tests(*, include_persisted_rate_limit_state: bool = True) -> None:
+def reset_blockchain_runtime_counters_for_tests(
+    *,
+    include_persisted_rate_limit_state: bool = True,
+    include_operation_runtime_state: bool = True,
+) -> None:
     global _cleanup_runs_total
     global _cleanup_deleted_network_events_total
     global _cleanup_deleted_client_checkpoints_total
@@ -153,9 +184,13 @@ def reset_blockchain_runtime_counters_for_tests(*, include_persisted_rate_limit_
                 cursor.execute("DELETE FROM maintenance_cleanup_rate_limit_state WHERE state_key = 'cleanup'")
             connection.commit()
 
+    if include_operation_runtime_state:
+        _runtime_mining_service.operations.clear()
+
 
 @router.get("/status", response_model=BlockchainStatusResponse, status_code=status.HTTP_200_OK)
 def get_blockchain_status(recent_limit: int = Query(default=10, ge=1, le=100)) -> BlockchainStatusResponse:
+    _advance_operation_runtime_once()
     return service.get_status(recent_limit=recent_limit)
 
 
@@ -177,6 +212,7 @@ def get_player_reward_history(
     status_code=status.HTTP_200_OK,
 )
 def get_network_snapshot(recent_limit: int = Query(default=10, ge=1, le=100)) -> NetworkSnapshotContract:
+    _advance_operation_runtime_once()
     return service.get_network_snapshot_contract(recent_limit=recent_limit)
 
 
@@ -189,6 +225,7 @@ def get_network_events(
     after_sequence: int | None = Query(default=None, ge=0),
     limit: int = Query(default=100, ge=1, le=500),
 ) -> NetworkEventsResponse:
+    _advance_operation_runtime_once()
     return service.get_network_events(after_sequence=after_sequence, limit=limit)
 
 
@@ -253,6 +290,71 @@ def upsert_client_checkpoint(
         session_id=session_id,
         channel=channel,
         reconnect_cursor=payload.reconnect_cursor,
+    )
+
+
+@router.post(
+    "/operations/intents/start",
+    response_model=OperationIntentResponse,
+    status_code=status.HTTP_200_OK,
+)
+def start_operation_intent(payload: OperationStartIntentRequest, session_id: str) -> OperationIntentResponse:
+    if payload.base_hashrate_hps <= 0:
+        raise HTTPException(status_code=400, detail="base_hashrate_hps must be positive")
+
+    player_id = client_sessions.resolve_player_id_from_session(session_id=session_id)
+    if player_id is None:
+        raise HTTPException(status_code=401, detail="Invalid session binding")
+
+    existing = _runtime_mining_service.get_operation_state(operation_id=payload.operation_id)
+    if existing is not None:
+        if existing.player_id != player_id:
+            raise HTTPException(status_code=409, detail="operation_id already bound to a different player")
+        return OperationIntentResponse(
+            operation_id=payload.operation_id,
+            player_id=player_id,
+            accepted=True,
+            status="already_running",
+            detail="Operation intent accepted; operation is already active",
+        )
+
+    _runtime_mining_service.register_operation(
+        operation_id=payload.operation_id,
+        player_id=player_id,
+        base_hashrate_hps=payload.base_hashrate_hps,
+    )
+    return OperationIntentResponse(
+        operation_id=payload.operation_id,
+        player_id=player_id,
+        accepted=True,
+        status="started",
+        detail="Operation start intent accepted",
+    )
+
+
+@router.post(
+    "/operations/intents/stop",
+    response_model=OperationIntentResponse,
+    status_code=status.HTTP_200_OK,
+)
+def stop_operation_intent(payload: OperationStopIntentRequest, session_id: str) -> OperationIntentResponse:
+    player_id = client_sessions.resolve_player_id_from_session(session_id=session_id)
+    if player_id is None:
+        raise HTTPException(status_code=401, detail="Invalid session binding")
+
+    existing = _runtime_mining_service.get_operation_state(operation_id=payload.operation_id)
+    if existing is None:
+        raise HTTPException(status_code=404, detail="operation_id not found")
+    if existing.player_id != player_id:
+        raise HTTPException(status_code=409, detail="operation_id is bound to a different player")
+
+    _runtime_mining_service.stop_operation(operation_id=payload.operation_id)
+    return OperationIntentResponse(
+        operation_id=payload.operation_id,
+        player_id=player_id,
+        accepted=True,
+        status="stopped",
+        detail="Operation stop intent accepted",
     )
 
 
@@ -479,6 +581,7 @@ async def websocket_network_events(websocket: WebSocket) -> None:
     last_client_activity = time.monotonic()
     last_heartbeat_sent = time.monotonic()
 
+    _advance_operation_runtime_once()
     initial = service.get_network_events_for_channel(
         channel=channel,
         player_id=player_id,
@@ -530,6 +633,7 @@ async def websocket_network_events(websocket: WebSocket) -> None:
                 await websocket.close(code=4408)
                 break
 
+            _advance_operation_runtime_once()
             response = service.get_network_events_for_channel(
                 channel=channel,
                 player_id=player_id,

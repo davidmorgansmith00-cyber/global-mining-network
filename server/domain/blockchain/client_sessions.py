@@ -31,6 +31,34 @@ class ClientSessionService:
             return True
         return self.auth_repository.is_active_session_for_player(player_id=player_uuid, session_id=session_uuid)
 
+    def resolve_player_id_from_session(self, *, session_id: str) -> str | None:
+        try:
+            session_uuid = UUID(session_id)
+        except ValueError:
+            return None
+
+        if not database_is_configured():
+            return None
+
+        with open_connection() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT player_id
+                    FROM auth_sessions
+                    WHERE session_id = %s
+                      AND revoked_at IS NULL
+                      AND expires_at > NOW()
+                    LIMIT 1
+                    """,
+                    (session_uuid,),
+                )
+                row = cursor.fetchone()
+
+        if row is None:
+            return None
+        return str(row[0])
+
     def get_checkpoint(self, *, player_id: str, session_id: str, channel: str) -> ClientCheckpoint | None:
         if not database_is_configured():
             key = (player_id, session_id, channel)

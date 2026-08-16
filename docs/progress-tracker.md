@@ -208,16 +208,26 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | M1 client gameplay minimal slice planning baseline | Done | Added `docs/m1-client-gameplay-minimal-slice-plan.md` aligned with server-authoritative API/websocket contracts |
 | M1 client gameplay implementation ticketization | Done | Added `docs/m1-client-gameplay-implementation-tickets.md` covering session bootstrap, status HUD, reconnect stream, reward timeline, and shell orchestration |
 | M1 client gameplay shell scaffold baseline | Done | Added initial Godot network/shell scripts in `client-godot/scripts/network` and `client-godot/scripts/ui` plus README updates |
-| Optional CI workflow-dispatch DB baseline run | Blocked | `gh workflow run .github/workflows/ci.yml -f run_db_integration=true` failed because workspace is not a git repository; local regression baseline remains 59 tests in 19.584s |
+| Optional CI workflow-dispatch DB baseline run | Done | Workspace is now git-backed and dispatch works; run `31954573823` executed and surfaced missing `httpx` in CI dependency install path |
 | Client gameplay shell HTTP execution wiring | Done | Added async request execution for register/login/status/snapshot/rewards/checkpoints in `client-godot/scripts/network/gmn_api_client.gd` |
 | Client gameplay websocket reconnect checkpoint wiring | Done | Added stream connect/poll/ping-pong/cursor ack plus checkpoint restore/persist orchestration in shell controller and stream client |
 | Client gameplay shell UI render adapter wiring | Done | Added `gameplay_shell_view_model.gd` and `gameplay_shell_panel.gd` to map authoritative payloads and bind label-based UI rendering |
 | Client-side contract and reconnect smoke validation baseline | Done | Added `gmn_contract_validation_smoke.gd`, `gmn_reconnect_smoke.gd`, and `gmn_gameplay_shell_smoke_runner.gd` |
+| Concrete gameplay shell scene wiring | Done | Added `client-godot/scenes/gameplay_shell.tscn` plus `gameplay_shell_scene_root.gd` to instantiate and wire `GameplayShellController` + `GameplayShellPanel` |
+| Client operation intent command plumbing | Done | Added non-authoritative start/stop intent pass-through calls in API client and shell controller without local progression mutation |
+| Backend operation intent endpoint contracts | Done | Added `/api/v1/blockchain/operations/intents/start` and `/api/v1/blockchain/operations/intents/stop` with server-authoritative player binding rules and validation |
+| Operation intent integration coverage | Done | Added integration tests validating start/stop transitions, conflict handling, and rejection of unauthorized authoritative payload fields |
+| Operation intent authenticated session binding | Done | Operation start/stop intents now derive `player_id` from active `session_id` on the server and no longer trust client-supplied player identity |
+| Scene-level operation action controls | Done | Added operation input fields/buttons and action status label wiring in `gameplay_shell_scene_root.gd` + `client-godot/scenes/gameplay_shell.tscn` |
+| Operation runtime tick orchestration loop | Done | Added authoritative runtime tick advancement for active operations on status/snapshot/network-events and websocket loop paths |
+| Operation intent reconnect-event coverage | Done | Added integration tests validating operation-intent progression and reconnect-safe network event cursor behavior |
+| Operation intent websocket global-channel coverage | Done | Added integration test asserting operation-intent-driven `network.block_progress.v1` events stream over authenticated `channel=global` websocket sessions |
+| Optional CI workflow-dispatch DB baseline rerun | Blocked | Rerun `31956075842` failed in `db-integration` with missing `httpx` on remote `main`; local fix is in `server/requirements.txt` and needs push before CI can validate |
 
 ---
 
 ## 7. Blockers
-- CI workflow-dispatch execution from this workspace is blocked because repository metadata is unavailable (`fatal: not a git repository`).
+- CI `db-integration` workflow run `31956075842` fails before tests execute because runner environment is missing `httpx`; local dependency fix is complete but not yet reflected on remote `main`.
 
 ---
 
@@ -235,9 +245,9 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 ---
 
 ## 10. Next Actions
-1. Run optional CI `workflow_dispatch` DB integration from a git-backed checkout (or with explicit repo slug) and record GitHub runtime baseline in tracker notes.
-2. Wire a concrete Godot scene that instantiates `GameplayShellController` and `GameplayShellPanel` with label node paths.
-3. Add operation start/stop intent command plumbing in the client shell while preserving server-authoritative state transitions.
+1. Push the local dependency fix (`server/requirements.txt` includes `httpx`) and rerun optional CI `db-integration` to clear the current blocker.
+2. Add API contract notes for operation-intent `session_id` requirements in client-facing docs to keep request schemas synchronized.
+3. Expand websocket contract assertions for operation stop-state visibility (no new progress after stop across reconnect cursor windows).
 
 ---
 

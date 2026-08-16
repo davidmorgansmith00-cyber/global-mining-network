@@ -7,6 +7,8 @@ const STATUS_PATH := "/api/v1/blockchain/status"
 const SNAPSHOT_PATH := "/api/v1/blockchain/network-snapshot"
 const REWARDS_PATH_TEMPLATE := "/api/v1/blockchain/players/%s/rewards"
 const CHECKPOINT_PATH_TEMPLATE := "/api/v1/blockchain/checkpoints/%s"
+const OPERATION_START_INTENT_PATH := "/api/v1/blockchain/operations/intents/start"
+const OPERATION_STOP_INTENT_PATH := "/api/v1/blockchain/operations/intents/stop"
 
 var base_url: String = "http://127.0.0.1:8000"
 var player_id: String = ""
@@ -74,6 +76,29 @@ func upsert_checkpoint(channel: String, target_player_id: String, target_session
 	var url := "%s%s?player_id=%s&session_id=%s" % [base_url, path, target_player_id, target_session_id]
 	var payload := {"reconnect_cursor": reconnect_cursor}
 	return await _request_json(HTTPClient.METHOD_PUT, url, payload)
+
+func send_operation_start_intent(operation_id: String, base_hashrate_hps: float) -> Dictionary:
+	var payload := {
+		"operation_id": operation_id,
+		"base_hashrate_hps": base_hashrate_hps,
+	}
+	var url := "%s%s?session_id=%s" % [base_url, OPERATION_START_INTENT_PATH, session_id]
+	return await _request_json(
+		HTTPClient.METHOD_POST,
+		url,
+		payload,
+	)
+
+func send_operation_stop_intent(operation_id: String) -> Dictionary:
+	var payload := {
+		"operation_id": operation_id,
+	}
+	var url := "%s%s?session_id=%s" % [base_url, OPERATION_STOP_INTENT_PATH, session_id]
+	return await _request_json(
+		HTTPClient.METHOD_POST,
+		url,
+		payload,
+	)
 
 func _request_json(method: HTTPClient.Method, url: String, payload: Dictionary = {}) -> Dictionary:
 	var body := ""

@@ -137,3 +137,20 @@ func poll_stream_once() -> Array[Dictionary]:
 		domain_messages.append(message)
 
 	return domain_messages
+
+func send_start_operation_intent(operation_id: String, base_hashrate_hps: float) -> Dictionary:
+	# Intents are forwarded to the server; no local authoritative progression state is mutated.
+	if player_id == "":
+		return {
+			"ok": false,
+			"error": "missing_player_id",
+		}
+	return await api_client.send_operation_start_intent(operation_id, base_hashrate_hps)
+
+func send_stop_operation_intent(operation_id: String) -> Dictionary:
+	if player_id == "":
+		return {
+			"ok": false,
+			"error": "missing_player_id",
+		}
+	return await api_client.send_operation_stop_intent(operation_id)

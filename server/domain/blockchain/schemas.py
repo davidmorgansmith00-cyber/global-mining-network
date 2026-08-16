@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from decimal import Decimal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class RecentBlockOutcome(BaseModel):
@@ -81,6 +81,27 @@ class ClientCheckpointResponse(BaseModel):
 
 class ClientCheckpointUpdateRequest(BaseModel):
     reconnect_cursor: int
+
+
+class OperationStartIntentRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    operation_id: str
+    base_hashrate_hps: Decimal
+
+
+class OperationStopIntentRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    operation_id: str
+
+
+class OperationIntentResponse(BaseModel):
+    operation_id: str
+    player_id: str
+    accepted: bool
+    status: str
+    detail: str
 
 
 class CleanupResponse(BaseModel):

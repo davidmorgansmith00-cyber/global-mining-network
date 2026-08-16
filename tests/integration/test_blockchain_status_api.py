@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import sys
+import time
 import unittest
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
@@ -195,6 +196,36 @@ class BlockchainStatusApiTests(unittest.TestCase):
         self.assertGreaterEqual(payload["latest_sequence"], 2)
         self.assertGreaterEqual(len(payload["events"]), 2)
 
+    def test_operation_intent_progress_events_stream_over_authenticated_global_websocket(self) -> None:
+        player_id, session_id = self._create_player_session_binding()
+
+        with TestClient(app) as client:
+            started = client.post(
+                f"/api/v1/blockchain/operations/intents/start?session_id={session_id}",
+                json={
+                    "operation_id": "op_ws_runtime_1",
+                    "base_hashrate_hps": "35",
+                },
+            )
+            self.assertEqual(started.status_code, 200)
+
+            # Operation progress is emitted on integer-second slices.
+            time.sleep(1.1)
+            with client.websocket_connect(
+                f"/api/v1/blockchain/network-events/ws?after_sequence=0&limit=100"
+                f"&player_id={player_id}&session_id={session_id}&channel=global"
+            ) as websocket:
+                payload = websocket.receive_json()
+
+        self.assertEqual(payload["schema_version"], "network.events.v1")
+        progress_events = [
+            item for item in payload["events"]
+            if item.get("event_type") == "network.block_progress.v1"
+            and item.get("payload", {}).get("operation_id") == "op_ws_runtime_1"
+            and item.get("payload", {}).get("player_id") == player_id
+        ]
+        self.assertGreaterEqual(len(progress_events), 1)
+
     def test_cleanup_endpoint_applies_retention_policies(self) -> None:
         player_id, session_id = self._create_player_session_binding()
 
@@ -278,6 +309,187 @@ class BlockchainStatusApiTests(unittest.TestCase):
             ),
             1,
         )
+
+    def test_operation_start_intent_endpoint_enforces_server_authoritative_binding(self) -> None:
+        player_a, session_a = self._create_player_session_binding()
+        _, session_b = self._create_player_session_binding()
+
+        with TestClient(app) as client:
+            started = client.post(
+                f"/api/v1/blockchain/operations/intents/start?session_id={session_a}",
+                json={
+                    "operation_id": "op_client_1",
+                    "base_hashrate_hps": "25",
+                },
+            )
+            started_again = client.post(
+                f"/api/v1/blockchain/operations/intents/start?session_id={session_a}",
+                json={
+                    "operation_id": "op_client_1",
+                    "base_hashrate_hps": "99",
+                },
+            )
+            player_conflict = client.post(
+                f"/api/v1/blockchain/operations/intents/start?session_id={session_b}",
+                json={
+                    "operation_id": "op_client_1",
+                    "base_hashrate_hps": "25",
+                },
+            )
+            forbidden_extra = client.post(
+                f"/api/v1/blockchain/operations/intents/start?session_id={session_a}",
+                json={
+                    "operation_id": "op_client_2",
+                    "base_hashrate_hps": "25",
+                    "authoritative_accumulated_work": "99999",
+                },
+            )
+            invalid_session = client.post(
+                "/api/v1/blockchain/operations/intents/start?session_id=not-a-session",
+                json={
+                    "operation_id": "op_client_3",
+                    "base_hashrate_hps": "25",
+                },
+            )
+
+        self.assertEqual(started.status_code, 200)
+        self.assertEqual(started.json()["player_id"], player_a)
+        self.assertEqual(started.json()["status"], "started")
+        self.assertEqual(started_again.status_code, 200)
+        self.assertEqual(started_again.json()["status"], "already_running")
+        self.assertEqual(player_conflict.status_code, 409)
+        self.assertEqual(forbidden_extra.status_code, 422)
+        self.assertEqual(invalid_session.status_code, 401)
+
+    def test_operation_stop_intent_endpoint_enforces_player_binding_and_state_transition(self) -> None:
+        _, session_a = self._create_player_session_binding()
+        _, session_b = self._create_player_session_binding()
+
+        with TestClient(app) as client:
+            not_found = client.post(
+                f"/api/v1/blockchain/operations/intents/stop?session_id={session_a}",
+                json={
+                    "operation_id": "op_missing",
+                },
+            )
+            started = client.post(
+                f"/api/v1/blockchain/operations/intents/start?session_id={session_a}",
+                json={
+                    "operation_id": "op_stop_1",
+                    "base_hashrate_hps": "40",
+                },
+            )
+            wrong_player_stop = client.post(
+                f"/api/v1/blockchain/operations/intents/stop?session_id={session_b}",
+                json={
+                    "operation_id": "op_stop_1",
+                },
+            )
+            stopped = client.post(
+                f"/api/v1/blockchain/operations/intents/stop?session_id={session_a}",
+                json={
+                    "operation_id": "op_stop_1",
+                },
+            )
+            stopped_again = client.post(
+                f"/api/v1/blockchain/operations/intents/stop?session_id={session_a}",
+                json={
+                    "operation_id": "op_stop_1",
+                },
+            )
+            invalid_session = client.post(
+                "/api/v1/blockchain/operations/intents/stop?session_id=not-a-session",
+                json={
+                    "operation_id": "op_stop_1",
+                },
+            )
+
+        self.assertEqual(not_found.status_code, 404)
+        self.assertEqual(started.status_code, 200)
+        self.assertEqual(wrong_player_stop.status_code, 409)
+        self.assertEqual(stopped.status_code, 200)
+        self.assertEqual(stopped.json()["status"], "stopped")
+        self.assertEqual(stopped_again.status_code, 404)
+        self.assertEqual(invalid_session.status_code, 401)
+
+    def test_operation_intents_drive_authoritative_progression_and_reconnect_safe_events(self) -> None:
+        player_id, session_id = self._create_player_session_binding()
+
+        with TestClient(app) as client:
+            started = client.post(
+                f"/api/v1/blockchain/operations/intents/start?session_id={session_id}",
+                json={
+                    "operation_id": "op_runtime_1",
+                    "base_hashrate_hps": "50",
+                },
+            )
+            self.assertEqual(started.status_code, 200)
+
+            # Interval slicer uses integer elapsed seconds; allow a full-second window.
+            time.sleep(1.1)
+            status_response = client.get("/api/v1/blockchain/status?recent_limit=5")
+            self.assertEqual(status_response.status_code, 200)
+            status_payload = status_response.json()
+            self.assertGreater(Decimal(status_payload["active_accumulated_work"]), Decimal("0"))
+
+            events_first = client.get("/api/v1/blockchain/network-events?limit=100")
+            self.assertEqual(events_first.status_code, 200)
+            first_payload = events_first.json()
+            self.assertGreater(first_payload["reconnect_cursor"], 0)
+
+            progress_events = [
+                item for item in first_payload["events"]
+                if item.get("event_type") == "network.block_progress.v1"
+                and item.get("payload", {}).get("operation_id") == "op_runtime_1"
+                and item.get("payload", {}).get("player_id") == player_id
+            ]
+            self.assertGreaterEqual(len(progress_events), 1)
+
+            reconnect_cursor = first_payload["reconnect_cursor"]
+            stopped = client.post(
+                f"/api/v1/blockchain/operations/intents/stop?session_id={session_id}",
+                json={
+                    "operation_id": "op_runtime_1",
+                },
+            )
+            self.assertEqual(stopped.status_code, 200)
+
+            events_second = client.get(f"/api/v1/blockchain/network-events?after_sequence={reconnect_cursor}&limit=100")
+            self.assertEqual(events_second.status_code, 200)
+            self.assertEqual(events_second.json()["events"], [])
+
+    def test_operation_stop_intent_halts_further_authoritative_progression(self) -> None:
+        _, session_id = self._create_player_session_binding()
+
+        with TestClient(app) as client:
+            started = client.post(
+                f"/api/v1/blockchain/operations/intents/start?session_id={session_id}",
+                json={
+                    "operation_id": "op_runtime_stop",
+                    "base_hashrate_hps": "40",
+                },
+            )
+            self.assertEqual(started.status_code, 200)
+
+            time.sleep(1.1)
+            first_status = client.get("/api/v1/blockchain/status?recent_limit=5")
+            self.assertEqual(first_status.status_code, 200)
+            first_accumulated = Decimal(first_status.json()["active_accumulated_work"])
+            self.assertGreater(first_accumulated, Decimal("0"))
+
+            stopped = client.post(
+                f"/api/v1/blockchain/operations/intents/stop?session_id={session_id}",
+                json={
+                    "operation_id": "op_runtime_stop",
+                },
+            )
+            self.assertEqual(stopped.status_code, 200)
+
+            time.sleep(1.1)
+            second_status = client.get("/api/v1/blockchain/status?recent_limit=5")
+            self.assertEqual(second_status.status_code, 200)
+            second_accumulated = Decimal(second_status.json()["active_accumulated_work"])
+            self.assertEqual(second_accumulated, first_accumulated)
 
     def test_cleanup_endpoint_accepts_previous_rotation_token(self) -> None:
         original_previous_token = settings.maintenance_auth_previous_token

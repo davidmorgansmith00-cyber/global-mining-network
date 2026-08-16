@@ -100,6 +100,15 @@ class MiningSimulationService:
             last_processed_at=at,
         )
 
+    def get_operation_state(self, *, operation_id: str) -> MiningOperationState | None:
+        return self.operations.get(operation_id)
+
+    def stop_operation(self, *, operation_id: str) -> bool:
+        if operation_id not in self.operations:
+            return False
+        del self.operations[operation_id]
+        return True
+
     def apply_boundary_event(self, event: SimulationBoundaryEvent) -> None:
         operation = self.operations.get(event.operation_id)
         if operation is None:
