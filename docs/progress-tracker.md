@@ -226,6 +226,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Operation intent empty-session transport coverage | Done | Added integration test asserting operation start/stop reject empty `session_id` query transport with deterministic invalid-session responses |
 | Checkpoint upsert non-integer cursor coverage | Done | Added integration test asserting checkpoint upserts for `global` and `player_rewards` reject non-integer `reconnect_cursor` values with HTTP 422 |
 | Operation intent empty-session header coverage | Done | Added integration test asserting operation start/stop reject empty session header transport with deterministic invalid-session responses |
+| Checkpoint upsert malformed-body coverage | Done | Added integration test asserting checkpoint upserts for `global` and `player_rewards` reject non-object JSON payloads with HTTP 422 |
 | Checkpoint case-variant channel coverage | Done | Added integration test asserting checkpoint GET/PUT reject case-variant channel names (for example `GLOBAL`) with deterministic unsupported-channel responses |
 | WebSocket auth/session binding | Done | WebSocket now validates `player_id` + `session_id` against active auth sessions |
 | Per-client channel filtering | Done | Added `global` and `player_rewards` channel filters with player-scoped event routing |
