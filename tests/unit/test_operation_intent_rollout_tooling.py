@@ -216,6 +216,7 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertIn("decision_package_compact_summary_mismatch_details", summary)
             self.assertIn("decision_package_inspector_verified", summary)
             self.assertIn("decision_package_inspector_mismatch_count", summary)
+            self.assertIn("decision_package_inspector_mismatch_details", summary)
 
             self.assertTrue((output_dir / "intent-transport-day01.json").exists())
             self.assertTrue((output_dir / "intent-transport-day02.json").exists())

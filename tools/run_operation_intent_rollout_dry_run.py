@@ -336,6 +336,9 @@ def main() -> int:
         "decision_package_inspector_mismatch_count": int(
             inspector_summary_json_payload.get("compact_summary_mismatch_count", 0)
         ),
+        "decision_package_inspector_mismatch_details": inspector_summary_json_payload.get(
+            "compact_summary_mismatch_details", []
+        ),
     }
     print(json.dumps(result, indent=2, sort_keys=True))
     return 0
