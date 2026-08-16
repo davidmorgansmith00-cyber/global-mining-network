@@ -530,6 +530,30 @@ class BlockchainStatusApiTests(unittest.TestCase):
         self.assertEqual(forbidden_extra.status_code, 422)
         self.assertEqual(invalid_session.status_code, 401)
 
+    def test_operation_start_intent_rejects_non_positive_hashrate(self) -> None:
+        _, session_id = self._create_player_session_binding()
+
+        with TestClient(app) as client:
+            zero_hashrate = client.post(
+                f"/api/v1/blockchain/operations/intents/start?session_id={session_id}",
+                json={
+                    "operation_id": "op_invalid_hashrate_zero",
+                    "base_hashrate_hps": "0",
+                },
+            )
+            negative_hashrate = client.post(
+                f"/api/v1/blockchain/operations/intents/start?session_id={session_id}",
+                json={
+                    "operation_id": "op_invalid_hashrate_negative",
+                    "base_hashrate_hps": "-5",
+                },
+            )
+
+        self.assertEqual(zero_hashrate.status_code, 400)
+        self.assertEqual(negative_hashrate.status_code, 400)
+        self.assertEqual(zero_hashrate.json()["detail"], "base_hashrate_hps must be positive")
+        self.assertEqual(negative_hashrate.json()["detail"], "base_hashrate_hps must be positive")
+
     def test_operation_stop_intent_endpoint_enforces_player_binding_and_state_transition(self) -> None:
         _, session_a = self._create_player_session_binding()
         _, session_b = self._create_player_session_binding()
