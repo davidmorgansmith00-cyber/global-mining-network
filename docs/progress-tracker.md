@@ -170,6 +170,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Player reward replay API integration coverage | Done | Added API integration test asserting replay-projected balances match immutable ledger outcomes for multi-player finalization |
 | Player reward replay empty-ledger API coverage | Done | Added API integration test asserting replay endpoint returns zero total and no entries when ledger has no reward records |
 | Reward-balance and player-history API consistency coverage | Done | Added API integration test asserting replayed reward balances align with per-player reward history totals and aggregate total |
+| Finalized reward parity coverage across status/events/ledger | Done | Added integration test asserting finalized reward pool amount and block number remain consistent across status API, network finalized events, and persisted ledger entries |
 | Blockchain status read-model and API exposure | Done | Added `server/domain/blockchain/read_models.py` and `GET /api/v1/blockchain/status` endpoint |
 | Blockchain status API integration coverage | Done | Added and passed `tests/integration/test_blockchain_status_api.py` |
 | Per-player contribution transparency API | Done | Added `GET /api/v1/blockchain/players/{player_id}/rewards` backed by player reward history read-model |

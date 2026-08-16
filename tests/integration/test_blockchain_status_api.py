@@ -101,6 +101,56 @@ class BlockchainStatusApiTests(unittest.TestCase):
         self.assertEqual(payload["recent_outcomes"][0]["reward_pool_amount"], "100.000000")
         self.assertEqual(payload["recent_outcomes"][0]["player_reward_amount"], "100.000000")
 
+    def test_finalized_reward_pool_amount_is_consistent_across_status_events_and_ledger(self) -> None:
+        started_at = datetime(2026, 8, 15, 21, 10, tzinfo=UTC)
+        service = MiningSimulationService(
+            required_work=Decimal("100"),
+            blockchain_state_store=PostgresBlockchainStateStore(required_work=Decimal("100")),
+            ledger_poster=PostgresLedgerPoster(),
+        )
+        service.register_operation(operation_id="op_a", player_id="player_a", base_hashrate_hps=Decimal("25"), started_at=started_at)
+        service.process_tick(operation_id="op_a", ended_at=started_at + timedelta(seconds=4))
+
+        with TestClient(app) as client:
+            status_response = client.get("/api/v1/blockchain/status?recent_limit=5")
+            events_response = client.get("/api/v1/blockchain/network-events?limit=50")
+
+        self.assertEqual(status_response.status_code, 200)
+        self.assertEqual(events_response.status_code, 200)
+
+        status_payload = status_response.json()
+        latest_status_outcome = status_payload["recent_outcomes"][0]
+
+        event_payload = events_response.json()
+        finalized_events = [
+            item for item in event_payload["events"]
+            if item.get("event_type") == "network.block_finalized.v1"
+        ]
+        self.assertGreaterEqual(len(finalized_events), 1)
+        latest_finalized_event = finalized_events[-1]["payload"]
+
+        with psycopg.connect(self.database_url) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT reference_block_number, amount
+                    FROM economy_ledger_entries
+                    WHERE entry_type = 'block.finalized.reward_pool.v1'
+                    ORDER BY created_at DESC
+                    LIMIT 1
+                    """
+                )
+                ledger_row = cursor.fetchone()
+
+        self.assertIsNotNone(ledger_row)
+        ledger_block_number = ledger_row[0]
+        ledger_amount = ledger_row[1]
+
+        self.assertEqual(int(latest_status_outcome["block_number"]), ledger_block_number)
+        self.assertEqual(int(latest_finalized_event["block_number"]), ledger_block_number)
+        self.assertEqual(Decimal(latest_status_outcome["reward_pool_amount"]), ledger_amount)
+        self.assertEqual(Decimal(latest_finalized_event["reward_pool_amount"]), ledger_amount)
+
     def test_player_reward_history_endpoint_returns_contribution_transparency(self) -> None:
         started_at = datetime(2026, 8, 15, 21, 30, tzinfo=UTC)
         service = MiningSimulationService(
