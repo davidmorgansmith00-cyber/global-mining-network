@@ -44,6 +44,7 @@ Capture and attach:
 2. Error-rate comparison for 400/401 on operation-intent endpoints pre- and post-canary.
 3. Integration test evidence with strict mode enabled and sunset tests gated by `GMN_ENABLE_QUERY_SUNSET_TESTS=1`.
 4. Client compatibility sign-off from all supported first-party versions.
+5. Completed production decision package using `docs/operation-intents-production-rollout-decision-memo-template.md`.
 
 ## Rollback Triggers
 Rollback to dual-mode (query + header accepted) if any trigger occurs:
@@ -69,3 +70,4 @@ Capture short trend evidence (example: 15 minutes at 60-second interval):
 2. Client owner confirms header transport rollout completion.
 3. QA owner confirms sunset-gated test pass evidence.
 4. Operations owner confirms rollback playbook readiness.
+5. Final approver signs completed production decision memo template.

@@ -236,6 +236,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Operation intent query-sunset release checklist | Done | Added `docs/operation-intents-query-sunset-release-checklist.md` with dated release-note timeline, evidence bundle, rollback triggers, and owner stage gates |
 | Operation intent env-gated query-sunset test staging | Done | Added integration sunset test path gated by `GMN_ENABLE_QUERY_SUNSET_TESTS=1` to validate header-only behavior during strict-mode windows |
 | Operation intent transport evidence capture helper | Done | Added `tools/capture_operation_intent_transport_metrics.py` to capture maintenance metrics snapshots and short trend deltas/rates for promotion evidence bundles |
+| Operation intent production decision memo template | Done | Added `docs/operation-intents-production-rollout-decision-memo-template.md` mapping helper JSON fields and threshold checks into a standardized go/no-go artifact |
 | Optional CI workflow-dispatch DB baseline rerun | Done | Run `31956249661` succeeded end-to-end (`baseline` and `db-integration` both green); total run window was 67s (`15:38:16Z` to `15:39:23Z`) |
 | Local CI-mirrored full suite baseline | Done | Ran the same test selection as optional `db-integration` locally: `65` tests passed in `35.976s` |
 
@@ -262,7 +263,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 ## 10. Next Actions
 1. Execute first deprecation release-note publication and attach communication artifacts to the migration evidence bundle.
 2. Run strict-mode canary with `GMN_ENABLE_QUERY_SUNSET_TESTS=1` in pre-prod and collect daily transport snapshots with `tools/capture_operation_intent_transport_metrics.py`.
-3. Prepare production rollout decision memo using `query`, `mismatch`, and `query_rejected_strict` trend thresholds from captured 14-day evidence.
+3. Complete `docs/operation-intents-production-rollout-decision-memo-template.md` from captured 14-day evidence and secure final go/no-go approvals.
 
 ---
 

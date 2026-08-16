@@ -46,6 +46,7 @@ Rejected during migration window:
 Execution checklist:
 - See `docs/operation-intents-query-sunset-release-checklist.md` for dated release timeline, evidence requirements, and stage-gate owner checklist.
 - Use `tools/capture_operation_intent_transport_metrics.py` to collect reproducible transport-mode evidence snapshots for canary and promotion reviews.
+- Record final go/no-go using `docs/operation-intents-production-rollout-decision-memo-template.md`.
 
 ## 3. Compatibility Window
 Recommended minimum window:
