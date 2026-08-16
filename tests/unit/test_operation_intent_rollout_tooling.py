@@ -282,6 +282,67 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertIn("- auto_result: pass_candidate", markdown)
             self.assertIn("- recommended_action: go", markdown)
 
+    def test_threshold_failures_propagate_to_prefill_auto_results(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            temp_root = Path(tmp)
+            captures_dir = temp_root / "captures"
+            captures_dir.mkdir(parents=True, exist_ok=True)
+
+            self._write_capture_file(
+                captures_dir / "intent-transport-day01.json",
+                finished_at="2026-08-16T00:00:00+00:00",
+                query_delta=10,
+                header_delta=0,
+                dual_match_delta=0,
+                mismatch_delta=2,
+                query_rejected_strict_delta=2,
+            )
+
+            bundle_path = temp_root / "rollout-bundle.json"
+            build_result = self._run(
+                "tools/build_operation_intent_rollout_bundle.py",
+                "--input-glob",
+                str(captures_dir / "intent-transport-day*.json"),
+                "--query-threshold-percent",
+                "1.0",
+                "--strict-rejection-max-delta",
+                "0",
+                "--mismatch-rate-max-per-minute",
+                "0.01",
+                "--output",
+                str(bundle_path),
+            )
+            self.assertEqual(build_result.returncode, 0, msg=build_result.stderr)
+
+            bundle = json.loads(bundle_path.read_text(encoding="utf-8"))
+            self.assertFalse(bundle["threshold_checks"]["query_share_window_pass"])
+            self.assertFalse(bundle["threshold_checks"]["strict_rejection_window_pass"])
+            self.assertFalse(bundle["threshold_checks"]["mismatch_rate_window_pass"])
+
+            memo_path = temp_root / "decision-memo-draft.json"
+            prefill_result = self._run(
+                "tools/prefill_operation_intent_decision_memo.py",
+                "--bundle",
+                str(bundle_path),
+                "--output",
+                str(memo_path),
+            )
+            self.assertEqual(prefill_result.returncode, 0, msg=prefill_result.stderr)
+
+            memo = json.loads(memo_path.read_text(encoding="utf-8"))
+            self.assertEqual(
+                memo["threshold_evaluation"]["query_share_threshold"]["auto_result"],
+                "fail_candidate",
+            )
+            self.assertEqual(
+                memo["threshold_evaluation"]["strict_rejection_stability"]["auto_result"],
+                "fail_candidate",
+            )
+            self.assertEqual(
+                memo["threshold_evaluation"]["mismatch_stability"]["auto_result"],
+                "fail_candidate",
+            )
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
