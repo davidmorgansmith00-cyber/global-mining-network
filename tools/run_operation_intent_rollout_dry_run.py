@@ -161,6 +161,14 @@ def _run_command(command: list[str]) -> str:
     return completed.stdout
 
 
+def _normalize_string_list(value: object) -> list[str]:
+    if isinstance(value, list):
+        return [str(item) for item in value]
+    if value is None:
+        return []
+    return [str(value)]
+
+
 def main() -> int:
     args = _parse_args()
     if args.days < 1:
@@ -281,6 +289,22 @@ def main() -> int:
     if inspector_summary_json_path.exists():
         inspector_summary_json_payload = json.loads(inspector_summary_json_path.read_text(encoding="utf-8"))
 
+    inspector_verified = bool(
+        package_summary.get("inspector_verified", inspector_summary_json_payload.get("verified", False))
+    )
+    inspector_mismatch_count = int(
+        package_summary.get(
+            "inspector_mismatch_count",
+            inspector_summary_json_payload.get("compact_summary_mismatch_count", 0),
+        )
+    )
+    inspector_mismatch_details = _normalize_string_list(
+        package_summary.get(
+            "inspector_mismatch_details",
+            inspector_summary_json_payload.get("compact_summary_mismatch_details", []),
+        )
+    )
+
     result = {
         "output_dir": str(output_dir).replace("\\", "/"),
         "generated_daily_files": args.days,
@@ -328,13 +352,9 @@ def main() -> int:
         "decision_package_inspector_summary_mismatch_details": package_summary.get(
             "verification_inspector_summary_mismatch_details", []
         ),
-        "decision_package_inspector_verified": bool(inspector_summary_json_payload.get("verified", False)),
-        "decision_package_inspector_mismatch_count": int(
-            inspector_summary_json_payload.get("compact_summary_mismatch_count", 0)
-        ),
-        "decision_package_inspector_mismatch_details": inspector_summary_json_payload.get(
-            "compact_summary_mismatch_details", []
-        ),
+        "decision_package_inspector_verified": inspector_verified,
+        "decision_package_inspector_mismatch_count": inspector_mismatch_count,
+        "decision_package_inspector_mismatch_details": inspector_mismatch_details,
     }
     print(json.dumps(result, indent=2, sort_keys=True))
     return 0
