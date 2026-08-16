@@ -696,6 +696,17 @@ class BlockchainStatusApiTests(unittest.TestCase):
         self.assertEqual(missing_operation_id.status_code, 422)
         self.assertEqual(missing_base_hashrate.status_code, 422)
 
+    def test_operation_start_intent_rejects_non_object_payload(self) -> None:
+        _, session_id = self._create_player_session_binding()
+
+        with TestClient(app) as client:
+            malformed_payload = client.post(
+                f"/api/v1/blockchain/operations/intents/start?session_id={session_id}",
+                json=[],
+            )
+
+        self.assertEqual(malformed_payload.status_code, 422)
+
     def test_operation_stop_intent_endpoint_enforces_player_binding_and_state_transition(self) -> None:
         _, session_a = self._create_player_session_binding()
         _, session_b = self._create_player_session_binding()
