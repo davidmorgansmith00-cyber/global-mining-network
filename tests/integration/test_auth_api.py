@@ -126,6 +126,41 @@ class AuthApiIntegrationTests(unittest.TestCase):
         finally:
             self._cleanup_player_by_email(email=email)
 
+    def test_auth_logout_is_idempotent_for_repeated_valid_requests(self) -> None:
+        email = f"auth_logout_idempotent_{uuid4().hex[:10]}@example.com"
+        password = "password123"
+
+        try:
+            with TestClient(app) as client:
+                registered = client.post(
+                    "/api/v1/auth/register",
+                    json={"email": email, "password": password},
+                )
+                self.assertEqual(registered.status_code, 200)
+                payload = registered.json()
+
+                first_logout = client.post(
+                    "/api/v1/auth/logout",
+                    json={
+                        "session_id": payload["session_id"],
+                        "refresh_token": payload["refresh_token"],
+                    },
+                )
+                second_logout = client.post(
+                    "/api/v1/auth/logout",
+                    json={
+                        "session_id": payload["session_id"],
+                        "refresh_token": payload["refresh_token"],
+                    },
+                )
+
+                self.assertEqual(first_logout.status_code, 200)
+                self.assertEqual(second_logout.status_code, 200)
+                self.assertTrue(first_logout.json()["revoked"])
+                self.assertTrue(second_logout.json()["revoked"])
+        finally:
+            self._cleanup_player_by_email(email=email)
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

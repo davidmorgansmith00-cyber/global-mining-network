@@ -95,7 +95,7 @@ class AuthService:
         identifier = payload.session_id.strip()
         if database_is_configured():
             session_id = UUID(identifier)
-            session_credentials = self.auth_repository.get_active_session_credentials(session_id)
+            session_credentials = self.auth_repository.get_session_credentials_including_revoked(session_id)
             if session_credentials is None:
                 raise ValueError("Invalid session")
 

@@ -100,6 +100,25 @@ class AuthRepository:
                 )
             connection.commit()
 
+    def get_session_credentials_including_revoked(self, session_id: UUID) -> tuple[UUID, str] | None:
+        with open_connection() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT player_id, refresh_token_hash
+                    FROM auth_sessions
+                    WHERE session_id = %s
+                      AND expires_at > NOW()
+                    LIMIT 1
+                    """,
+                    (session_id,),
+                )
+                row = cursor.fetchone()
+
+        if row is None:
+            return None
+        return row[0], row[1]
+
     def is_active_session_for_player(self, *, player_id: UUID, session_id: UUID) -> bool:
         with open_connection() as connection:
             with connection.cursor() as cursor:

@@ -141,6 +141,8 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Auth session lifecycle integration coverage | Done | Added persistence coverage for refresh rotation and logout revocation |
 | Auth HTTP lifecycle integration coverage | Done | Added API integration tests validating register/refresh/logout lifecycle and post-logout refresh rejection |
 | Auth refresh invalid-token rejection coverage | Done | Added API integration test ensuring refresh returns 401 for invalid refresh tokens |
+| Auth logout idempotency baseline | Done | Logout now returns success for repeated valid session/token revocation requests to support safe client retries |
+| Auth logout idempotency integration coverage | Done | Added API integration test confirming repeated valid logout requests return successful revoked responses |
 | Shared-block aggregation integration test | Done | Added and passed `tests/integration/test_mining_simulation_service.py::test_multiple_operations_contribute_to_same_active_block` |
 | Timestamp progression and boundary application test | Done | Added and passed `tests/integration/test_mining_simulation_service.py::test_operation_last_processed_timestamp_advances_and_boundaries_apply` |
 | Upgrade-boundary multiplier integration test | Done | Added and passed `tests/integration/test_mining_simulation_service.py::test_hardware_upgrade_boundary_updates_effective_hashrate_multiplier` |
