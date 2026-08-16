@@ -313,6 +313,21 @@ def main() -> int:
         "decision_package_compact_summary_mismatch_details": package_summary.get(
             "verification_compact_summary_mismatch_details", []
         ),
+        "decision_package_inspector_summary_artifacts_present": bool(
+            package_summary.get("verification_inspector_summary_artifacts_present", False)
+        ),
+        "decision_package_inspector_summary_checks_performed": bool(
+            package_summary.get("verification_inspector_summary_checks_performed", False)
+        ),
+        "decision_package_inspector_summary_checks_skipped": bool(
+            package_summary.get("verification_inspector_summary_checks_skipped", False)
+        ),
+        "decision_package_inspector_summary_mismatch_count": int(
+            package_summary.get("verification_inspector_summary_mismatch_count", 0)
+        ),
+        "decision_package_inspector_summary_mismatch_details": package_summary.get(
+            "verification_inspector_summary_mismatch_details", []
+        ),
         "decision_package_inspector_verified": bool(inspector_summary_json_payload.get("verified", False)),
         "decision_package_inspector_mismatch_count": int(
             inspector_summary_json_payload.get("compact_summary_mismatch_count", 0)

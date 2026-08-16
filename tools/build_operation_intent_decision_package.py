@@ -226,8 +226,6 @@ def main() -> int:
     }
     manifest["artifacts"]["compact_summary_file"] = summary["compact_summary_file"]
     manifest["artifacts"]["compact_summary_json_file"] = summary["compact_summary_json_file"]
-    manifest["artifacts"]["inspector_summary_file"] = summary["inspector_summary_file"]
-    manifest["artifacts"]["inspector_summary_json_file"] = summary["inspector_summary_json_file"]
     manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
     _run_command(
@@ -288,6 +286,9 @@ def main() -> int:
             str(inspector_summary_json_path),
         ]
     )
+    manifest["artifacts"]["inspector_summary_file"] = summary["inspector_summary_file"]
+    manifest["artifacts"]["inspector_summary_json_file"] = summary["inspector_summary_json_file"]
+    manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
     _run_command(
         [
@@ -317,6 +318,20 @@ def main() -> int:
         compact_summary_mismatch_details = [str(compact_summary_mismatch_details)]
     summary["verification_compact_summary_mismatch_count"] = len(compact_summary_mismatch_details)
     summary["verification_compact_summary_mismatch_details"] = compact_summary_mismatch_details
+    summary["verification_inspector_summary_artifacts_present"] = bool(
+        verification_payload.get("inspector_summary_artifacts_present", False)
+    )
+    summary["verification_inspector_summary_checks_performed"] = bool(
+        verification_payload.get("inspector_summary_checks_performed", False)
+    )
+    summary["verification_inspector_summary_checks_skipped"] = bool(
+        verification_payload.get("inspector_summary_checks_skipped", False)
+    )
+    inspector_summary_mismatch_details = verification_payload.get("inspector_summary_mismatch_details", [])
+    if not isinstance(inspector_summary_mismatch_details, list):
+        inspector_summary_mismatch_details = [str(inspector_summary_mismatch_details)]
+    summary["verification_inspector_summary_mismatch_count"] = len(inspector_summary_mismatch_details)
+    summary["verification_inspector_summary_mismatch_details"] = inspector_summary_mismatch_details
     summary["inspector_verified"] = bool(inspector_summary_json_payload.get("verified", False))
     summary["inspector_mismatch_count"] = int(
         inspector_summary_json_payload.get("compact_summary_mismatch_count", 0)

@@ -214,6 +214,11 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertIn("decision_package_compact_summary_artifacts_present", summary)
             self.assertIn("decision_package_compact_summary_mismatch_count", summary)
             self.assertIn("decision_package_compact_summary_mismatch_details", summary)
+            self.assertIn("decision_package_inspector_summary_artifacts_present", summary)
+            self.assertIn("decision_package_inspector_summary_checks_performed", summary)
+            self.assertIn("decision_package_inspector_summary_checks_skipped", summary)
+            self.assertIn("decision_package_inspector_summary_mismatch_count", summary)
+            self.assertIn("decision_package_inspector_summary_mismatch_details", summary)
             self.assertIn("decision_package_inspector_verified", summary)
             self.assertIn("decision_package_inspector_mismatch_count", summary)
             self.assertIn("decision_package_inspector_mismatch_details", summary)
@@ -538,6 +543,11 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertFalse(summary["verification_compact_summary_checks_skipped"])
             self.assertEqual(summary["verification_compact_summary_mismatch_count"], 0)
             self.assertEqual(summary["verification_compact_summary_mismatch_details"], [])
+            self.assertTrue(summary["verification_inspector_summary_artifacts_present"])
+            self.assertTrue(summary["verification_inspector_summary_checks_performed"])
+            self.assertFalse(summary["verification_inspector_summary_checks_skipped"])
+            self.assertEqual(summary["verification_inspector_summary_mismatch_count"], 0)
+            self.assertEqual(summary["verification_inspector_summary_mismatch_details"], [])
             self.assertTrue(summary["inspector_verified"])
             self.assertEqual(summary["inspector_mismatch_count"], 0)
             self.assertEqual(summary["inspector_mismatch_details"], [])
@@ -713,6 +723,11 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertFalse(verification["compact_summary_checks_skipped"])
             self.assertTrue(verification["compact_summary_text_matches"])
             self.assertTrue(verification["compact_summary_json_matches"])
+            self.assertTrue(verification["inspector_summary_artifacts_present"])
+            self.assertTrue(verification["inspector_summary_checks_performed"])
+            self.assertFalse(verification["inspector_summary_checks_skipped"])
+            self.assertTrue(verification["inspector_summary_text_matches"])
+            self.assertTrue(verification["inspector_summary_json_matches"])
             self.assertTrue((output_dir / "verification-copy.json").exists())
 
     def test_decision_package_verifier_detects_memo_evaluation_mismatch(self) -> None:
@@ -829,6 +844,8 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             if isinstance(artifacts, dict):
                 artifacts.pop("compact_summary_file", None)
                 artifacts.pop("compact_summary_json_file", None)
+                artifacts.pop("inspector_summary_file", None)
+                artifacts.pop("inspector_summary_json_file", None)
             manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
             verify_result = self._run(
@@ -844,6 +861,54 @@ class OperationIntentRolloutToolingTests(unittest.TestCase):
             self.assertTrue(verification["compact_summary_checks_skipped"])
             self.assertTrue(verification["compact_summary_text_matches"])
             self.assertTrue(verification["compact_summary_json_matches"])
+            self.assertFalse(verification["inspector_summary_artifacts_present"])
+            self.assertFalse(verification["inspector_summary_checks_performed"])
+            self.assertTrue(verification["inspector_summary_checks_skipped"])
+            self.assertTrue(verification["inspector_summary_text_matches"])
+            self.assertTrue(verification["inspector_summary_json_matches"])
+
+    def test_decision_package_verifier_detects_inspector_summary_mismatch(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            temp_root = Path(tmp)
+            captures_dir = temp_root / "captures"
+            captures_dir.mkdir(parents=True, exist_ok=True)
+
+            self._write_capture_file(
+                captures_dir / "intent-transport-day01.json",
+                finished_at="2026-08-16T00:00:00+00:00",
+                query_delta=1,
+                header_delta=200,
+                dual_match_delta=4,
+                mismatch_delta=0,
+                query_rejected_strict_delta=0,
+            )
+
+            output_dir = temp_root / "decision-package"
+            package_result = self._run(
+                "tools/build_operation_intent_decision_package.py",
+                "--input-glob",
+                str(captures_dir / "intent-transport-day*.json"),
+                "--output-dir",
+                str(output_dir),
+            )
+            self.assertEqual(package_result.returncode, 0, msg=package_result.stderr)
+
+            (output_dir / "intent-transport-decision-package-inspector-summary.txt").write_text(
+                "decision=corrupted\n",
+                encoding="utf-8",
+            )
+
+            manifest_path = output_dir / "intent-transport-decision-package-manifest.json"
+            verify_result = self._run(
+                "tools/verify_operation_intent_decision_package.py",
+                "--manifest",
+                str(manifest_path),
+            )
+            self.assertEqual(verify_result.returncode, 1)
+            verification = json.loads(verify_result.stdout)
+            self.assertFalse(verification["verified"])
+            self.assertFalse(verification["inspector_summary_text_matches"])
+            self.assertTrue(verification["inspector_summary_json_matches"])
 
     def test_decision_package_verifier_detects_missing_artifacts(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

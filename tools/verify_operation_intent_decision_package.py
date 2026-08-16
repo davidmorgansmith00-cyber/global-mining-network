@@ -67,7 +67,13 @@ def main() -> int:
         if not resolved_path.exists():
             missing_artifacts.append(name)
 
-    optional_artifacts = ["verification_file", "compact_summary_file", "compact_summary_json_file"]
+    optional_artifacts = [
+        "verification_file",
+        "compact_summary_file",
+        "compact_summary_json_file",
+        "inspector_summary_file",
+        "inspector_summary_json_file",
+    ]
     output_target = Path(args.output).resolve() if args.output else None
     for name in optional_artifacts:
         value = artifacts.get(name, "")
@@ -87,6 +93,11 @@ def main() -> int:
     compact_summary_checks_performed = False
     compact_summary_artifacts_present = False
     compact_summary_mismatch_details: list[str] = []
+    inspector_summary_text_matches = True
+    inspector_summary_json_matches = True
+    inspector_summary_checks_performed = False
+    inspector_summary_artifacts_present = False
+    inspector_summary_mismatch_details: list[str] = []
     mismatch_details = ""
     if not missing_artifacts:
         evaluation = _load_json(artifact_paths["evaluation_file"], "Evaluation")
@@ -181,6 +192,35 @@ def main() -> int:
                 "compact_summary_mismatch_details": verification_compact_summary_mismatch_details,
                 "failed_checks": failed_checks_payload,
             }
+            inspector_summary_text_expected = (
+                f"decision={decision} promotion_ready={promotion_ready} "
+                f"checks={passed_checks}/{total_checks} verified={str(verification_verified).lower()} "
+                f"schema_supported={str(verification_schema_supported).lower()} "
+                f"summary_artifacts_present={str(verification_compact_summary_artifacts_present).lower()} "
+                f"summary_checks_performed={str(verification_compact_summary_checks_performed).lower()} "
+                f"summary_checks_skipped={str(verification_compact_summary_checks_skipped).lower()} "
+                f"summary_mismatch_count={len(verification_compact_summary_mismatch_details)} "
+                f"failed_checks={failed_checks}"
+            )
+            inspector_summary_json_expected = {
+                "manifest": str(manifest_path.resolve()).replace("\\", "/"),
+                "decision": decision,
+                "promotion_ready": bool(evaluation.get("promotion_ready", False)),
+                "passed_checks": passed_checks,
+                "total_checks": total_checks,
+                "verified": verification_verified,
+                "schema_supported": verification_schema_supported,
+                "compact_summary_artifacts_present": verification_compact_summary_artifacts_present,
+                "compact_summary_checks_performed": bool(
+                    verification_payload.get("compact_summary_checks_performed", False)
+                ),
+                "compact_summary_checks_skipped": bool(
+                    verification_payload.get("compact_summary_checks_skipped", False)
+                ),
+                "compact_summary_mismatch_count": len(verification_compact_summary_mismatch_details),
+                "compact_summary_mismatch_details": verification_compact_summary_mismatch_details,
+                "failed_checks": failed_checks_payload,
+            }
 
             if compact_summary_artifacts_present:
                 text_summary_path = artifact_paths.get("compact_summary_file")
@@ -208,12 +248,52 @@ def main() -> int:
                                 "compact_summary_json_file content does not match expected inspector JSON summary"
                             )
 
+            inspector_summary_artifacts_present = (
+                "inspector_summary_file" in artifact_paths
+                or "inspector_summary_json_file" in artifact_paths
+            )
+            inspector_summary_checks_performed = inspector_summary_artifacts_present
+            if inspector_summary_artifacts_present:
+                inspector_text_summary_path = artifact_paths.get("inspector_summary_file")
+                if isinstance(inspector_text_summary_path, Path):
+                    inspector_summary_text_actual = inspector_text_summary_path.read_text(encoding="utf-8").strip()
+                    inspector_summary_text_matches = (
+                        inspector_summary_text_actual == inspector_summary_text_expected
+                    )
+                    if not inspector_summary_text_matches:
+                        inspector_summary_mismatch_details.append(
+                            "inspector_summary_file content does not match expected inspector text summary"
+                        )
+
+                inspector_json_summary_path = artifact_paths.get("inspector_summary_json_file")
+                if isinstance(inspector_json_summary_path, Path):
+                    try:
+                        inspector_summary_json_actual = _load_json(
+                            inspector_json_summary_path,
+                            "Inspector summary JSON",
+                        )
+                    except Exception as exc:  # noqa: BLE001
+                        inspector_summary_json_matches = False
+                        inspector_summary_mismatch_details.append(
+                            f"inspector_summary_json_file could not be parsed: {exc}"
+                        )
+                    else:
+                        inspector_summary_json_matches = (
+                            inspector_summary_json_actual == inspector_summary_json_expected
+                        )
+                        if not inspector_summary_json_matches:
+                            inspector_summary_mismatch_details.append(
+                                "inspector_summary_json_file content does not match expected inspector JSON summary"
+                            )
+
     schema_supported = schema_version in supported_schema_versions
     verified = (
         (len(missing_artifacts) == 0)
         and evaluation_matches_memo
         and compact_summary_text_matches
         and compact_summary_json_matches
+        and inspector_summary_text_matches
+        and inspector_summary_json_matches
         and schema_supported
     )
 
@@ -230,6 +310,12 @@ def main() -> int:
         "compact_summary_text_matches": compact_summary_text_matches,
         "compact_summary_json_matches": compact_summary_json_matches,
         "compact_summary_mismatch_details": compact_summary_mismatch_details,
+        "inspector_summary_artifacts_present": inspector_summary_artifacts_present,
+        "inspector_summary_checks_performed": inspector_summary_checks_performed,
+        "inspector_summary_checks_skipped": not inspector_summary_checks_performed,
+        "inspector_summary_text_matches": inspector_summary_text_matches,
+        "inspector_summary_json_matches": inspector_summary_json_matches,
+        "inspector_summary_mismatch_details": inspector_summary_mismatch_details,
         "mismatch_details": mismatch_details,
     }
     text = json.dumps(result, indent=2, sort_keys=True)
