@@ -1577,6 +1577,27 @@ class BlockchainStatusApiTests(unittest.TestCase):
         self.assertEqual(start_response.json().get("detail"), "Invalid session binding")
         self.assertEqual(stop_response.json().get("detail"), "Invalid session binding")
 
+    def test_operation_intents_carriage_return_query_transport_increments_query_counter(self) -> None:
+        with TestClient(app) as client:
+            response = client.post(
+                "/api/v1/blockchain/operations/intents/start?session_id=%0D",
+                json={
+                    "operation_id": "op_carriage_query_counter",
+                    "base_hashrate_hps": "20",
+                },
+            )
+            metrics_headers = {settings.maintenance_auth_header: settings.maintenance_auth_token}
+            metrics_json = client.get("/api/v1/blockchain/maintenance/metrics", headers=metrics_headers)
+            metrics_plaintext = client.get("/api/v1/blockchain/maintenance/metrics/plaintext", headers=metrics_headers)
+
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(metrics_json.status_code, 200)
+        self.assertEqual(metrics_plaintext.status_code, 200)
+
+        counters = metrics_json.json().get("operation_intent_transport_requests_total", {})
+        self.assertEqual(counters.get("query", 0), 1)
+        self.assertIn('gmn_operation_intent_transport_requests_total{mode="query"} 1', metrics_plaintext.text)
+
     def test_operation_intents_reject_crlf_whitespace_query_session_transport(self) -> None:
         with TestClient(app) as client:
             start_response = client.post(
