@@ -2044,6 +2044,22 @@ class BlockchainStatusApiTests(unittest.TestCase):
         self.assertEqual(global_response.status_code, 422)
         self.assertEqual(rewards_response.status_code, 422)
 
+    def test_checkpoint_upsert_rejects_whitespace_reconnect_cursor(self) -> None:
+        player_id, session_id = self._create_player_session_binding()
+
+        with TestClient(app) as client:
+            global_response = client.put(
+                f"/api/v1/blockchain/checkpoints/global?player_id={player_id}&session_id={session_id}",
+                json={"reconnect_cursor": "   "},
+            )
+            rewards_response = client.put(
+                f"/api/v1/blockchain/checkpoints/player_rewards?player_id={player_id}&session_id={session_id}",
+                json={"reconnect_cursor": "   "},
+            )
+
+        self.assertEqual(global_response.status_code, 422)
+        self.assertEqual(rewards_response.status_code, 422)
+
     def test_checkpoint_upsert_rejects_non_object_payload(self) -> None:
         player_id, session_id = self._create_player_session_binding()
 
