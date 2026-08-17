@@ -465,6 +465,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Local CI-mirrored full suite baseline | Done | Ran the same test selection as optional `db-integration` locally: `65` tests passed in `35.976s` |
 | Fixed-step slice execution agent baseline | Done | Added `.github/agents/slice-executor.agent.md` with a mandatory 8-step execution/validate/update/commit/push cycle and stop-on-blocker rules |
 | Reward-balance read-model no-DB safety hardening | Done | Updated `server/domain/economy/read_models.py` to return an empty projection when DB config is unavailable, with new unit coverage in `tests/unit/test_economy_read_models.py` |
+| Reward-balance API no-DB contract unit coverage | Done | Added `tests/unit/test_blockchain_reward_balances_api.py` to assert zero-total empty projection behavior and deterministic aggregate totals from projected entries |
 
 ---
 
