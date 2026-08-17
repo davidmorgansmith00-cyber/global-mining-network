@@ -430,6 +430,18 @@ class BlockchainStatusApiTests(unittest.TestCase):
         self.assertEqual(whitespace_after_sequence.status_code, 422)
         self.assertEqual(whitespace_limit.status_code, 422)
 
+    def test_network_events_endpoint_rejects_tab_whitespace_query_values(self) -> None:
+        with TestClient(app) as client:
+            tab_after_sequence = client.get(
+                "/api/v1/blockchain/network-events?after_sequence=%09&limit=10"
+            )
+            tab_limit = client.get(
+                "/api/v1/blockchain/network-events?after_sequence=0&limit=%09"
+            )
+
+        self.assertEqual(tab_after_sequence.status_code, 422)
+        self.assertEqual(tab_limit.status_code, 422)
+
     def test_network_events_endpoint_rejects_fractional_query_values(self) -> None:
         with TestClient(app) as client:
             fractional_after_sequence = client.get(
