@@ -240,6 +240,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Negative recent-limit query coverage | Done | Added integration test asserting status, network snapshot, and reward history endpoints reject negative `recent_limit` query values with HTTP 422 |
 | Recent-limit default-omission coverage | Done | Added integration test asserting status, network snapshot, and reward history endpoints accept omitted `recent_limit` query and return HTTP 200 using endpoint defaults |
 | Query-limit upper-bound acceptance coverage | Done | Added integration test asserting status/network-snapshot/rewards/network-events endpoints accept configured max query limits (`100`, `100`, `200`, `500`) with HTTP 200 |
+| Query-limit lower-bound acceptance coverage | Done | Added integration test asserting status/network-snapshot/rewards/network-events endpoints accept configured minimum query limits (`1`, `1`, `1`, `after_sequence=0&limit=1`) with HTTP 200 |
 | Empty network-events query coverage | Done | Added integration test asserting network-events rejects empty `after_sequence` and empty `limit` query values with HTTP 422 |
 | Fractional network-events query coverage | Done | Added integration test asserting network-events rejects fractional `after_sequence` and `limit` query values with HTTP 422 |
 | Empty cleanup query coverage | Done | Added integration test asserting cleanup rejects empty `event_retention_seconds`, `checkpoint_retention_seconds`, and `max_network_events` query values with HTTP 422 |
