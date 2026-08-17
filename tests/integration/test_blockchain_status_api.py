@@ -932,6 +932,44 @@ class BlockchainStatusApiTests(unittest.TestCase):
 
         self.assertEqual(missing_operation_id.status_code, 422)
 
+    def test_operation_intents_reject_empty_operation_id_payload_value(self) -> None:
+        _, session_id = self._create_player_session_binding()
+
+        with TestClient(app) as client:
+            start_response = client.post(
+                f"/api/v1/blockchain/operations/intents/start?session_id={session_id}",
+                json={
+                    "operation_id": "",
+                    "base_hashrate_hps": "20",
+                },
+            )
+            stop_response = client.post(
+                f"/api/v1/blockchain/operations/intents/stop?session_id={session_id}",
+                json={"operation_id": ""},
+            )
+
+        self.assertEqual(start_response.status_code, 422)
+        self.assertEqual(stop_response.status_code, 422)
+
+    def test_operation_intents_reject_whitespace_operation_id_payload_value(self) -> None:
+        _, session_id = self._create_player_session_binding()
+
+        with TestClient(app) as client:
+            start_response = client.post(
+                f"/api/v1/blockchain/operations/intents/start?session_id={session_id}",
+                json={
+                    "operation_id": "   ",
+                    "base_hashrate_hps": "20",
+                },
+            )
+            stop_response = client.post(
+                f"/api/v1/blockchain/operations/intents/stop?session_id={session_id}",
+                json={"operation_id": "   "},
+            )
+
+        self.assertEqual(start_response.status_code, 422)
+        self.assertEqual(stop_response.status_code, 422)
+
     def test_operation_stop_intent_rejects_non_object_payload(self) -> None:
         _, session_id = self._create_player_session_binding()
 

@@ -2,9 +2,11 @@ from __future__ import annotations
 
 from datetime import datetime
 from decimal import Decimal
+from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict
 from pydantic import Field
+from pydantic import StringConstraints
 
 
 class RecentBlockOutcome(BaseModel):
@@ -97,14 +99,14 @@ class ClientCheckpointUpdateRequest(BaseModel):
 class OperationStartIntentRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    operation_id: str
+    operation_id: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
     base_hashrate_hps: Decimal
 
 
 class OperationStopIntentRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    operation_id: str
+    operation_id: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
 
 
 class OperationIntentResponse(BaseModel):
