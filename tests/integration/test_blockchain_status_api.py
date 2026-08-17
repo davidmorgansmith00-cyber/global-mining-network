@@ -496,6 +496,18 @@ class BlockchainStatusApiTests(unittest.TestCase):
         self.assertEqual(carriage_after_sequence.status_code, 422)
         self.assertEqual(carriage_limit.status_code, 422)
 
+    def test_network_events_endpoint_rejects_crlf_whitespace_query_values(self) -> None:
+        with TestClient(app) as client:
+            crlf_after_sequence = client.get(
+                "/api/v1/blockchain/network-events?after_sequence=%0D%0A&limit=10"
+            )
+            crlf_limit = client.get(
+                "/api/v1/blockchain/network-events?after_sequence=0&limit=%0D%0A"
+            )
+
+        self.assertEqual(crlf_after_sequence.status_code, 422)
+        self.assertEqual(crlf_limit.status_code, 422)
+
     def test_network_events_endpoint_rejects_fractional_query_values(self) -> None:
         with TestClient(app) as client:
             fractional_after_sequence = client.get(

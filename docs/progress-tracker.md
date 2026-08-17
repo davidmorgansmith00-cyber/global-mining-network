@@ -257,6 +257,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Tab-whitespace network-events query coverage | Done | Added integration test asserting network-events rejects tab-whitespace `after_sequence` and `limit` query values with HTTP 422 |
 | Newline-whitespace network-events query coverage | Done | Added integration test asserting network-events rejects newline-whitespace `after_sequence` and `limit` query values with HTTP 422 |
 | Carriage-return network-events query coverage | Done | Added integration test asserting network-events rejects carriage-return `after_sequence` and `limit` query values with HTTP 422 |
+| CRLF network-events query coverage | Done | Added integration test asserting network-events rejects CRLF `after_sequence` and `limit` query values with HTTP 422 |
 | Whitespace cleanup query coverage | Done | Added integration test asserting cleanup rejects whitespace-only `event_retention_seconds`, `checkpoint_retention_seconds`, and `max_network_events` query values with HTTP 422 |
 | Tab-whitespace cleanup query coverage | Done | Added integration test asserting cleanup rejects tab-whitespace `event_retention_seconds`, `checkpoint_retention_seconds`, and `max_network_events` query values with HTTP 422 |
 | Newline-whitespace cleanup query coverage | Done | Added integration test asserting cleanup rejects newline-whitespace `event_retention_seconds`, `checkpoint_retention_seconds`, and `max_network_events` query values with HTTP 422 |
