@@ -755,6 +755,19 @@ class BlockchainStatusApiTests(unittest.TestCase):
         self.assertEqual(checkpoint_retention_too_low.status_code, 422)
         self.assertEqual(max_network_events_too_low.status_code, 422)
 
+    def test_cleanup_endpoint_accepts_lower_bound_query_parameters(self) -> None:
+        headers = {settings.maintenance_auth_header: settings.maintenance_auth_token}
+        with TestClient(app) as client:
+            response = client.post(
+                "/api/v1/blockchain/maintenance/cleanup"
+                "?event_retention_seconds=60"
+                "&checkpoint_retention_seconds=60"
+                "&max_network_events=1",
+                headers=headers,
+            )
+
+        self.assertEqual(response.status_code, 200)
+
     def test_cleanup_endpoint_rejects_non_integer_query_parameters(self) -> None:
         headers = {settings.maintenance_auth_header: settings.maintenance_auth_token}
         with TestClient(app) as client:

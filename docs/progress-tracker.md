@@ -204,6 +204,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Blockchain status recent-limit bounds coverage | Done | Added integration test asserting status `recent_limit` values outside [1, 100] are rejected with HTTP 422 |
 | Player reward history recent-limit bounds coverage | Done | Added integration test asserting reward history `recent_limit` values outside [1, 200] are rejected with HTTP 422 |
 | Cleanup query-parameter bounds coverage | Done | Added integration test asserting cleanup rejects `event_retention_seconds<60`, `checkpoint_retention_seconds<60`, and `max_network_events<1` with HTTP 422 |
+| Cleanup lower-bound acceptance coverage | Done | Added integration test asserting cleanup accepts `event_retention_seconds=60`, `checkpoint_retention_seconds=60`, and `max_network_events=1` with HTTP 200 |
 | Operation start required-field schema coverage | Done | Added integration test asserting operation start rejects payloads missing `operation_id` or `base_hashrate_hps` with HTTP 422 |
 | Checkpoint required-query schema coverage | Done | Added integration test asserting checkpoint GET/PUT reject requests missing required `player_id` or `session_id` query parameters with HTTP 422 |
 | Operation stop required-field schema coverage | Done | Added integration test asserting operation stop rejects payloads missing required `operation_id` with HTTP 422 |
