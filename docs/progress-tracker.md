@@ -245,6 +245,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Whitespace checkpoint binding coverage | Done | Added integration test asserting checkpoint GET/PUT for `global` and `player_rewards` reject whitespace-only `player_id`/`session_id` query values with deterministic invalid-session responses |
 | Whitespace checkpoint cursor payload coverage | Done | Added integration test asserting checkpoint upserts for `global` and `player_rewards` reject whitespace-only `reconnect_cursor` payload values with HTTP 422 |
 | Whitespace hashrate payload coverage | Done | Added integration test asserting operation start rejects whitespace-only `base_hashrate_hps` payload values with HTTP 422 |
+| Empty hashrate payload coverage | Done | Added integration test asserting operation start rejects empty-string `base_hashrate_hps` payload values with HTTP 422 |
 | Whitespace maintenance auth coverage | Done | Added integration test asserting cleanup rejects whitespace-only maintenance auth header values with HTTP 401 |
 | Fractional checkpoint cursor payload coverage | Done | Added integration test asserting checkpoint upserts for `global` and `player_rewards` reject fractional `reconnect_cursor` payload values with HTTP 422 |
 | Whitespace maintenance metrics auth coverage | Done | Added integration test asserting maintenance metrics JSON/plaintext endpoints reject whitespace-only maintenance auth header values with HTTP 401 |
