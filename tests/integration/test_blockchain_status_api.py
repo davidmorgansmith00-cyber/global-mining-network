@@ -442,6 +442,33 @@ class BlockchainStatusApiTests(unittest.TestCase):
         self.assertEqual(second_payload["events"], [])
         self.assertEqual(second_payload["reconnect_cursor"], reconnect_cursor)
 
+    def test_network_events_endpoint_accepts_default_query_when_omitted(self) -> None:
+        started_at = datetime(2026, 8, 15, 22, 35, tzinfo=UTC)
+        service = MiningSimulationService(
+            required_work=Decimal("100"),
+            blockchain_state_store=PostgresBlockchainStateStore(required_work=Decimal("100")),
+            ledger_poster=PostgresLedgerPoster(),
+        )
+        service.register_operation(
+            operation_id="op_events_default_query",
+            player_id="player_a",
+            base_hashrate_hps=Decimal("20"),
+            started_at=started_at,
+        )
+        service.process_tick(
+            operation_id="op_events_default_query",
+            ended_at=started_at + timedelta(seconds=5),
+        )
+
+        with TestClient(app) as client:
+            response = client.get("/api/v1/blockchain/network-events")
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["schema_version"], "network.events.v1")
+        self.assertGreaterEqual(payload["latest_sequence"], 2)
+        self.assertGreaterEqual(len(payload["events"]), 2)
+
     def test_network_events_endpoint_rejects_negative_after_sequence(self) -> None:
         with TestClient(app) as client:
             response = client.get("/api/v1/blockchain/network-events?after_sequence=-1&limit=10")
