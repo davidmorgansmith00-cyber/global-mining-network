@@ -252,6 +252,16 @@ class BlockchainStatusApiTests(unittest.TestCase):
         self.assertEqual(snapshot_response.status_code, 422)
         self.assertEqual(rewards_response.status_code, 422)
 
+    def test_recent_limit_endpoints_reject_crlf_whitespace_query_value(self) -> None:
+        with TestClient(app) as client:
+            status_response = client.get("/api/v1/blockchain/status?recent_limit=%0D%0A")
+            snapshot_response = client.get("/api/v1/blockchain/network-snapshot?recent_limit=%0D%0A")
+            rewards_response = client.get("/api/v1/blockchain/players/player_a/rewards?recent_limit=%0D%0A")
+
+        self.assertEqual(status_response.status_code, 422)
+        self.assertEqual(snapshot_response.status_code, 422)
+        self.assertEqual(rewards_response.status_code, 422)
+
     def test_recent_limit_endpoints_reject_fractional_query_value(self) -> None:
         with TestClient(app) as client:
             status_response = client.get("/api/v1/blockchain/status?recent_limit=1.5")
