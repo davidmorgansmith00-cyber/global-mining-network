@@ -224,6 +224,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Tab-whitespace transport counter coverage | Done | Added integration test asserting tab-whitespace query and header session bindings are rejected while incrementing `operation_intent_transport_requests_total.query` and `.header` exactly once in JSON and plaintext metrics |
 | Newline query-whitespace transport counter coverage | Done | Added integration test asserting newline query session binding rejection increments `operation_intent_transport_requests_total.query` exactly once and exposes exact plaintext metric count |
 | Carriage-return query-whitespace transport counter coverage | Done | Added integration test asserting carriage-return query session binding rejection increments `operation_intent_transport_requests_total.query` exactly once and exposes exact plaintext metric count |
+| CRLF query-whitespace transport counter coverage | Done | Added integration test asserting CRLF query session binding rejection increments `operation_intent_transport_requests_total.query` exactly once and exposes exact plaintext metric count |
 | Network events non-integer cursor coverage | Done | Added integration test asserting `after_sequence` rejects non-integer values with HTTP 422 |
 | Network events non-integer limit coverage | Done | Added integration test asserting `limit` rejects non-integer values with HTTP 422 |
 | Blockchain status non-integer recent-limit coverage | Done | Added integration test asserting status `recent_limit` rejects non-integer values with HTTP 422 |
