@@ -1269,6 +1269,29 @@ class BlockchainStatusApiTests(unittest.TestCase):
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.json().get("detail"), "Invalid session binding")
 
+    def test_operation_intents_missing_transport_increments_counter_exactly(self) -> None:
+        with TestClient(app) as client:
+            missing_start = client.post(
+                "/api/v1/blockchain/operations/intents/start",
+                json={
+                    "operation_id": "op_missing_transport_start_counter",
+                    "base_hashrate_hps": "20",
+                },
+            )
+            missing_stop = client.post(
+                "/api/v1/blockchain/operations/intents/stop",
+                json={"operation_id": "op_missing_transport_stop_counter"},
+            )
+            metrics_headers = {settings.maintenance_auth_header: settings.maintenance_auth_token}
+            metrics_response = client.get("/api/v1/blockchain/maintenance/metrics", headers=metrics_headers)
+
+        self.assertEqual(missing_start.status_code, 401)
+        self.assertEqual(missing_stop.status_code, 401)
+        self.assertEqual(metrics_response.status_code, 200)
+
+        counters = metrics_response.json().get("operation_intent_transport_requests_total", {})
+        self.assertEqual(counters.get("missing", 0), 2)
+
     def test_operation_intents_reject_empty_session_id_query_transport(self) -> None:
         with TestClient(app) as client:
             start_response = client.post(

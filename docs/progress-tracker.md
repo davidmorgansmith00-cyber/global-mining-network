@@ -216,6 +216,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Checkpoint global empty-value auth coverage | Done | Added integration test asserting global checkpoint GET/PUT reject empty `player_id` or `session_id` values with deterministic invalid-session responses |
 | Checkpoint player_rewards empty-value auth coverage | Done | Added integration test asserting player_rewards checkpoint GET/PUT reject empty `player_id` or `session_id` values with deterministic invalid-session responses |
 | Operation stop missing-session transport coverage | Done | Added integration test asserting operation stop without query/header session transport is rejected with deterministic invalid-session response |
+| Operation intent missing-transport counter exactness coverage | Done | Added integration test asserting start/stop intents without session transport both reject with HTTP 401 and increment `operation_intent_transport_requests_total.missing` exactly twice |
 | Network events non-integer cursor coverage | Done | Added integration test asserting `after_sequence` rejects non-integer values with HTTP 422 |
 | Network events non-integer limit coverage | Done | Added integration test asserting `limit` rejects non-integer values with HTTP 422 |
 | Blockchain status non-integer recent-limit coverage | Done | Added integration test asserting status `recent_limit` rejects non-integer values with HTTP 422 |
