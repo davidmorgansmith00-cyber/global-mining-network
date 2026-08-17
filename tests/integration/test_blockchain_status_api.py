@@ -292,6 +292,18 @@ class BlockchainStatusApiTests(unittest.TestCase):
         self.assertEqual(snapshot_response.status_code, 200)
         self.assertEqual(rewards_response.status_code, 200)
 
+    def test_query_limit_endpoints_accept_configured_upper_bounds(self) -> None:
+        with TestClient(app) as client:
+            status_response = client.get("/api/v1/blockchain/status?recent_limit=100")
+            snapshot_response = client.get("/api/v1/blockchain/network-snapshot?recent_limit=100")
+            rewards_response = client.get("/api/v1/blockchain/players/player_a/rewards?recent_limit=200")
+            events_response = client.get("/api/v1/blockchain/network-events?after_sequence=0&limit=500")
+
+        self.assertEqual(status_response.status_code, 200)
+        self.assertEqual(snapshot_response.status_code, 200)
+        self.assertEqual(rewards_response.status_code, 200)
+        self.assertEqual(events_response.status_code, 200)
+
     def test_player_reward_balances_endpoint_replays_immutable_ledger_totals(self) -> None:
         started_at = datetime(2026, 8, 15, 21, 45, tzinfo=UTC)
         service = MiningSimulationService(
