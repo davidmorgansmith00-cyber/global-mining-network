@@ -382,6 +382,18 @@ class BlockchainStatusApiTests(unittest.TestCase):
         self.assertEqual(empty_after_sequence.status_code, 422)
         self.assertEqual(empty_limit.status_code, 422)
 
+    def test_network_events_endpoint_rejects_whitespace_query_values(self) -> None:
+        with TestClient(app) as client:
+            whitespace_after_sequence = client.get(
+                "/api/v1/blockchain/network-events?after_sequence=%20%20%20&limit=10"
+            )
+            whitespace_limit = client.get(
+                "/api/v1/blockchain/network-events?after_sequence=0&limit=%20%20%20"
+            )
+
+        self.assertEqual(whitespace_after_sequence.status_code, 422)
+        self.assertEqual(whitespace_limit.status_code, 422)
+
     def test_network_events_websocket_streams_cursor_based_payloads(self) -> None:
         started_at = datetime(2026, 8, 15, 23, 0, tzinfo=UTC)
         player_id, session_id = self._create_player_session_binding()
