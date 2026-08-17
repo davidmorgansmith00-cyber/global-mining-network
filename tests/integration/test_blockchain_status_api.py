@@ -1824,6 +1824,31 @@ class BlockchainStatusApiTests(unittest.TestCase):
             2,
         )
 
+    def test_maintenance_endpoints_reject_empty_auth_token(self) -> None:
+        with TestClient(app) as client:
+            empty_headers = {settings.maintenance_auth_header: ""}
+            unauthorized_cleanup = client.post("/api/v1/blockchain/maintenance/cleanup", headers=empty_headers)
+            unauthorized_json = client.get("/api/v1/blockchain/maintenance/metrics", headers=empty_headers)
+            unauthorized_plaintext = client.get(
+                "/api/v1/blockchain/maintenance/metrics/plaintext",
+                headers=empty_headers,
+            )
+            authorized_headers = {settings.maintenance_auth_header: settings.maintenance_auth_token}
+            authorized_metrics = client.get("/api/v1/blockchain/maintenance/metrics", headers=authorized_headers)
+
+        self.assertEqual(unauthorized_cleanup.status_code, 401)
+        self.assertEqual(unauthorized_json.status_code, 401)
+        self.assertEqual(unauthorized_plaintext.status_code, 401)
+        self.assertEqual(authorized_metrics.status_code, 200)
+        payload = authorized_metrics.json()
+        self.assertGreaterEqual(
+            payload["maintenance_auth_scope_requests_total"].get(
+                settings.maintenance_auth_unknown_token_scope_label,
+                0,
+            ),
+            3,
+        )
+
     def test_websocket_stale_connections_are_evicted(self) -> None:
         player_id, session_id = self._create_player_session_binding()
 
