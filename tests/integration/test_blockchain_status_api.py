@@ -1706,6 +1706,106 @@ class BlockchainStatusApiTests(unittest.TestCase):
         self.assertIn('gmn_operation_intent_transport_requests_total{mode="mismatch"} 1', plaintext)
         self.assertIn('gmn_operation_intent_transport_requests_total{mode="missing"} 1', plaintext)
 
+    def test_operation_stop_intent_transport_metrics_track_query_header_and_mismatch_modes(self) -> None:
+        _, session_a = self._create_player_session_binding()
+        _, session_b = self._create_player_session_binding()
+        header_name = settings.operation_intent_session_header
+
+        with TestClient(app) as client:
+            seed_query_start = client.post(
+                "/api/v1/blockchain/operations/intents/start",
+                json={
+                    "operation_id": "op_stop_transport_seed",
+                    "base_hashrate_hps": "25",
+                },
+                headers={header_name: session_a},
+            )
+
+            seed_header_start = client.post(
+                "/api/v1/blockchain/operations/intents/start",
+                json={
+                    "operation_id": "op_stop_transport_header",
+                    "base_hashrate_hps": "25",
+                },
+                headers={header_name: session_a},
+            )
+
+            seed_dual_start = client.post(
+                "/api/v1/blockchain/operations/intents/start",
+                json={
+                    "operation_id": "op_stop_transport_dual",
+                    "base_hashrate_hps": "25",
+                },
+                headers={header_name: session_a},
+            )
+
+            seed_mismatch_start = client.post(
+                "/api/v1/blockchain/operations/intents/start",
+                json={
+                    "operation_id": "op_stop_transport_mismatch",
+                    "base_hashrate_hps": "25",
+                },
+                headers={header_name: session_a},
+            )
+
+            metrics_headers = {settings.maintenance_auth_header: settings.maintenance_auth_token}
+            baseline_metrics = client.get("/api/v1/blockchain/maintenance/metrics", headers=metrics_headers)
+
+            query_stop = client.post(
+                f"/api/v1/blockchain/operations/intents/stop?session_id={session_a}",
+                json={"operation_id": "op_stop_transport_seed"},
+            )
+            header_stop = client.post(
+                "/api/v1/blockchain/operations/intents/stop",
+                json={"operation_id": "op_stop_transport_header"},
+                headers={header_name: session_a},
+            )
+            dual_stop = client.post(
+                f"/api/v1/blockchain/operations/intents/stop?session_id={session_a}",
+                json={"operation_id": "op_stop_transport_dual"},
+                headers={header_name: session_a},
+            )
+            mismatch_stop = client.post(
+                f"/api/v1/blockchain/operations/intents/stop?session_id={session_a}",
+                json={"operation_id": "op_stop_transport_mismatch"},
+                headers={header_name: session_b},
+            )
+
+            missing_stop = client.post(
+                "/api/v1/blockchain/operations/intents/stop",
+                json={"operation_id": "op_stop_transport_missing"},
+            )
+            metrics_json = client.get("/api/v1/blockchain/maintenance/metrics", headers=metrics_headers)
+            metrics_plaintext = client.get("/api/v1/blockchain/maintenance/metrics/plaintext", headers=metrics_headers)
+
+        self.assertEqual(seed_query_start.status_code, 200)
+        self.assertEqual(seed_header_start.status_code, 200)
+        self.assertEqual(seed_dual_start.status_code, 200)
+        self.assertEqual(seed_mismatch_start.status_code, 200)
+        self.assertEqual(baseline_metrics.status_code, 200)
+        self.assertEqual(query_stop.status_code, 200)
+        self.assertEqual(header_stop.status_code, 200)
+        self.assertEqual(dual_stop.status_code, 200)
+        self.assertEqual(mismatch_stop.status_code, 400)
+        self.assertEqual(missing_stop.status_code, 401)
+        self.assertEqual(metrics_json.status_code, 200)
+        self.assertEqual(metrics_plaintext.status_code, 200)
+
+        baseline_counters = baseline_metrics.json().get("operation_intent_transport_requests_total", {})
+        counters = metrics_json.json().get("operation_intent_transport_requests_total", {})
+        self.assertEqual(counters.get("query", 0) - baseline_counters.get("query", 0), 1)
+        self.assertEqual(counters.get("header", 0) - baseline_counters.get("header", 0), 1)
+        self.assertEqual(counters.get("dual_match", 0) - baseline_counters.get("dual_match", 0), 1)
+        self.assertEqual(counters.get("mismatch", 0) - baseline_counters.get("mismatch", 0), 1)
+        self.assertEqual(counters.get("missing", 0) - baseline_counters.get("missing", 0), 1)
+
+        plaintext = metrics_plaintext.text
+        self.assertIn('gmn_operation_intent_transport_requests_total{mode="query"}', plaintext)
+        self.assertIn('gmn_operation_intent_transport_requests_total{mode="header"}', plaintext)
+        self.assertIn('gmn_operation_intent_transport_requests_total{mode="dual_match"}', plaintext)
+        self.assertIn('gmn_operation_intent_transport_requests_total{mode="mismatch"}', plaintext)
+        self.assertIn('gmn_operation_intent_transport_requests_total{mode="missing"}', plaintext)
+
     def test_operation_intents_strict_header_mode_rejects_query_only_transport(self) -> None:
         _, session_id = self._create_player_session_binding()
         header_name = settings.operation_intent_session_header
