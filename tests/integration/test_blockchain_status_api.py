@@ -1770,6 +1770,65 @@ class BlockchainStatusApiTests(unittest.TestCase):
 
     def test_operation_intents_reject_mismatched_query_and_header_session_binding(self) -> None:
         _, session_a = self._create_player_session_binding()
+
+    def test_operation_intents_expired_session_bindings_increment_query_counter_exactly(self) -> None:
+        _, session_id = self._create_player_session_binding()
+
+        with TestClient(app) as client:
+            started = client.post(
+                f"/api/v1/blockchain/operations/intents/start?session_id={session_id}",
+                json={
+                    "operation_id": "op_expire_counter_1",
+                    "base_hashrate_hps": "15",
+                },
+            )
+            self.assertEqual(started.status_code, 200)
+
+            metrics_headers = {settings.maintenance_auth_header: settings.maintenance_auth_token}
+            baseline_metrics = client.get("/api/v1/blockchain/maintenance/metrics", headers=metrics_headers)
+
+            with psycopg.connect(self.database_url) as connection:
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        """
+                        UPDATE auth_sessions
+                        SET expires_at = NOW() - INTERVAL '1 second'
+                        WHERE session_id = %s
+                        """,
+                        (UUID(session_id),),
+                    )
+                connection.commit()
+
+            expired_start = client.post(
+                f"/api/v1/blockchain/operations/intents/start?session_id={session_id}",
+                json={
+                    "operation_id": "op_expire_counter_2",
+                    "base_hashrate_hps": "15",
+                },
+            )
+            expired_stop = client.post(
+                f"/api/v1/blockchain/operations/intents/stop?session_id={session_id}",
+                json={
+                    "operation_id": "op_expire_counter_1",
+                },
+            )
+            metrics_headers = {settings.maintenance_auth_header: settings.maintenance_auth_token}
+            metrics_json = client.get("/api/v1/blockchain/maintenance/metrics", headers=metrics_headers)
+            metrics_plaintext = client.get("/api/v1/blockchain/maintenance/metrics/plaintext", headers=metrics_headers)
+
+        self.assertEqual(expired_start.status_code, 401)
+        self.assertEqual(expired_stop.status_code, 401)
+        self.assertEqual(baseline_metrics.status_code, 200)
+        self.assertEqual(metrics_json.status_code, 200)
+        self.assertEqual(metrics_plaintext.status_code, 200)
+
+        baseline_counters = baseline_metrics.json().get("operation_intent_transport_requests_total", {})
+        counters = metrics_json.json().get("operation_intent_transport_requests_total", {})
+        self.assertEqual(counters.get("query", 0) - baseline_counters.get("query", 0), 2)
+        self.assertIn('gmn_operation_intent_transport_requests_total{mode="query"}', metrics_plaintext.text)
+
+    def test_operation_intents_reject_mismatched_query_and_header_session_binding(self) -> None:
+        _, session_a = self._create_player_session_binding()
         _, session_b = self._create_player_session_binding()
         header_name = settings.operation_intent_session_header
 
