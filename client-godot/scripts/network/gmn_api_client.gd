@@ -3,6 +3,8 @@ class_name GmnApiClient
 
 const AUTH_REGISTER_PATH := "/api/v1/auth/register"
 const AUTH_LOGIN_PATH := "/api/v1/auth/login"
+const AUTH_REFRESH_PATH := "/api/v1/auth/refresh"
+const AUTH_LOGOUT_PATH := "/api/v1/auth/logout"
 const STATUS_PATH := "/api/v1/blockchain/status"
 const SNAPSHOT_PATH := "/api/v1/blockchain/network-snapshot"
 const REWARDS_PATH_TEMPLATE := "/api/v1/blockchain/players/%s/rewards"
@@ -11,10 +13,7 @@ const OPERATION_START_INTENT_PATH := "/api/v1/blockchain/operations/intents/star
 const OPERATION_STOP_INTENT_PATH := "/api/v1/blockchain/operations/intents/stop"
 
 var base_url: String = "http://127.0.0.1:8000"
-var player_id: String = ""
-var session_id: String = ""
-var access_token: String = ""
-var refresh_token: String = ""
+var session: GmnSession = GmnSession.new()
 var _http: HTTPRequest
 
 func _ready() -> void:
@@ -24,11 +23,92 @@ func _ready() -> void:
 func configure(url: String) -> void:
 	base_url = url.rstrip("/")
 
-func set_session(session: Dictionary) -> void:
-	player_id = str(session.get("player_id", ""))
-	session_id = str(session.get("session_id", ""))
-	access_token = str(session.get("access_token", ""))
-	refresh_token = str(session.get("refresh_token", ""))
+## BOOTSTRAP SESSION: Register a new player
+func register_session(email: String, password: String) -> Dictionary:
+	var payload := {"email": email, "password": password}
+	var response = await _request_json(HTTPClient.METHOD_POST, build_auth_register_url(), payload)
+	
+	# On success, populate session from response
+	if response.get("ok", false) and response.get("payload"):
+		var payload_data = response.get("payload")
+		session.set_from_response({
+			"player_id": payload_data.get("player_id", ""),
+			"access_token": payload_data.get("access_token", ""),
+			"refresh_token": payload_data.get("refresh_token", ""),
+			"expires_in": payload_data.get("expires_in", 3600)
+		})
+	
+	return response
+
+## BOOTSTRAP SESSION: Login existing player
+func login_session(email: String, password: String) -> Dictionary:
+	var payload := {"email": email, "password": password}
+	var response = await _request_json(HTTPClient.METHOD_POST, build_auth_login_url(), payload)
+	
+	# On success, populate session from response
+	if response.get("ok", false) and response.get("payload"):
+		var payload_data = response.get("payload")
+		session.set_from_response({
+			"player_id": payload_data.get("player_id", ""),
+			"access_token": payload_data.get("access_token", ""),
+			"refresh_token": payload_data.get("refresh_token", ""),
+			"expires_in": payload_data.get("expires_in", 3600)
+		})
+	
+	return response
+
+## BOOTSTRAP SESSION: Refresh expired token
+func refresh_access_token() -> Dictionary:
+	if session.refresh_token == "":
+		return {
+			"ok": false,
+			"error": "No refresh token available",
+			"status_code": 401
+		}
+	
+	var payload := {"refresh_token": session.refresh_token}
+	var response = await _request_json(HTTPClient.METHOD_POST, build_auth_refresh_url(), payload)
+	
+	# On success, update session tokens
+	if response.get("ok", false) and response.get("payload"):
+		var payload_data = response.get("payload")
+		session.set_from_response({
+			"player_id": session.player_id,  # Keep existing player_id
+			"access_token": payload_data.get("access_token", ""),
+			"refresh_token": payload_data.get("refresh_token", ""),
+			"expires_in": payload_data.get("expires_in", 3600)
+		})
+	
+	return response
+
+## BOOTSTRAP SESSION: Logout and revoke token
+func logout_session() -> Dictionary:
+	if session.player_id == "":
+		return {
+			"ok": false,
+			"error": "No active session",
+			"status_code": 401
+		}
+	
+	var response = await _request_json(HTTPClient.METHOD_POST, build_auth_logout_url(), {})
+	
+	# On success, clear session
+	if response.get("ok", false):
+		session.clear()
+	
+	return response
+
+func build_auth_register_url() -> String:
+	return "%s%s" % [base_url, AUTH_REGISTER_PATH]
+
+func build_auth_login_url() -> String:
+	return "%s%s" % [base_url, AUTH_LOGIN_PATH]
+
+func build_auth_refresh_url() -> String:
+	return "%s%s" % [base_url, AUTH_REFRESH_PATH]
+
+func build_auth_logout_url() -> String:
+	return "%s%s" % [base_url, AUTH_LOGOUT_PATH]
 
 func build_status_url(recent_limit: int = 10) -> String:
 	return "%s%s?recent_limit=%d" % [base_url, STATUS_PATH, recent_limit]
@@ -42,20 +122,6 @@ func build_rewards_url(target_player_id: String, recent_limit: int = 20) -> Stri
 		REWARDS_PATH_TEMPLATE % target_player_id,
 		recent_limit,
 	]
-
-func build_auth_register_url() -> String:
-	return "%s%s" % [base_url, AUTH_REGISTER_PATH]
-
-func build_auth_login_url() -> String:
-	return "%s%s" % [base_url, AUTH_LOGIN_PATH]
-
-func register_session(email: String, password: String) -> Dictionary:
-	var payload := {"email": email, "password": password}
-	return await _request_json(HTTPClient.METHOD_POST, build_auth_register_url(), payload)
-
-func login_session(email: String, password: String) -> Dictionary:
-	var payload := {"email": email, "password": password}
-	return await _request_json(HTTPClient.METHOD_POST, build_auth_login_url(), payload)
 
 func fetch_status(recent_limit: int = 10) -> Dictionary:
 	return await _request_json(HTTPClient.METHOD_GET, build_status_url(recent_limit))
@@ -78,10 +144,10 @@ func upsert_checkpoint(channel: String, target_player_id: String, target_session
 	return await _request_json(HTTPClient.METHOD_PUT, url, payload)
 
 func build_operation_start_intent_url() -> String:
-	return "%s%s?session_id=%s" % [base_url, OPERATION_START_INTENT_PATH, session_id]
+	return "%s%s?session_id=%s" % [base_url, OPERATION_START_INTENT_PATH, session.player_id]
 
 func build_operation_stop_intent_url() -> String:
-	return "%s%s?session_id=%s" % [base_url, OPERATION_STOP_INTENT_PATH, session_id]
+	return "%s%s?session_id=%s" % [base_url, OPERATION_STOP_INTENT_PATH, session.player_id]
 
 func build_operation_start_intent_payload(operation_id: String, base_hashrate_hps: float) -> Dictionary:
 	return {
@@ -112,13 +178,26 @@ func send_operation_stop_intent(operation_id: String) -> Dictionary:
 		payload,
 	)
 
+## Get current session (read-only)
+func get_session() -> GmnSession:
+	return session
+
+## Check if session is valid
+func is_authenticated() -> bool:
+	return session.is_valid()
+
 func _request_json(method: HTTPClient.Method, url: String, payload: Dictionary = {}) -> Dictionary:
 	var body := ""
 	var headers: PackedStringArray = []
+	
 	if method != HTTPClient.METHOD_GET:
 		headers.append("Content-Type: application/json")
 		body = JSON.stringify(payload)
-
+	
+	# Add authorization header if session has access token
+	if session.access_token != "":
+		headers.append("Authorization: Bearer %s" % session.access_token)
+	
 	var error := _http.request(url, headers, method, body)
 	if error != OK:
 		return {
