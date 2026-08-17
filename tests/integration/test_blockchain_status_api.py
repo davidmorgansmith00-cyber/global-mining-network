@@ -2229,6 +2229,30 @@ class BlockchainStatusApiTests(unittest.TestCase):
         self.assertEqual(rewards_get.json().get("detail"), "Invalid session binding")
         self.assertEqual(rewards_put.json().get("detail"), "Invalid session binding")
 
+    def test_checkpoint_endpoints_reject_whitespace_player_or_session_values(self) -> None:
+        with TestClient(app) as client:
+            global_get = client.get("/api/v1/blockchain/checkpoints/global?player_id=%20%20%20&session_id=%20%20%20")
+            global_put = client.put(
+                "/api/v1/blockchain/checkpoints/global?player_id=%20%20%20&session_id=%20%20%20",
+                json={"reconnect_cursor": 3},
+            )
+            rewards_get = client.get(
+                "/api/v1/blockchain/checkpoints/player_rewards?player_id=%20%20%20&session_id=%20%20%20"
+            )
+            rewards_put = client.put(
+                "/api/v1/blockchain/checkpoints/player_rewards?player_id=%20%20%20&session_id=%20%20%20",
+                json={"reconnect_cursor": 3},
+            )
+
+        self.assertEqual(global_get.status_code, 401)
+        self.assertEqual(global_put.status_code, 401)
+        self.assertEqual(rewards_get.status_code, 401)
+        self.assertEqual(rewards_put.status_code, 401)
+        self.assertEqual(global_get.json().get("detail"), "Invalid session binding")
+        self.assertEqual(global_put.json().get("detail"), "Invalid session binding")
+        self.assertEqual(rewards_get.json().get("detail"), "Invalid session binding")
+        self.assertEqual(rewards_put.json().get("detail"), "Invalid session binding")
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
