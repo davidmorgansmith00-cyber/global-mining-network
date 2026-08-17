@@ -463,6 +463,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Operation intent dry-run dead inspector path removal | Done | Dry-run no longer allocates dead inspector-summary path locals during setup; the package-summary strings are used directly |
 | Optional CI workflow-dispatch DB baseline rerun | Done | Run `31956249661` succeeded end-to-end (`baseline` and `db-integration` both green); total run window was 67s (`15:38:16Z` to `15:39:23Z`) |
 | Local CI-mirrored full suite baseline | Done | Ran the same test selection as optional `db-integration` locally: `65` tests passed in `35.976s` |
+| Fixed-step slice execution agent baseline | Done | Added `.github/agents/slice-executor.agent.md` with a mandatory 8-step execution/validate/update/commit/push cycle and stop-on-blocker rules |
 
 ---
 
@@ -485,9 +486,9 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 ---
 
 ## 10. Next Actions
-1. Implement the remaining M1 simulation kernel timestamp/state-transition work and keep boundary reconstruction deterministic.
-2. Tighten the M1 blockchain core slice around active-block invariants, finalization lock strategy, and duplicate-finalization prevention.
-3. Continue the M1 ledger and reward-settlement path so block finalization remains immutable and replay-safe.
+1. Execute the next M1 implementation slice using the fixed 8-step cycle in `.github/agents/slice-executor.agent.md`.
+2. Implement the next highest-impact M1 backend or client gap, validate with targeted integration coverage, and close regressions in-cycle.
+3. Update this tracker and push one scoped commit per completed slice before starting the next 8-step TODO list.
 
 ---
 

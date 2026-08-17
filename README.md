@@ -18,6 +18,12 @@ This repository is in M0 foundations. The current goal is to establish the monor
 - `docs/implementation-plan-v1.md`
 - `docs/progress-tracker.md`
 
+## Fixed-Step Execution Agent
+- Agent file: `.github/agents/slice-executor.agent.md`
+- Purpose: execute the next implementation slice in a fixed 8-step cycle.
+- Each cycle enforces: scoped implementation, validation, tracker updates, commit, push, and immediate next-slice kickoff.
+- Stop only for a real blocker or required product decision.
+
 ## M0 Local Stack
 - `server` - FastAPI application skeleton
 - `workers` - background worker skeleton
