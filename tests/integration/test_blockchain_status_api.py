@@ -578,6 +578,15 @@ class BlockchainStatusApiTests(unittest.TestCase):
             1,
         )
 
+    def test_cleanup_endpoint_rejects_whitespace_auth_token(self) -> None:
+        with TestClient(app) as client:
+            response = client.post(
+                "/api/v1/blockchain/maintenance/cleanup",
+                headers={settings.maintenance_auth_header: "   "},
+            )
+
+        self.assertEqual(response.status_code, 401)
+
     def test_cleanup_endpoint_rejects_out_of_range_query_parameters(self) -> None:
         headers = {settings.maintenance_auth_header: settings.maintenance_auth_token}
         with TestClient(app) as client:
