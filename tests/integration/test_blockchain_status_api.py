@@ -2021,6 +2021,30 @@ class BlockchainStatusApiTests(unittest.TestCase):
         finally:
             settings.operation_intent_require_header_binding = original_strict_mode
 
+    def test_operation_intents_newline_header_transport_increments_header_counter(self) -> None:
+        header_name = settings.operation_intent_session_header
+
+        with TestClient(app) as client:
+            response = client.post(
+                "/api/v1/blockchain/operations/intents/start",
+                json={
+                    "operation_id": "op_newline_header_counter",
+                    "base_hashrate_hps": "20",
+                },
+                headers={header_name: "\n"},
+            )
+            metrics_headers = {settings.maintenance_auth_header: settings.maintenance_auth_token}
+            metrics_json = client.get("/api/v1/blockchain/maintenance/metrics", headers=metrics_headers)
+            metrics_plaintext = client.get("/api/v1/blockchain/maintenance/metrics/plaintext", headers=metrics_headers)
+
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(metrics_json.status_code, 200)
+        self.assertEqual(metrics_plaintext.status_code, 200)
+
+        counters = metrics_json.json().get("operation_intent_transport_requests_total", {})
+        self.assertEqual(counters.get("header", 0), 1)
+        self.assertIn('gmn_operation_intent_transport_requests_total{mode="header"} 1', metrics_plaintext.text)
+
     def test_operation_intents_strict_mode_rejection_reports_configured_header_name(self) -> None:
         _, session_id = self._create_player_session_binding()
         header_name = settings.operation_intent_session_header
@@ -2142,7 +2166,6 @@ class BlockchainStatusApiTests(unittest.TestCase):
 
     def test_operation_intents_drive_authoritative_progression_and_reconnect_safe_events(self) -> None:
         player_id, session_id = self._create_player_session_binding()
-
         with TestClient(app) as client:
             started = client.post(
                 f"/api/v1/blockchain/operations/intents/start?session_id={session_id}",
@@ -2193,6 +2216,30 @@ class BlockchainStatusApiTests(unittest.TestCase):
             events_second = client.get(f"/api/v1/blockchain/network-events?after_sequence={reconnect_cursor}&limit=100")
             self.assertEqual(events_second.status_code, 200)
             self.assertEqual(events_second.json()["events"], [])
+
+    def test_operation_intents_newline_header_transport_increments_header_counter(self) -> None:
+        header_name = settings.operation_intent_session_header
+
+        with TestClient(app) as client:
+            response = client.post(
+                "/api/v1/blockchain/operations/intents/start",
+                json={
+                    "operation_id": "op_newline_header_counter",
+                    "base_hashrate_hps": "20",
+                },
+                headers={header_name: "\n"},
+            )
+            metrics_headers = {settings.maintenance_auth_header: settings.maintenance_auth_token}
+            metrics_json = client.get("/api/v1/blockchain/maintenance/metrics", headers=metrics_headers)
+            metrics_plaintext = client.get("/api/v1/blockchain/maintenance/metrics/plaintext", headers=metrics_headers)
+
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(metrics_json.status_code, 200)
+        self.assertEqual(metrics_plaintext.status_code, 200)
+
+        counters = metrics_json.json().get("operation_intent_transport_requests_total", {})
+        self.assertEqual(counters.get("header", 0), 1)
+        self.assertIn('gmn_operation_intent_transport_requests_total{mode="header"} 1', metrics_plaintext.text)
 
     def test_operation_stop_intent_halts_further_authoritative_progression(self) -> None:
         _, session_id = self._create_player_session_binding()
