@@ -870,6 +870,25 @@ class BlockchainStatusApiTests(unittest.TestCase):
         self.assertEqual(start_response.json().get("detail"), "Invalid session binding")
         self.assertEqual(stop_response.json().get("detail"), "Invalid session binding")
 
+    def test_operation_intents_reject_whitespace_session_id_query_transport(self) -> None:
+        with TestClient(app) as client:
+            start_response = client.post(
+                "/api/v1/blockchain/operations/intents/start?session_id=%20%20%20",
+                json={
+                    "operation_id": "op_whitespace_query_session_start",
+                    "base_hashrate_hps": "20",
+                },
+            )
+            stop_response = client.post(
+                "/api/v1/blockchain/operations/intents/stop?session_id=%20%20%20",
+                json={"operation_id": "op_whitespace_query_session_stop"},
+            )
+
+        self.assertEqual(start_response.status_code, 401)
+        self.assertEqual(stop_response.status_code, 401)
+        self.assertEqual(start_response.json().get("detail"), "Invalid session binding")
+        self.assertEqual(stop_response.json().get("detail"), "Invalid session binding")
+
     def test_operation_intents_reject_empty_session_header_transport(self) -> None:
         header_name = settings.operation_intent_session_header
 

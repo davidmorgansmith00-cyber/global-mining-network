@@ -237,6 +237,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Empty network-events query coverage | Done | Added integration test asserting network-events rejects empty `after_sequence` and empty `limit` query values with HTTP 422 |
 | Empty cleanup query coverage | Done | Added integration test asserting cleanup rejects empty `event_retention_seconds`, `checkpoint_retention_seconds`, and `max_network_events` query values with HTTP 422 |
 | Empty checkpoint cursor payload coverage | Done | Added integration test asserting checkpoint upserts for `global` and `player_rewards` reject empty `reconnect_cursor` payload values with HTTP 422 |
+| Operation intent whitespace query-session coverage | Done | Added integration test asserting operation start/stop reject whitespace-only query `session_id` transport with deterministic invalid-session responses |
 | Checkpoint case-variant channel coverage | Done | Added integration test asserting checkpoint GET/PUT reject case-variant channel names (for example `GLOBAL`) with deterministic unsupported-channel responses |
 | WebSocket auth/session binding | Done | WebSocket now validates `player_id` + `session_id` against active auth sessions |
 | Per-client channel filtering | Done | Added `global` and `player_rewards` channel filters with player-scoped event routing |
