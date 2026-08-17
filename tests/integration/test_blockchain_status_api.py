@@ -1795,6 +1795,38 @@ class BlockchainStatusApiTests(unittest.TestCase):
         self.assertEqual(mismatch_stop.status_code, 400)
         self.assertIn("Session binding mismatch", mismatch_stop.json().get("detail", ""))
 
+    def test_operation_intents_mismatched_session_binding_increments_mismatch_counter_exactly(self) -> None:
+        _, session_a = self._create_player_session_binding()
+        _, session_b = self._create_player_session_binding()
+        header_name = settings.operation_intent_session_header
+
+        with TestClient(app) as client:
+            mismatch_start = client.post(
+                f"/api/v1/blockchain/operations/intents/start?session_id={session_a}",
+                json={
+                    "operation_id": "op_mismatch_counter_start",
+                    "base_hashrate_hps": "20",
+                },
+                headers={header_name: session_b},
+            )
+            mismatch_stop = client.post(
+                f"/api/v1/blockchain/operations/intents/stop?session_id={session_a}",
+                json={"operation_id": "op_mismatch_counter_stop"},
+                headers={header_name: session_b},
+            )
+            metrics_headers = {settings.maintenance_auth_header: settings.maintenance_auth_token}
+            metrics_json = client.get("/api/v1/blockchain/maintenance/metrics", headers=metrics_headers)
+            metrics_plaintext = client.get("/api/v1/blockchain/maintenance/metrics/plaintext", headers=metrics_headers)
+
+        self.assertEqual(mismatch_start.status_code, 400)
+        self.assertEqual(mismatch_stop.status_code, 400)
+        self.assertEqual(metrics_json.status_code, 200)
+        self.assertEqual(metrics_plaintext.status_code, 200)
+
+        counters = metrics_json.json().get("operation_intent_transport_requests_total", {})
+        self.assertEqual(counters.get("mismatch", 0), 2)
+        self.assertIn('gmn_operation_intent_transport_requests_total{mode="mismatch"} 2', metrics_plaintext.text)
+
     def test_operation_intents_mismatch_error_reports_configured_header_name(self) -> None:
         _, session_a = self._create_player_session_binding()
         _, session_b = self._create_player_session_binding()
