@@ -1954,6 +1954,24 @@ class BlockchainStatusApiTests(unittest.TestCase):
             2,
         )
 
+    def test_maintenance_metrics_unauthorized_requests_increment_unknown_scope_exactly(self) -> None:
+        with TestClient(app) as client:
+            unauthorized_json = client.get("/api/v1/blockchain/maintenance/metrics")
+            unauthorized_plaintext = client.get("/api/v1/blockchain/maintenance/metrics/plaintext")
+            authorized_headers = {settings.maintenance_auth_header: settings.maintenance_auth_token}
+            authorized_metrics = client.get("/api/v1/blockchain/maintenance/metrics", headers=authorized_headers)
+
+        self.assertEqual(unauthorized_json.status_code, 401)
+        self.assertEqual(unauthorized_plaintext.status_code, 401)
+        self.assertEqual(authorized_metrics.status_code, 200)
+
+        payload = authorized_metrics.json()
+        counters = payload["maintenance_auth_scope_requests_total"]
+        unknown_label = settings.maintenance_auth_unknown_token_scope_label
+        current_label = settings.maintenance_auth_current_token_scope_label
+        self.assertEqual(counters.get(unknown_label, 0), 2)
+        self.assertEqual(counters.get(current_label, 0), 1)
+
     def test_maintenance_endpoints_reject_empty_auth_token(self) -> None:
         with TestClient(app) as client:
             empty_headers = {settings.maintenance_auth_header: ""}
