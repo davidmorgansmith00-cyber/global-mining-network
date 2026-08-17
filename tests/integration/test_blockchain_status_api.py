@@ -833,6 +833,26 @@ class BlockchainStatusApiTests(unittest.TestCase):
         self.assertEqual(checkpoint_retention_newline.status_code, 422)
         self.assertEqual(max_network_events_newline.status_code, 422)
 
+    def test_cleanup_endpoint_rejects_carriage_return_whitespace_query_parameters(self) -> None:
+        headers = {settings.maintenance_auth_header: settings.maintenance_auth_token}
+        with TestClient(app) as client:
+            event_retention_carriage = client.post(
+                "/api/v1/blockchain/maintenance/cleanup?event_retention_seconds=%0D",
+                headers=headers,
+            )
+            checkpoint_retention_carriage = client.post(
+                "/api/v1/blockchain/maintenance/cleanup?checkpoint_retention_seconds=%0D",
+                headers=headers,
+            )
+            max_network_events_carriage = client.post(
+                "/api/v1/blockchain/maintenance/cleanup?max_network_events=%0D",
+                headers=headers,
+            )
+
+        self.assertEqual(event_retention_carriage.status_code, 422)
+        self.assertEqual(checkpoint_retention_carriage.status_code, 422)
+        self.assertEqual(max_network_events_carriage.status_code, 422)
+
     def test_cleanup_endpoint_rejects_crlf_whitespace_query_parameters(self) -> None:
         headers = {settings.maintenance_auth_header: settings.maintenance_auth_token}
         with TestClient(app) as client:
