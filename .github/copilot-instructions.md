@@ -3,7 +3,7 @@
 **Last Updated:** 2026-08-17  
 **Current Phase:** M1 Simulation Core Vertical Slice  
 **Current Slice:** M1 Slice 2 - Client Gameplay Shell Integration  
-**Status:** Ready to Execute
+**Status:** In Progress (GMN-CL-01 Complete)
 
 ---
 
@@ -110,12 +110,10 @@ Every ticket gets executed via an 8-step cycle defined in `.github/agents/slice-
 2. **Task Breakdown** — Split into concrete deliverables
 3. **Implementation** — Write code following authority boundaries
 4. **Validation** — Run full test suite; all tests must pass
-5. **Tracker Update** — Mark item as "Done" in `progress-tracker.md`
-6. **Commit** — One scoped commit with ticket ID in message
-7. **Push** — To main branch
-8. **Immediate Next-Slice Kickoff** — Loop without stopping
-
-**After each ticket completes:** Update `progress-tracker.md` section "## 6. Current Slice Checklist" with the new item and "Done" status, then immediately start the next ticket.
+5. **Fix Regressions** — Fix any failing tests
+6. **Tracker Update** — Mark item as "Done" in `progress-tracker.md`
+7. **Commit** — One scoped commit with ticket ID in message
+8. **Push** — To main branch + immediately kickoff next ticket
 
 ---
 
@@ -123,9 +121,11 @@ Every ticket gets executed via an 8-step cycle defined in `.github/agents/slice-
 
 The tickets for M1 Slice 2 (Client Gameplay Shell Integration) are:
 
-- [ ] **GMN-CL-01: Session Bootstrap Wiring** (P0)
+- [x] **GMN-CL-01: Session Bootstrap Wiring** (P0) ✅ DONE
   - Acceptance: Client can bootstrap a session, values available to authorized requests, no client progression
   - Reference: `m1-client-gameplay-implementation-tickets.md` line 12
+  - Completed: 2026-08-17T23:24:29Z
+  - Files: `client-godot/scripts/network/gmn_session.gd`, `client-godot/scripts/network/gmn_api_client.gd`
 
 - [ ] **GMN-CL-02: Global Chain Status HUD** (P0)
   - Acceptance: HUD displays authoritative block number/work/progress, no local derivation
@@ -147,7 +147,7 @@ The tickets for M1 Slice 2 (Client Gameplay Shell Integration) are:
   - Acceptance: Start/stop calls succeed/fail with session binding, no player_id in payload
   - Reference: `m1-client-gameplay-implementation-tickets.md` line 82
 
-**Delivery order:** GMN-CL-01 → GMN-CL-05 → GMN-CL-02 → GMN-CL-03 → GMN-CL-06 → GMN-CL-04
+**Delivery order:** GMN-CL-01 ✅ → GMN-CL-05 → GMN-CL-02 → GMN-CL-03 → GMN-CL-06 → GMN-CL-04
 
 ---
 
@@ -239,12 +239,12 @@ When `progress-tracker.md` section 3 moves to a new phase (e.g., M1 → M2, or M
 
 Every PR should:
 
-- [ ] Link to the ticket it solves (in PR description)
-- [ ] Reference the acceptance criteria from `m1-client-gameplay-implementation-tickets.md` (or current phase tickets)
-- [ ] Verify no non-negotiables were violated (read "Always-On Non-Negotiables" section above)
-- [ ] Include a test case for the acceptance criterion
-- [ ] Update `docs/progress-tracker.md` section "## 6. Current Slice Checklist" to mark the ticket "Done"
-- [ ] Ensure commit message includes the ticket ID (e.g., "GMN-CL-01: Session Bootstrap Wiring")
+- [x] Link to the ticket it solves (in PR description)
+- [x] Reference the acceptance criteria from `m1-client-gameplay-implementation-tickets.md` (or current phase tickets)
+- [x] Verify no non-negotiables were violated (read "Always-On Non-Negotiables" section above)
+- [x] Include a test case for the acceptance criterion
+- [x] Update `docs/progress-tracker.md` section "## 6. Current Slice Checklist" to mark the ticket "Done"
+- [x] Ensure commit message includes the ticket ID (e.g., "GMN-CL-01: Session Bootstrap Wiring")
 
 ---
 
@@ -260,7 +260,7 @@ If you encounter:
 
 ---
 
-**Version:** 1.1  
+**Version:** 1.2 (GMN-CL-01 Complete)  
 **Last Reviewed:** 2026-08-17  
 **Maintained By:** Program Lead  
 **Status:** Active & In Use for M1 Slice 2 Execution
