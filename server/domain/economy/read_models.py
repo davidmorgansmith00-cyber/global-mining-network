@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from decimal import Decimal
 
-from shared.database import open_connection
+from shared.database import database_is_configured, open_connection
 
 
 @dataclass(frozen=True)
@@ -13,6 +13,9 @@ class PlayerRewardBalance:
 
 
 def project_player_reward_balances() -> list[PlayerRewardBalance]:
+    if not database_is_configured():
+        return []
+
     with open_connection() as connection:
         with connection.cursor() as cursor:
             cursor.execute(
