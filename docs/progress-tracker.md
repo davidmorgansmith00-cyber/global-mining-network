@@ -235,6 +235,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Operation intent strict-mode counter exactness coverage | Done | Added integration test asserting strict header mode query-only rejections increment `query_rejected_strict` exactly twice for start and stop |
 | Empty recent-limit query coverage | Done | Added integration test asserting status, network snapshot, and reward history endpoints reject empty `recent_limit` query values with HTTP 422 |
 | Fractional recent-limit query coverage | Done | Added integration test asserting status, network snapshot, and reward history endpoints reject fractional `recent_limit` query values with HTTP 422 |
+| Negative recent-limit query coverage | Done | Added integration test asserting status, network snapshot, and reward history endpoints reject negative `recent_limit` query values with HTTP 422 |
 | Empty network-events query coverage | Done | Added integration test asserting network-events rejects empty `after_sequence` and empty `limit` query values with HTTP 422 |
 | Fractional network-events query coverage | Done | Added integration test asserting network-events rejects fractional `after_sequence` and `limit` query values with HTTP 422 |
 | Empty cleanup query coverage | Done | Added integration test asserting cleanup rejects empty `event_retention_seconds`, `checkpoint_retention_seconds`, and `max_network_events` query values with HTTP 422 |
