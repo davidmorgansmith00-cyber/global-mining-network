@@ -756,6 +756,20 @@ class BlockchainStatusApiTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 422)
 
+    def test_operation_start_intent_rejects_whitespace_hashrate(self) -> None:
+        _, session_id = self._create_player_session_binding()
+
+        with TestClient(app) as client:
+            response = client.post(
+                f"/api/v1/blockchain/operations/intents/start?session_id={session_id}",
+                json={
+                    "operation_id": "op_invalid_hashrate_whitespace",
+                    "base_hashrate_hps": "   ",
+                },
+            )
+
+        self.assertEqual(response.status_code, 422)
+
     def test_operation_start_intent_rejects_missing_required_fields(self) -> None:
         _, session_id = self._create_player_session_binding()
 
