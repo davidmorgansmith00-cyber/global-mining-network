@@ -1447,6 +1447,37 @@ class BlockchainStatusApiTests(unittest.TestCase):
         self.assertEqual(start_response.json().get("detail"), "Invalid session binding")
         self.assertEqual(stop_response.json().get("detail"), "Invalid session binding")
 
+    def test_operation_intents_whitespace_session_transport_increments_query_and_header_counters(self) -> None:
+        header_name = settings.operation_intent_session_header
+
+        with TestClient(app) as client:
+            whitespace_query = client.post(
+                "/api/v1/blockchain/operations/intents/start?session_id=%20%20%20",
+                json={
+                    "operation_id": "op_whitespace_counter_query",
+                    "base_hashrate_hps": "20",
+                },
+            )
+            whitespace_header = client.post(
+                "/api/v1/blockchain/operations/intents/stop",
+                json={"operation_id": "op_whitespace_counter_header"},
+                headers={header_name: "   "},
+            )
+            metrics_headers = {settings.maintenance_auth_header: settings.maintenance_auth_token}
+            metrics_json = client.get("/api/v1/blockchain/maintenance/metrics", headers=metrics_headers)
+            metrics_plaintext = client.get("/api/v1/blockchain/maintenance/metrics/plaintext", headers=metrics_headers)
+
+        self.assertEqual(whitespace_query.status_code, 401)
+        self.assertEqual(whitespace_header.status_code, 401)
+        self.assertEqual(metrics_json.status_code, 200)
+        self.assertEqual(metrics_plaintext.status_code, 200)
+
+        counters = metrics_json.json().get("operation_intent_transport_requests_total", {})
+        self.assertEqual(counters.get("query", 0), 1)
+        self.assertEqual(counters.get("header", 0), 1)
+        self.assertIn('gmn_operation_intent_transport_requests_total{mode="query"} 1', metrics_plaintext.text)
+        self.assertIn('gmn_operation_intent_transport_requests_total{mode="header"} 1', metrics_plaintext.text)
+
     def test_operation_intents_invalid_bindings_increment_query_and_header_counters(self) -> None:
         header_name = settings.operation_intent_session_header
 
