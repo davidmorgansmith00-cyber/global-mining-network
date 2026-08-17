@@ -1487,6 +1487,37 @@ class BlockchainStatusApiTests(unittest.TestCase):
         self.assertEqual(header_start.json().get("detail"), "Invalid session binding")
         self.assertEqual(header_stop.json().get("detail"), "Invalid session binding")
 
+    def test_operation_intents_tab_whitespace_transport_increments_query_and_header_counters(self) -> None:
+        header_name = settings.operation_intent_session_header
+
+        with TestClient(app) as client:
+            query_response = client.post(
+                "/api/v1/blockchain/operations/intents/start?session_id=%09",
+                json={
+                    "operation_id": "op_tab_counter_query",
+                    "base_hashrate_hps": "20",
+                },
+            )
+            header_response = client.post(
+                "/api/v1/blockchain/operations/intents/stop",
+                json={"operation_id": "op_tab_counter_header"},
+                headers={header_name: "\t"},
+            )
+            metrics_headers = {settings.maintenance_auth_header: settings.maintenance_auth_token}
+            metrics_json = client.get("/api/v1/blockchain/maintenance/metrics", headers=metrics_headers)
+            metrics_plaintext = client.get("/api/v1/blockchain/maintenance/metrics/plaintext", headers=metrics_headers)
+
+        self.assertEqual(query_response.status_code, 401)
+        self.assertEqual(header_response.status_code, 401)
+        self.assertEqual(metrics_json.status_code, 200)
+        self.assertEqual(metrics_plaintext.status_code, 200)
+
+        counters = metrics_json.json().get("operation_intent_transport_requests_total", {})
+        self.assertEqual(counters.get("query", 0), 1)
+        self.assertEqual(counters.get("header", 0), 1)
+        self.assertIn('gmn_operation_intent_transport_requests_total{mode="query"} 1', metrics_plaintext.text)
+        self.assertIn('gmn_operation_intent_transport_requests_total{mode="header"} 1', metrics_plaintext.text)
+
     def test_operation_intents_reject_newline_whitespace_query_session_transport(self) -> None:
         with TestClient(app) as client:
             start_response = client.post(
