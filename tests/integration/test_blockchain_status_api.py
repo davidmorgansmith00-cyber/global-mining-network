@@ -1418,6 +1418,33 @@ class BlockchainStatusApiTests(unittest.TestCase):
         self.assertEqual(start_response.json().get("detail"), "Invalid session binding")
         self.assertEqual(stop_response.json().get("detail"), "Invalid session binding")
 
+    def test_operation_intents_invalid_bindings_increment_query_and_header_counters(self) -> None:
+        header_name = settings.operation_intent_session_header
+
+        with TestClient(app) as client:
+            invalid_query = client.post(
+                "/api/v1/blockchain/operations/intents/start?session_id=not-a-session",
+                json={
+                    "operation_id": "op_invalid_binding_counter_query",
+                    "base_hashrate_hps": "20",
+                },
+            )
+            invalid_header = client.post(
+                "/api/v1/blockchain/operations/intents/stop",
+                json={"operation_id": "op_invalid_binding_counter_header"},
+                headers={header_name: "not-a-session"},
+            )
+            metrics_headers = {settings.maintenance_auth_header: settings.maintenance_auth_token}
+            metrics_json = client.get("/api/v1/blockchain/maintenance/metrics", headers=metrics_headers)
+
+        self.assertEqual(invalid_query.status_code, 401)
+        self.assertEqual(invalid_header.status_code, 401)
+        self.assertEqual(metrics_json.status_code, 200)
+
+        counters = metrics_json.json().get("operation_intent_transport_requests_total", {})
+        self.assertEqual(counters.get("query", 0), 1)
+        self.assertEqual(counters.get("header", 0), 1)
+
     def test_operation_intents_reject_tab_whitespace_session_transport(self) -> None:
         header_name = settings.operation_intent_session_header
 
