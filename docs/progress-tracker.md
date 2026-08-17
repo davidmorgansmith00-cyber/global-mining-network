@@ -198,6 +198,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Checkpoint player_rewards channel contract coverage | Done | Added integration test asserting checkpoint GET/PUT for `player_rewards` persist and return the channel-scoped reconnect cursor contract |
 | Operation intent non-positive hashrate contract coverage | Done | Added integration test asserting operation start intent rejects zero/negative `base_hashrate_hps` with deterministic 400 validation detail |
 | Network events negative-cursor contract coverage | Done | Added integration test asserting `after_sequence=-1` is rejected by endpoint validation with HTTP 422 |
+| Network events negative-limit contract coverage | Done | Added integration test asserting `limit=-1` is rejected by endpoint validation with HTTP 422 |
 | Network snapshot recent-limit bounds coverage | Done | Added integration test asserting `recent_limit` values outside [1, 100] are rejected with HTTP 422 |
 | Network events limit bounds coverage | Done | Added integration test asserting `limit` values outside [1, 500] are rejected with HTTP 422 |
 | Blockchain status recent-limit bounds coverage | Done | Added integration test asserting status `recent_limit` values outside [1, 100] are rejected with HTTP 422 |

@@ -374,6 +374,12 @@ class BlockchainStatusApiTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 422)
 
+    def test_network_events_endpoint_rejects_negative_limit(self) -> None:
+        with TestClient(app) as client:
+            response = client.get("/api/v1/blockchain/network-events?after_sequence=0&limit=-1")
+
+        self.assertEqual(response.status_code, 422)
+
     def test_network_events_endpoint_rejects_non_integer_after_sequence(self) -> None:
         with TestClient(app) as client:
             response = client.get("/api/v1/blockchain/network-events?after_sequence=not_an_int&limit=10")
