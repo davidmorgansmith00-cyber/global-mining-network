@@ -1153,6 +1153,44 @@ class BlockchainStatusApiTests(unittest.TestCase):
         self.assertEqual(start_response.json().get("detail"), "Invalid session binding")
         self.assertEqual(stop_response.json().get("detail"), "Invalid session binding")
 
+    def test_operation_intents_reject_tab_whitespace_session_transport(self) -> None:
+        header_name = settings.operation_intent_session_header
+
+        with TestClient(app) as client:
+            query_start = client.post(
+                "/api/v1/blockchain/operations/intents/start?session_id=%09",
+                json={
+                    "operation_id": "op_tab_query_session_start",
+                    "base_hashrate_hps": "20",
+                },
+            )
+            query_stop = client.post(
+                "/api/v1/blockchain/operations/intents/stop?session_id=%09",
+                json={"operation_id": "op_tab_query_session_stop"},
+            )
+            header_start = client.post(
+                "/api/v1/blockchain/operations/intents/start",
+                json={
+                    "operation_id": "op_tab_header_session_start",
+                    "base_hashrate_hps": "20",
+                },
+                headers={header_name: "\t"},
+            )
+            header_stop = client.post(
+                "/api/v1/blockchain/operations/intents/stop",
+                json={"operation_id": "op_tab_header_session_stop"},
+                headers={header_name: "\t"},
+            )
+
+        self.assertEqual(query_start.status_code, 401)
+        self.assertEqual(query_stop.status_code, 401)
+        self.assertEqual(header_start.status_code, 401)
+        self.assertEqual(header_stop.status_code, 401)
+        self.assertEqual(query_start.json().get("detail"), "Invalid session binding")
+        self.assertEqual(query_stop.json().get("detail"), "Invalid session binding")
+        self.assertEqual(header_start.json().get("detail"), "Invalid session binding")
+        self.assertEqual(header_stop.json().get("detail"), "Invalid session binding")
+
     def test_operation_intents_reject_expired_session_bindings(self) -> None:
         player_id, session_id = self._create_player_session_binding()
 
