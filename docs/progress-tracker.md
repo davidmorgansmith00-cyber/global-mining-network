@@ -1,7 +1,7 @@
 # Global Mining Network Progress Tracker
 
 **Status:** Active Tracking  
-**Version:** 1.3  
+**Version:** 1.4  
 **Date Initialized:** 2026-08-15
 **Last Updated:** 2026-08-18
 
@@ -30,7 +30,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 - Current Slice: M1 Slice 2 - Client Gameplay Shell Integration
 - Overall Status: In Progress
 - Architecture Status: Ready
-- Implementation Status: M0 closed, M1 Slice 1 closed, M1 Slice 2 in progress (3/6 tickets complete)
+- Implementation Status: M0 closed, M1 Slice 1 closed, M1 Slice 2 in progress (4/6 tickets complete)
 
 ---
 
@@ -38,7 +38,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Milestone | Status | Notes |
 |---|---|---|
 | M0 Foundations | Done | Closed after persistence test baseline passed and exit review completed |
-| M1 Simulation Core Vertical Slice | In Progress | Slice 1 closed; Slice 2 executing (GMN-CL-01, GMN-CL-02, GMN-CL-05 done; 3 remaining) |
+| M1 Simulation Core Vertical Slice | In Progress | Slice 1 closed; Slice 2 executing (GMN-CL-01, GMN-CL-02, GMN-CL-05, GMN-CL-03 done; 2 remaining) |
 | M2 Constraint Systems and Economy Foundations | Not Started | Locked behind M1 proof |
 | M3 Social-Competitive Core | Not Started | Locked behind M2 baseline systems |
 | M4 Productization and Launcher Beta | Not Started | Launcher/update work begins after artifact pipeline exists |
@@ -63,8 +63,8 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Marketplace and Trading | Not Started | Economy Lead | Starts after ledger/inventory baseline |
 | Research, Manufacturing, Automation | Not Started | Economy Lead | Starts after content and economy baseline |
 | Pools, Social, Notifications | Not Started | Gameplay Lead | Starts in M3 |
-| Client Gameplay and UX | In Progress | Gameplay Lead | M1 Slice 2: Session bootstrap + status HUD + scene scaffold wired; 3 tickets remaining |
-| WebSocket and Realtime Delivery | Not Started | Backend Lead | Starts after event contract baseline |
+| Client Gameplay and UX | In Progress | Gameplay Lead | M1 Slice 2: Session bootstrap + status HUD + scene scaffold + event stream wired; 2 tickets remaining |
+| WebSocket and Realtime Delivery | In Progress | Backend Lead | Event stream websocket service implemented with cursor-based reconnect |
 | Content Pipeline and Data Ops | In Progress | Content Lead | Initial content schema scaffold and validator created |
 | Launcher, Installer, Patcher | Not Started | Platform Lead | Starts in M3-M4 |
 | Admin, Analytics, Operations | In Progress | Operations Lead | Basic logging baseline started in M0 |
@@ -80,11 +80,11 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | GMN-CL-01: Session Bootstrap Wiring | Done | Client session lifecycle wired; register/login/refresh/logout tested; 8/8 tests passing |
 | GMN-CL-02: Global Chain Status HUD | Done | Status polling service + HUD display + controller wiring complete; 9/9 tests passing |
 | GMN-CL-05: Gameplay Shell Scene Scaffold | Done | Scene root script + UI panels + service orchestration complete; 8/8 tests passing |
-| GMN-CL-03: Snapshot + Reconnect Event Stream | Planned | Next: Load snapshot and subscribe to websocket with cursor handling |
-| GMN-CL-06: Operation Intent Session-Bound Contract | Planned | Wire start/stop intents with session binding |
-| GMN-CL-04: Player Reward Timeline Panel | Planned | Render reward history from /api/v1/blockchain/players/{player_id}/rewards |
+| GMN-CL-03: Snapshot + Reconnect Event Stream | Done | Snapshot service + event stream service + cursor persistence complete; 10/10 tests passing |
+| GMN-CL-06: Operation Intent Session-Bound Contract | Planned | Next: Wire start/stop intents with session binding |
+| GMN-CL-04: Player Reward Timeline Panel | Planned | Last: Render reward history from /api/v1/blockchain/players/{player_id}/rewards |
 
-**Delivery order:** GMN-CL-01 ✅ → GMN-CL-02 ✅ → GMN-CL-05 ✅ → GMN-CL-03 → GMN-CL-06 → GMN-CL-04
+**Delivery order:** GMN-CL-01 ✅ → GMN-CL-02 ✅ → GMN-CL-05 ✅ → GMN-CL-03 ✅ → GMN-CL-06 → GMN-CL-04
 
 ---
 
@@ -108,29 +108,31 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 
 ## 10. Next Actions
 
-1. **Execute GMN-CL-03 using the 8-step cycle** in `.github/agents/slice-executor.agent.md`
-   - Reason: WebSocket event stream handling critical for real-time gameplay
-   - Dependency: GMN-CL-05 controller scaffold provides event loop framework
-   - Estimated effort: 4-6 hours (8 items in TODO breakdown)
-
-2. **Then execute GMN-CL-06** (Operation Intent Session-Bound Contract)
+1. **Execute GMN-CL-06 using the 8-step cycle** in `.github/agents/slice-executor.agent.md`
    - Reason: Allows players to start/stop operations with server-authoritative bindings
    - Dependency: Session bootstrap + controller framework + event stream in place
+   - Estimated effort: 4-6 hours (8 items in TODO breakdown)
 
-3. **Finally execute GMN-CL-04** (Player Reward Timeline Panel)
-   - Reason: Lowest priority; depends on all other components
+2. **Then execute GMN-CL-04** (Player Reward Timeline Panel)
+   - Reason: Final client gameplay ticket; renders reward history from server
    - Dependency: Status HUD + rewards API integration
+   - Estimated effort: 3-4 hours
 
-4. **After M1 Slice 2 closes:** Move to M2 Constraint Systems
-   - Economy systems: Hardware/power/cooling/facilities
-   - Difficulty/reward balancing
-   - Progression pacing systems
-
-5. **Slice 2 exit criteria validation**
+3. **After M1 Slice 2 closes:** Validate exit criteria
    - All 6 client gameplay tickets complete and tested
    - Integration tests covering session bootstrap, status HUD, event stream, operations, and rewards
    - Server-authoritative constraints enforced throughout
    - No client-side progression mutations
+
+4. **Prepare for M2 transition**
+   - Read M2 exit criteria from implementation-plan-v1.md
+   - Read M2 entry plan and constraint systems spec
+   - Update copilot-instructions.md for M2 phase
+
+5. **M2 Phase Kickoff:** Constraint Systems and Economy Foundations
+   - Economy systems: Hardware/power/cooling/facilities
+   - Difficulty/reward balancing
+   - Progression pacing systems
 
 ---
 
@@ -141,4 +143,4 @@ Whenever meaningful progress changes:
 3. Record blockers or risks.
 4. Update next actions.
 
-**Last update:** 2026-08-18T00:41:57Z (GMN-CL-05 Complete)
+**Last update:** 2026-08-18T00:58:38Z (GMN-CL-03 Complete)
