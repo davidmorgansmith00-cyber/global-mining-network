@@ -10,14 +10,16 @@ from uuid import UUID, uuid4
 
 from psycopg.errors import SerializationFailure
 
+from domain.hardware.upgrade_service import HardwareUpgradeService
 from domain.market.schemas import MarketCatalogItemResponse
 from shared.database import database_is_configured, open_connection
 
 
 CATALOG_PATH = Path(__file__).resolve().parents[3] / "content" / "market_catalog.json"
 ALLOWED_ITEM_TYPES = {"hardware_upgrade", "facility_upgrade", "consumable", "cosmetic"}
-CREDIT_LEDGER_ENTRY_TYPES = ("block.finalized.player_reward.v1", "market.purchase.v1")
+CREDIT_LEDGER_ENTRY_TYPES = ("block.finalized.player_reward.v1", "market.purchase.v1", "hardware.upgrade.v1")
 PURCHASE_ENTRY_TYPE = "market.purchase.v1"
+UPGRADE_ENTRY_TYPE = "hardware.upgrade.v1"
 TIER_UNLOCK_PATTERN = re.compile(r"^\s*tier\s*>=\s*(\d+)\s*$")
 
 
@@ -53,6 +55,7 @@ class PurchaseResult:
 class NpcMarketService:
     def __init__(self) -> None:
         self._catalog_cache: dict[str, MarketCatalogItem] | None = None
+        self._upgrade_service = HardwareUpgradeService()
 
     def get_market_catalog(self, *, player_tier: int | None = None) -> list[MarketCatalogItemResponse]:
         catalog_items = list(self._load_catalog().values())
@@ -105,7 +108,7 @@ class NpcMarketService:
                     with connection.cursor() as cursor:
                         cursor.execute(
                             """
-                            SELECT player_id, COALESCE(player_tier, 1)
+                            SELECT player_id, COALESCE(player_tier, 1), COALESCE(hardware_id, 'starter_rusty_home_computer')
                             FROM players
                             WHERE player_id = %s
                             FOR UPDATE
@@ -117,6 +120,7 @@ class NpcMarketService:
                             connection.rollback()
                             return PurchaseResult(success=False, error="player_not_found")
                         player_tier = int(player_row[1])
+                        current_hardware_id: str = str(player_row[2])
                         if not self._is_unlocked(item, player_tier):
                             connection.rollback()
                             return PurchaseResult(success=False, error="item_locked")
@@ -142,6 +146,12 @@ class NpcMarketService:
                                 (available_stock - quantity, now, item.item_id),
                             )
 
+                        is_hw_upgrade = (
+                            item.item_type == "hardware_upgrade"
+                            and self._upgrade_service.is_hardware_tier_upgrade(item.item_id)
+                        )
+                        previous_hardware_id: str | None = current_hardware_id if is_hw_upgrade else None
+
                         cursor.execute(
                             """
                             INSERT INTO player_inventory (player_id, item_id, quantity, acquired_at)
@@ -152,6 +162,40 @@ class NpcMarketService:
                             """,
                             (player_uuid, item.item_id, quantity, now),
                         )
+
+                        if is_hw_upgrade:
+                            hw_def = self._upgrade_service.get_definition(item.item_id)
+                            new_power_consumed = (
+                                hw_def.base_power_consumption if hw_def is not None else None
+                            )
+                            cursor.execute(
+                                """
+                                UPDATE players
+                                SET hardware_id = %s,
+                                    power_consumed = COALESCE(%s, power_consumed),
+                                    heat_generated = 0,
+                                    updated_at = %s
+                                WHERE player_id = %s
+                                """,
+                                (item.item_id, new_power_consumed, now, player_uuid),
+                            )
+                            if previous_hardware_id and previous_hardware_id != item.item_id:
+                                cursor.execute(
+                                    """
+                                    DELETE FROM player_inventory
+                                    WHERE player_id = %s AND item_id = %s
+                                    """,
+                                    (player_uuid, previous_hardware_id),
+                                )
+
+                        entry_type = UPGRADE_ENTRY_TYPE if is_hw_upgrade else PURCHASE_ENTRY_TYPE
+                        ledger_metadata: dict[str, object] = {
+                            "item_id": item.item_id,
+                            "quantity": quantity,
+                            "unit_price": str(item.price),
+                        }
+                        if is_hw_upgrade and previous_hardware_id:
+                            ledger_metadata["previous_item_id"] = previous_hardware_id
 
                         cursor.execute(
                             """
@@ -164,13 +208,14 @@ class NpcMarketService:
                                 currency,
                                 entry_type,
                                 item_id,
+                                previous_item_id,
                                 quantity,
                                 unit_price,
                                 total_cost,
                                 metadata,
                                 created_at
                             )
-                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s)
                             """,
                             (
                                 uuid4(),
@@ -179,12 +224,13 @@ class NpcMarketService:
                                 -total_cost,
                                 Decimal("0"),
                                 "credits",
-                                PURCHASE_ENTRY_TYPE,
+                                entry_type,
                                 item.item_id,
+                                previous_hardware_id,
                                 quantity,
                                 item.price,
                                 total_cost,
-                                json.dumps({"item_id": item.item_id, "quantity": quantity, "unit_price": str(item.price)}),
+                                json.dumps(ledger_metadata),
                                 now,
                             ),
                         )

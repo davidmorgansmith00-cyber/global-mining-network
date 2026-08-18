@@ -24,5 +24,22 @@
     "inventory": 2,
     "restock_rate_per_day": 1,
     "unlock_condition": "tier >= 2"
+  },
+  {
+    "item_id": "improved_workstation",
+    "name": "Improved Workstation",
+    "description": "Mid-range hardware for serious miners. Doubles hashrate at the cost of more power and heat.",
+    "item_type": "hardware_upgrade",
+    "price": "2500",
+    "inventory": "unlimited"
+  },
+  {
+    "item_id": "professional_mining_rig",
+    "name": "Professional Mining Rig",
+    "description": "High-performance dedicated mining hardware. Requires a matured operation to unlock.",
+    "item_type": "hardware_upgrade",
+    "price": "8000",
+    "inventory": "unlimited",
+    "unlock_condition": "tier >= 2"
   }
 ]

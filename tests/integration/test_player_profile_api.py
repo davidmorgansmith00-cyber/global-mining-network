@@ -68,7 +68,7 @@ class PlayerProfileApiIntegrationTests(unittest.TestCase):
                 self.assertEqual(response.status_code, 200)
 
                 payload = response.json()
-                self.assertEqual(payload["schema_version"], "player.profile.v1.5")
+                self.assertEqual(payload["schema_version"], "player.profile.v1.6")
                 self.assertEqual(payload["player_id"], player_id)
                 self.assertEqual(payload["hardware_id"], "starter_rusty_home_computer")
                 self.assertEqual(payload["base_hashrate"], 12.0)
