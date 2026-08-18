@@ -3,6 +3,8 @@ from __future__ import annotations
 import os
 import sys
 import unittest
+from datetime import UTC, datetime, timedelta
+from decimal import Decimal
 from pathlib import Path
 from uuid import UUID, uuid4
 
@@ -44,11 +46,12 @@ class PlayerProfileApiIntegrationTests(unittest.TestCase):
                 player_id = row[0]
 
                 cursor.execute("DELETE FROM auth_sessions WHERE player_id = %s", (player_id,))
+                cursor.execute("DELETE FROM economy_player_ledger_entries WHERE player_id = %s", (str(player_id),))
                 cursor.execute("DELETE FROM player_profiles WHERE player_id = %s", (player_id,))
                 cursor.execute("DELETE FROM players WHERE player_id = %s", (player_id,))
             connection.commit()
 
-    def test_profile_endpoint_returns_v13_cooling_constraint_contract(self) -> None:
+    def test_profile_endpoint_returns_v14_offline_progression_contract(self) -> None:
         email = f"profile_contract_{uuid4().hex[:10]}@example.com"
         password = "password123"
 
@@ -65,7 +68,7 @@ class PlayerProfileApiIntegrationTests(unittest.TestCase):
                 self.assertEqual(response.status_code, 200)
 
                 payload = response.json()
-                self.assertEqual(payload["schema_version"], "player.profile.v1.3")
+                self.assertEqual(payload["schema_version"], "player.profile.v1.4")
                 self.assertEqual(payload["player_id"], player_id)
                 self.assertEqual(payload["hardware_id"], "starter_rusty_home_computer")
                 self.assertEqual(payload["base_hashrate"], 12.0)
@@ -78,6 +81,13 @@ class PlayerProfileApiIntegrationTests(unittest.TestCase):
                 self.assertEqual(payload["cooling_efficiency_multiplier"], 1.0)
                 self.assertIsNotNone(payload["last_heat_dissipation_at"])
                 self.assertEqual(payload["effective_hashrate"], 12.0)
+                self.assertEqual(payload["player_tier"], 1)
+                self.assertEqual(payload["blocks_finalized_contributed_count"], 0)
+                self.assertEqual(Decimal(payload["current_offline_cap"]), Decimal("1000"))
+                self.assertEqual(Decimal(payload["offline_work_earned"]), Decimal("0"))
+                self.assertFalse(payload["offline_cap_applied"])
+                self.assertEqual(Decimal(payload["offline_cap_amount"]), Decimal("0"))
+                self.assertEqual(payload["offline_cap_status_message"], "Offline work earned: 0 of 1000 (tier: 1)")
                 self.assertEqual(
                     set(payload.keys()),
                     {
@@ -94,8 +104,143 @@ class PlayerProfileApiIntegrationTests(unittest.TestCase):
                         "cooling_efficiency_multiplier",
                         "last_heat_dissipation_at",
                         "effective_hashrate",
+                        "player_tier",
+                        "blocks_finalized_contributed_count",
+                        "current_offline_cap",
+                        "offline_work_earned",
+                        "offline_cap_applied",
+                        "offline_cap_amount",
+                        "offline_cap_status_message",
                     },
                 )
+        finally:
+            self._cleanup_player_by_email(email=email)
+
+    def test_profile_endpoint_applies_and_audits_tier_cap_for_offline_progress(self) -> None:
+        email = f"profile_offline_cap_{uuid4().hex[:10]}@example.com"
+        password = "password123"
+
+        try:
+            with TestClient(app) as client:
+                registered = client.post(
+                    "/api/v1/auth/register",
+                    json={"email": email, "password": password},
+                )
+                self.assertEqual(registered.status_code, 200)
+                player_id = registered.json()["player_id"]
+
+                offline_started_at = datetime.now(tz=UTC) - timedelta(minutes=2)
+                with psycopg.connect(self.database_url) as connection:
+                    with connection.cursor() as cursor:
+                        cursor.execute(
+                            """
+                            UPDATE players
+                            SET last_offline_progress_at = %s
+                            WHERE player_id = %s
+                            """,
+                            (offline_started_at, UUID(player_id)),
+                        )
+                    connection.commit()
+
+                response = client.get("/api/v1/players/profile", params={"player_id": player_id})
+                self.assertEqual(response.status_code, 200)
+
+                payload = response.json()
+                self.assertEqual(Decimal(payload["current_offline_cap"]), Decimal("1000"))
+                self.assertEqual(Decimal(payload["offline_work_earned"]), Decimal("1000"))
+                self.assertTrue(payload["offline_cap_applied"])
+                self.assertGreater(Decimal(payload["offline_cap_amount"]), Decimal("0"))
+                self.assertEqual(
+                    payload["offline_cap_status_message"],
+                    "Offline work earned: 1000 (your tier allows 1000)",
+                )
+
+                with psycopg.connect(self.database_url) as connection:
+                    with connection.cursor() as cursor:
+                        cursor.execute(
+                            """
+                            SELECT amount, contribution_hashes, cap_applied, cap_amount, offline_cap_tier, currency, entry_type
+                            FROM economy_player_ledger_entries
+                            WHERE player_id = %s
+                              AND entry_type = 'mining.offline_progress.v1'
+                            ORDER BY created_at DESC
+                            LIMIT 1
+                            """,
+                            (player_id,),
+                        )
+                        row = cursor.fetchone()
+
+                self.assertIsNotNone(row)
+                self.assertEqual(row[0], Decimal("1000.000000"))
+                self.assertEqual(row[1], Decimal("1000.000000"))
+                self.assertTrue(row[2])
+                self.assertGreater(row[3], Decimal("0"))
+                self.assertEqual(row[4], 1)
+                self.assertEqual(row[5], "work")
+                self.assertEqual(row[6], "mining.offline_progress.v1")
+        finally:
+            self._cleanup_player_by_email(email=email)
+
+    def test_profile_endpoint_unlocks_higher_offline_caps_from_finalized_block_contributions(self) -> None:
+        email = f"profile_tier_unlock_{uuid4().hex[:10]}@example.com"
+        password = "password123"
+
+        try:
+            with TestClient(app) as client:
+                registered = client.post(
+                    "/api/v1/auth/register",
+                    json={"email": email, "password": password},
+                )
+                self.assertEqual(registered.status_code, 200)
+                player_id = registered.json()["player_id"]
+
+                with psycopg.connect(self.database_url) as connection:
+                    with connection.cursor() as cursor:
+                        for block_number in range(1, 6):
+                            cursor.execute(
+                                """
+                                INSERT INTO economy_player_ledger_entries (
+                                    ledger_entry_id,
+                                    block_number,
+                                    player_id,
+                                    amount,
+                                    contribution_hashes,
+                                    currency,
+                                    entry_type,
+                                    metadata
+                                )
+                                VALUES (%s, %s, %s, %s, %s, %s, %s, '{}'::jsonb)
+                                """,
+                                (
+                                    uuid4(),
+                                    block_number,
+                                    player_id,
+                                    Decimal("1.000000"),
+                                    Decimal("1.000000"),
+                                    "credits",
+                                    "block.finalized.player_reward.v1",
+                                ),
+                            )
+                        cursor.execute(
+                            """
+                            UPDATE players
+                            SET last_offline_progress_at = %s
+                            WHERE player_id = %s
+                            """,
+                            (datetime.now(tz=UTC) - timedelta(minutes=6), UUID(player_id)),
+                        )
+                    connection.commit()
+
+                response = client.get("/api/v1/players/profile", params={"player_id": player_id})
+                self.assertEqual(response.status_code, 200)
+                payload = response.json()
+
+                self.assertEqual(payload["player_tier"], 2)
+                self.assertEqual(payload["blocks_finalized_contributed_count"], 5)
+                self.assertEqual(Decimal(payload["current_offline_cap"]), Decimal("5000"))
+                self.assertEqual(Decimal(payload["offline_work_earned"]), Decimal("4320.000000"))
+                self.assertFalse(payload["offline_cap_applied"])
+                self.assertEqual(Decimal(payload["offline_cap_amount"]), Decimal("0"))
         finally:
             self._cleanup_player_by_email(email=email)
 
@@ -213,7 +358,7 @@ class PlayerProfileApiIntegrationTests(unittest.TestCase):
         finally:
             self._cleanup_player_by_email(email=email)
 
-    def test_profile_openapi_contract_lists_v13_hashrate_fields(self) -> None:
+    def test_profile_openapi_contract_lists_v14_hashrate_fields(self) -> None:
         openapi = app.openapi()
         operation = openapi["paths"]["/api/v1/players/profile"]["get"]
         self.assertEqual(operation["summary"], "Get Player Profile")
@@ -236,6 +381,13 @@ class PlayerProfileApiIntegrationTests(unittest.TestCase):
             "cooling_efficiency_multiplier",
             "last_heat_dissipation_at",
             "effective_hashrate",
+            "player_tier",
+            "blocks_finalized_contributed_count",
+            "current_offline_cap",
+            "offline_work_earned",
+            "offline_cap_applied",
+            "offline_cap_amount",
+            "offline_cap_status_message",
         ):
             self.assertIn(field_name, profile_schema["properties"])
 

@@ -76,11 +76,25 @@ class PersistenceFlowTests(unittest.TestCase):
                     SELECT column_name
                     FROM information_schema.columns
                     WHERE table_name = 'economy_player_ledger_entries'
-                      AND column_name = 'contribution_hashes'
+                      AND column_name IN (
+                          'contribution_hashes',
+                          'cap_applied',
+                          'cap_amount',
+                          'offline_cap_tier'
+                      )
+                    ORDER BY column_name
                     """
                 )
-                contribution_column = cursor.fetchone()
-                self.assertIsNotNone(contribution_column)
+                ledger_columns = [row[0] for row in cursor.fetchall()]
+                self.assertEqual(
+                    ledger_columns,
+                    [
+                        "cap_amount",
+                        "cap_applied",
+                        "contribution_hashes",
+                        "offline_cap_tier",
+                    ],
+                )
 
                 cursor.execute(
                     """
@@ -97,7 +111,10 @@ class PersistenceFlowTests(unittest.TestCase):
                           'heat_generated',
                           'cooling_capacity',
                           'cooling_efficiency_multiplier_cached',
-                          'last_heat_dissipation_at'
+                          'last_heat_dissipation_at',
+                          'player_tier',
+                          'blocks_finalized_contributed_count',
+                          'last_offline_progress_at'
                       )
                     ORDER BY column_name
                     """
@@ -106,6 +123,7 @@ class PersistenceFlowTests(unittest.TestCase):
                 self.assertEqual(
                     player_columns,
                     [
+                        "blocks_finalized_contributed_count",
                         "cooling_capacity",
                         "cooling_efficiency_multiplier_cached",
                         "effective_hashrate_cached",
@@ -113,6 +131,8 @@ class PersistenceFlowTests(unittest.TestCase):
                         "hardware_id",
                         "heat_generated",
                         "last_heat_dissipation_at",
+                        "last_offline_progress_at",
+                        "player_tier",
                         "power_capacity",
                         "power_consumed",
                         "power_throttle_multiplier_cached",
@@ -152,7 +172,10 @@ class PersistenceFlowTests(unittest.TestCase):
                         player_profiles.starter_hashrate_hps,
                         players.power_consumed,
                         players.power_capacity,
-                        players.power_throttle_multiplier_cached
+                        players.power_throttle_multiplier_cached,
+                        players.player_tier,
+                        players.blocks_finalized_contributed_count,
+                        players.last_offline_progress_at
                     FROM player_profiles
                     INNER JOIN players ON players.player_id = player_profiles.player_id
                     WHERE player_profiles.player_id = %s
@@ -166,6 +189,9 @@ class PersistenceFlowTests(unittest.TestCase):
                 self.assertEqual(float(profile_row[2]), 120.0)
                 self.assertEqual(float(profile_row[3]), 120.0)
                 self.assertEqual(float(profile_row[4]), 1.0)
+                self.assertEqual(profile_row[5], 1)
+                self.assertEqual(profile_row[6], 0)
+                self.assertIsNotNone(profile_row[7])
 
                 cursor.execute("DELETE FROM auth_sessions WHERE player_id = %s", (player_id,))
                 cursor.execute("DELETE FROM player_profiles WHERE player_id = %s", (player_id,))

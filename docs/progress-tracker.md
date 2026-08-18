@@ -57,10 +57,10 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Platform and Developer Experience | In Progress | Platform Lead | Root scaffold, compose stack, service skeleton, and CI baseline created; M2 WebSocket work planned |
 | Identity and Account Systems | In Progress | Backend Lead | Auth session lifecycle complete; ready for M2 market and upgrade flows |
 | Player State and Progression Core | In Progress | Backend Lead | Player bootstrap contract skeleton created; M2 hardware/power/cooling state ready to add |
-| Simulation Kernel | In Progress | Simulation Lead | Mining service processing intervals proven; M2 offline cap logic ready to add |
+| Simulation Kernel | In Progress | Simulation Lead | Mining service processing intervals proven; offline cap reconstruction now added for reconnect/profile processing |
 | Blockchain and Difficulty | In Progress | Simulation Lead | Persistent active/finalized block state store proven; M2 ready |
-| Economy and Ledger | In Progress | Economy Lead | Block finalization ledger posting contract proven; M2 market/upgrade ledger ready |
-| Hardware, Power, Cooling, Facilities | **In Progress - M2 Start** | Economy Lead | Starts in M2 Slice 1; 3 tickets (GMN-EC-01, 02, 03) queued |
+| Economy and Ledger | In Progress | Economy Lead | Block finalization ledger posting contract proven; offline cap audit trail added; M2 market/upgrade ledger ready |
+| Hardware, Power, Cooling, Facilities | **In Progress - M2 Slice 1** | Economy Lead | GMN-EC-01/02/03 delivered; GMN-EC-04 offline caps now complete |
 | Marketplace and Trading | **Planned - M2 Start** | Economy Lead | Starts after ledger/inventory baseline; NPC market ticket (GMN-EC-05) in M2 |
 | Research, Manufacturing, Automation | Planned | Economy Lead | Starts after content and economy baseline |
 | Pools, Social, Notifications | Planned | Gameplay Lead | Starts in M3 |
@@ -105,14 +105,14 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 |---|---|---|---|---|
 | GMN-EC-01: Hardware Effective Hashrate Formula | Done | P0 | m2-economy-implementation-tickets.md line 11 | None |
 | GMN-EC-02: Power Constraints and Facility Limits | Done | P0 | m2-economy-implementation-tickets.md line 45 | GMN-EC-01 |
-| GMN-EC-03: Cooling Dynamics and Efficiency | Planned | P0 | m2-economy-implementation-tickets.md line 81 | GMN-EC-02 |
-| GMN-EC-04: Offline Progression Caps | Planned | P0 | m2-economy-implementation-tickets.md line 117 | GMN-EC-01, GMN-EC-03 |
+| GMN-EC-03: Cooling Dynamics and Efficiency | Done | P0 | m2-economy-implementation-tickets.md line 81 | GMN-EC-02 |
+| GMN-EC-04: Offline Progression Caps | Done | P0 | m2-economy-implementation-tickets.md line 117 | GMN-EC-01, GMN-EC-03 |
 | GMN-EC-05: NPC Market Purchase Flow | Planned | P1 | m2-economy-implementation-tickets.md line 149 | GMN-EC-01 (independent path) |
 | GMN-EC-06: Starter Upgrade Loop | Planned | P1 | m2-economy-implementation-tickets.md line 187 | GMN-EC-03, GMN-EC-05 |
 | GMN-EC-07: WebSocket Aggregated Updates | Planned | P1 | m2-economy-implementation-tickets.md line 221 | GMN-EC-01 through GMN-EC-06 |
 | GMN-EC-08: Progression Funnel Telemetry | Planned | P2 | m2-economy-implementation-tickets.md line 259 | GMN-EC-06 |
 
-**Delivery Sequence:** GMN-EC-01 ✓ → GMN-EC-02 ✓ → GMN-EC-03 ✓ → GMN-EC-04 ✓ → GMN-EC-05 ✓ → GMN-EC-06 ✓ → GMN-EC-07 ✓ → GMN-EC-08
+**Delivery Sequence:** GMN-EC-01 ✓ → GMN-EC-02 ✓ → GMN-EC-03 ✓ → GMN-EC-04 ✓ → GMN-EC-05 → GMN-EC-06 → GMN-EC-07 → GMN-EC-08
 
 **Parallelization Allowed:**
 - GMN-EC-04 and GMN-EC-05 can start after GMN-EC-01 (no dependency on EC-02/03)
@@ -156,10 +156,10 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 
 ## 12. Next Actions (Immediate)
 
-1. **Start GMN-EC-03 and GMN-EC-05 in parallel**
-   - GMN-EC-03 (cooling): Depends on GMN-EC-02 and blocks GMN-EC-04, GMN-EC-06, and GMN-EC-07
-   - GMN-EC-05 (market): Blocks GMN-EC-06 (upgrades)
-   - Both are now unblocked by GMN-EC-02
+1. **Start GMN-EC-05 and prepare GMN-EC-06**
+   - GMN-EC-05 (market): Next independent path and still blocks GMN-EC-06
+   - GMN-EC-06 (upgrades): Can now consume authoritative hardware, power, cooling, and offline-cap profile state
+   - GMN-EC-07 remains downstream of the full economy baseline
 
 2. **Prepare M2 exit review plan**
    - Timeline: After all 8 tickets complete (est. 3 weeks from start)
@@ -179,7 +179,7 @@ Whenever meaningful progress changes:
 3. Record blockers or risks.
 4. Update next actions.
 
-**Last update:** 2026-08-18T02:08:33Z (GMN-EC-02 delivered)
+**Last update:** 2026-08-18T03:45:00Z (GMN-EC-04 delivered)
 
 ---
 

@@ -119,6 +119,13 @@ Phase: M2 Slice 1
 - Replay test: Same progression engine with caps vs. without; outputs match when in-cap
 - Edge case: Player offline exactly at cap_interval boundary
 
+**Implementation notes (v1.4 profile + ledger audit):**
+- Tier thresholds: 0-4 finalized-block contributions = tier 1, 5-19 = tier 2, 20+ = tier 3
+- Tier caps: tier 1 = 1000 work, tier 2 = 5000 work, tier 3 = 10000 work; higher tiers continue by exponential doubling
+- `GET /api/v1/players/profile` exposes `player_tier`, `blocks_finalized_contributed_count`, and `current_offline_cap`
+- Offline ledger audit fields on `economy_player_ledger_entries`: `cap_applied`, `cap_amount`, `offline_cap_tier`
+- UI copy must stay transparent and non-punitive: "Offline work earned: X of Y (tier: Z)" or "Offline work earned: X (your tier allows Y)"
+
 ---
 
 ## Ticket GMN-EC-05: NPC Market Purchase Flow

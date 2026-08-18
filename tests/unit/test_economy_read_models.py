@@ -46,6 +46,8 @@ class EconomyReadModelsTests(unittest.TestCase):
         self.assertEqual(projection[0].reward_balance, Decimal("80.000000"))
         self.assertEqual(projection[1].player_id, "player_b")
         self.assertEqual(projection[1].reward_balance, Decimal("20.000000"))
+        executed_query = mock_cursor.execute.call_args.args[0]
+        self.assertIn("entry_type = 'block.finalized.player_reward.v1'", executed_query)
 
 
 if __name__ == "__main__":
