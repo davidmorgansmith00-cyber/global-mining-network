@@ -96,7 +96,7 @@ Response:
   "player_id": "<player-id>",
   "hardware_id": "starter_rusty_home_computer",
   "base_hashrate": 12.0,
-  "power_available": 120.0,
+  "power_available": 0.0,
   "power_consumed": 120.0,
   "power_capacity": 120.0,
   "power_throttle_multiplier": 1.0,
@@ -109,6 +109,7 @@ Server formula:
 - `power_throttle_multiplier = 1.0` when `power_consumed <= power_capacity`
 - Otherwise, `power_throttle_multiplier = max(0.1, 1.0 - (((power_consumed - power_capacity) / power_capacity) ^ 1.5))`
 - `effective_hashrate = base_hashrate × power_throttle_multiplier × clamp(cooling_efficiency, 0.0, 1.0)`
+- `power_available` is the remaining facility headroom after current hardware consumption (`max(0.0, power_capacity - power_consumed)`).
 - All hardware, power, cooling, and effective hashrate values are calculated server-side only.
 
 ## Transport Transition Note (Query -> Header)

@@ -156,4 +156,4 @@ class PlayerProfileService:
 
     @staticmethod
     def _calculate_power_available(*, power_consumed: float, power_capacity: float) -> float:
-        return max(0.0, min(power_consumed, power_capacity))
+        return max(0.0, power_capacity - power_consumed)

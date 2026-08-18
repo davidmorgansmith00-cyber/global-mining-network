@@ -69,7 +69,7 @@ class PlayerProfileApiIntegrationTests(unittest.TestCase):
                 self.assertEqual(payload["player_id"], player_id)
                 self.assertEqual(payload["hardware_id"], "starter_rusty_home_computer")
                 self.assertEqual(payload["base_hashrate"], 12.0)
-                self.assertEqual(payload["power_available"], 120.0)
+                self.assertEqual(payload["power_available"], 0.0)
                 self.assertEqual(payload["power_consumed"], 120.0)
                 self.assertEqual(payload["power_capacity"], 120.0)
                 self.assertEqual(payload["power_throttle_multiplier"], 1.0)
@@ -106,13 +106,24 @@ class PlayerProfileApiIntegrationTests(unittest.TestCase):
                 self.assertEqual(registered.status_code, 200)
                 player_id = registered.json()["player_id"]
 
-                updated_profile = PlayerProfileService().assign_hardware_state(
+                upgraded_profile = PlayerProfileService().assign_hardware_state(
                     player_id=player_id,
                     hardware_id="starter_improved_home_computer",
+                    power_capacity=240.0,
+                    cooling_efficiency=0.5,
+                )
+                self.assertEqual(upgraded_profile.power_available, 60.0)
+                self.assertEqual(upgraded_profile.power_consumed, 180.0)
+                self.assertEqual(upgraded_profile.power_throttle_multiplier, 1.0)
+                self.assertEqual(upgraded_profile.effective_hashrate, 12.0)
+
+                updated_profile = PlayerProfileService().assign_hardware_state(
+                    player_id=player_id,
                     power_capacity=120.0,
                     cooling_efficiency=0.5,
                 )
                 self.assertAlmostEqual(updated_profile.power_throttle_multiplier, 0.646447, places=6)
+                self.assertEqual(updated_profile.power_available, 0.0)
                 self.assertEqual(updated_profile.power_consumed, 180.0)
                 self.assertAlmostEqual(updated_profile.effective_hashrate, 7.757359, places=6)
 
@@ -121,7 +132,7 @@ class PlayerProfileApiIntegrationTests(unittest.TestCase):
                 payload = response.json()
                 self.assertEqual(payload["hardware_id"], "starter_improved_home_computer")
                 self.assertEqual(payload["base_hashrate"], 24.0)
-                self.assertEqual(payload["power_available"], 120.0)
+                self.assertEqual(payload["power_available"], 0.0)
                 self.assertEqual(payload["power_consumed"], 180.0)
                 self.assertEqual(payload["power_capacity"], 120.0)
                 self.assertAlmostEqual(payload["power_throttle_multiplier"], 0.646447, places=6)
