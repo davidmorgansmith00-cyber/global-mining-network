@@ -1,0 +1,23 @@
+[
+  {
+    "id": "starter_home_rig",
+    "name": "Starter Home Rig",
+    "tier": 1,
+    "base_hashrate": 12.0,
+    "power_consumption": 120.0,
+    "heat_generation": 40.0,
+    "cost": 0,
+    "unlock_tier": 1
+  },
+  {
+    "id": "garage_mining_stack",
+    "name": "Garage Mining Stack",
+    "tier": 2,
+    "base_hashrate": 28.0,
+    "power_consumption": 180.0,
+    "heat_generation": 80.0,
+    "cost": 1800,
+    "unlock_tier": 2,
+    "unlock_research_id": "research_cooling_basics"
+  }
+]

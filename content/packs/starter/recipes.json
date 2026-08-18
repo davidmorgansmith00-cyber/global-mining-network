@@ -1,0 +1,13 @@
+[
+  {
+    "id": "shed_to_garage_conversion",
+    "input_item_id": "starter_shed",
+    "output_item_id": "garage_farm",
+    "input_quantity": 1,
+    "output_quantity": 1,
+    "duration_seconds": 3600,
+    "cost_credits": 750,
+    "unlock_tier": 2,
+    "unlock_research_id": "research_power_bus"
+  }
+]

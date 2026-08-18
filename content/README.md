@@ -2,6 +2,12 @@
 
 This folder will contain validated data-driven content definitions for hardware, research, facilities, events, and related game systems.
 
+M5-CONTENT-01 adds a versioned content-pack pipeline under `content/packs/` and JSON Schema draft 7 definitions under `content/schema/`.
+
+- Each pack includes `hardware.json`, `buildings.json`, `research.json`, `recipes.json`, `events.json`, and `manifest.json`.
+- `manifest.json` must include an `impact_notes` statement for economy review.
+- `python tools/validate_content.py` validates JSON structure, draft-7 schemas, orphan unlocks, dependency cycles, and recipe sanity checks.
+
 For GMN-EC-02, hardware and facility definitions are server-authoritative inputs for effective hashrate:
 
 - `power_throttle_multiplier = 1.0` when `power_consumed <= power_capacity`
