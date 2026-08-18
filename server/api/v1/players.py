@@ -1,13 +1,19 @@
 from fastapi import APIRouter, status
 
-from domain.players.schemas import BootstrapResponse
-from domain.players.service import PlayerBootstrapService
+from domain.players.schemas import BootstrapResponse, PlayerProfileResponse
+from domain.players.service import PlayerBootstrapService, PlayerProfileService
 
 
-router = APIRouter(prefix="/player", tags=["player"])
-service = PlayerBootstrapService()
+router = APIRouter(tags=["player"])
+bootstrap_service = PlayerBootstrapService()
+profile_service = PlayerProfileService()
 
 
-@router.get("/bootstrap", response_model=BootstrapResponse, status_code=status.HTTP_200_OK)
+@router.get("/player/bootstrap", response_model=BootstrapResponse, status_code=status.HTTP_200_OK)
 def bootstrap_player(player_id: str | None = None) -> BootstrapResponse:
-    return service.bootstrap(player_id=player_id)
+    return bootstrap_service.bootstrap(player_id=player_id)
+
+
+@router.get("/players/profile", response_model=PlayerProfileResponse, status_code=status.HTTP_200_OK)
+def get_player_profile(player_id: str | None = None) -> PlayerProfileResponse:
+    return profile_service.get_profile(player_id=player_id)
