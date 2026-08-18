@@ -28,7 +28,10 @@ router = APIRouter(prefix="/admin/analytics", tags=["analytics"])
 
 
 def _is_authorized(request: Request) -> bool:
-    """Return True if the request carries a valid maintenance auth token."""
+    """Return True if the request carries a valid maintenance auth token.
+
+    Denies access when no tokens are configured (secure by default).
+    """
     current_token = settings.maintenance_auth_token
     previous_token = settings.maintenance_auth_previous_token
     provided_token = request.headers.get(settings.maintenance_auth_header)
@@ -36,8 +39,6 @@ def _is_authorized(request: Request) -> bool:
     if current_token and provided_token == current_token:
         return True
     if previous_token and provided_token == previous_token:
-        return True
-    if not current_token and not previous_token:
         return True
     return False
 

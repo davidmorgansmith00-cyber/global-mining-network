@@ -326,7 +326,7 @@ class PlayerRepository:
         with open_connection() as connection:
             with connection.cursor() as cursor:
                 cursor.execute(
-                    "SELECT COALESCE(player_tier, 1) FROM players WHERE player_id = %s",
+                    "SELECT COALESCE(player_tier, 1) FROM players WHERE player_id = %s FOR UPDATE",
                     (player_id,),
                 )
                 row = cursor.fetchone()

@@ -211,7 +211,17 @@ class _TelemetryWorker(threading.Thread):
             return
         # Persist locally first (audit trail).
         self._persist(events)
-        # Then forward to external backend (best-effort, with retries).
+        # Forward to the external backend in a separate daemon thread so that
+        # retry sleeps never block the worker from draining and persisting new
+        # events (AC-9: fire-and-forget at every level).
+        threading.Thread(
+            target=self._send_with_retries,
+            args=(events,),
+            daemon=True,
+            name="gmn-telemetry-send",
+        ).start()
+
+    def _send_with_retries(self, events: list[TelemetryEvent]) -> None:
         for attempt in range(_MAX_RETRIES):
             try:
                 self._backend.send_batch(events)
@@ -224,6 +234,10 @@ class _TelemetryWorker(threading.Thread):
                     extra={"attempt": attempt + 1, "backoff": backoff, "error": str(exc)},
                 )
                 time.sleep(backoff)
+        logger.warning(
+            "analytics_batch_send_exhausted",
+            extra={"max_retries": _MAX_RETRIES, "event_count": len(events)},
+        )
 
     def _persist(self, events: list[TelemetryEvent]) -> None:
         if not database_is_configured():
