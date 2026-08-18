@@ -46,6 +46,8 @@ market_quantity_input_path = NodePath("MarketQuantityInput")
 purchase_button_path = NodePath("PurchaseButton")
 market_status_label_path = NodePath("MarketStatusLabel")
 reauthenticate_button_path = NodePath("ReauthenticateButton")
+settings_button_path = NodePath("SettingsButton")
+accessibility_status_label_path = NodePath("AccessibilityStatusLabel")
 blocks_history_label_path = NodePath("BlocksHistoryLabel")
 player_history_label_path = NodePath("PlayerHistoryLabel")
 active_events_label_path = NodePath("ActiveEventsLabel")
@@ -313,3 +315,19 @@ offset_top = 594.0
 offset_right = 1160.0
 offset_bottom = 618.0
 text = "Your hashrate rank: -"
+
+[node name="SettingsButton" type="Button" parent="GameplayShellPanel"]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 590.0
+offset_right = 220.0
+offset_bottom = 626.0
+text = "Toggle Reduce Motion"
+
+[node name="AccessibilityStatusLabel" type="Label" parent="GameplayShellPanel"]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 638.0
+offset_right = 660.0
+offset_bottom = 662.0
+text = "Accessibility: reduce motion off | UI 1.0x | text 1.0x"

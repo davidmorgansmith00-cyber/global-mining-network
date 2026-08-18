@@ -14,6 +14,8 @@ class_name GameplayShellSceneRoot
 @export var purchase_button_path: NodePath = NodePath("GameplayShellPanel/PurchaseButton")
 @export var market_status_label_path: NodePath = NodePath("GameplayShellPanel/MarketStatusLabel")
 @export var reauthenticate_button_path: NodePath = NodePath("GameplayShellPanel/ReauthenticateButton")
+@export var settings_button_path: NodePath = NodePath("GameplayShellPanel/SettingsButton")
+@export var accessibility_status_label_path: NodePath = NodePath("GameplayShellPanel/AccessibilityStatusLabel")
 @export var refresh_interval_seconds: float = 3.0
 @export var auto_render: bool = true
 
@@ -29,6 +31,9 @@ var _market_quantity_input: LineEdit
 var _purchase_button: Button
 var _market_status_label: Label
 var _reauthenticate_button: Button
+var _settings_button: Button
+var _accessibility_status_label: Label
+var accessibility_settings := GmnAccessibilitySettings.new()
 var _time_until_refresh: float = 0.0
 
 func _ready() -> void:
@@ -44,6 +49,8 @@ func _ready() -> void:
 	_purchase_button = get_node_or_null(purchase_button_path)
 	_market_status_label = get_node_or_null(market_status_label_path)
 	_reauthenticate_button = get_node_or_null(reauthenticate_button_path)
+	_settings_button = get_node_or_null(settings_button_path)
+	_accessibility_status_label = get_node_or_null(accessibility_status_label_path)
 	if _controller == null or _panel == null:
 		push_warning("Gameplay shell scene is missing controller or panel binding")
 		return
@@ -103,7 +110,24 @@ func _bind_action_signals() -> void:
 		_purchase_button.pressed.connect(_on_purchase_pressed)
 	if _reauthenticate_button != null and not _reauthenticate_button.pressed.is_connected(_on_reauthenticate_pressed):
 		_reauthenticate_button.pressed.connect(_on_reauthenticate_pressed)
+	if _settings_button != null and not _settings_button.pressed.is_connected(_on_settings_pressed):
+		_settings_button.pressed.connect(_on_settings_pressed)
 	_sync_reauthentication_action()
+	_render_accessibility_status()
+
+func _on_settings_pressed() -> void:
+	accessibility_settings.toggle_reduce_motion()
+	_render_accessibility_status()
+
+func _render_accessibility_status() -> void:
+	if _accessibility_status_label == null:
+		return
+	var settings := accessibility_settings.to_display()
+	_accessibility_status_label.text = "Accessibility: reduce motion %s | UI %sx | text %sx" % [
+		"on" if settings.get("reduce_motion", false) else "off",
+		str(settings.get("ui_scale", 1.0)),
+		str(settings.get("text_scale", 1.0)),
+	]
 
 func _sync_reauthentication_action() -> void:
 	if _reauthenticate_button == null or _controller == null:

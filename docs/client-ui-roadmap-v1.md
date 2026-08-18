@@ -191,6 +191,16 @@ Remaining Phase 5 work is detailed block/history panels, pagination, event cards
 
 Remaining Phase 6 work is pool membership UX, notification inbox/reconnect handling, and social permission/error states.
 
+### Phase 7 Slice Started - 2026-08-18
+
+- Added a runtime-only accessibility settings model aligned with the launcher guide.
+- Added clamped UI scale and text scale values.
+- Added high-contrast and color-mode settings fields for the next visual pass.
+- Added a visible reduce-motion toggle and status readout in the gameplay shell.
+- Added accessibility settings smoke coverage.
+
+Remaining Phase 7 work is applying the palette and scale values across all controls, keyboard focus review, maintenance/recovery banners, and settings persistence policy.
+
 ## 4. Roadmap Summary
 
 | Phase | Outcome | Priority | Gate |

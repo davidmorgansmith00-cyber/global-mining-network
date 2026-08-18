@@ -50,6 +50,10 @@ Phase 6 social surfaces:
 - The gameplay shell reads pool browse data, the hashrate leaderboard, and the current player's leaderboard position.
 - These are read-only summaries; pool membership commands and notifications remain separate server-authoritative flows.
 
+Phase 7 accessibility foundation:
+- The gameplay shell includes launcher-aligned runtime settings semantics for UI scale, text scale, high contrast, color mode, and reduce motion.
+- The first visible control toggles reduce motion without changing server-owned gameplay state.
+
 Operation intent plumbing:
 - `GmnApiClient` now includes non-authoritative start/stop intent pass-through calls:
 	- `POST /api/v1/blockchain/operations/intents/start?session_id=<active_session_id>` with payload `{ "operation_id", "base_hashrate_hps" }`
