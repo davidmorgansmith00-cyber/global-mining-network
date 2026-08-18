@@ -138,6 +138,258 @@ Path: `assets/pixel/ui/`
 
 ---
 
+## 5.3 Pixel Asset Production Playbook
+
+This section gives a coding or design agent everything needed to create V1 assets from zero — no prior art files assumed.
+
+### 5.3.1 Art Style Constraints (V1)
+
+| Constraint | Rule |
+|---|---|
+| **Base unit** | 16×16 px grid; multi-tile objects snap to multiples (e.g. 48×32 = 3×2 tiles) |
+| **Silhouette first** | Every object must read as a distinct silhouette at 100% zoom; overlapping silhouettes are a failure |
+| **Limited palette** | Maximum **16 colours per asset file** (can share colours across files); use palette file `assets/pixel/palette_v1.png` (a 16×1 strip) |
+| **Contrast rule** | World tiles and props: foreground ≥3.0:1 against the background tile they sit on. State icons: ≥4.5:1 against `bg_base #0B0F14` (WCAG AA — enforced at §10.3 gate). |
+| **Outline rule** | 1-px dark outline on interactive/important objects; background environment objects may use inset shading instead |
+| **Shading** | 2-level shading only — base colour + 1 darker shadow; no gradients, no anti-aliasing, no sub-pixel rendering |
+| **State readability** | At least two visual cues differentiate each state (colour change **and** shape/animation change) — never colour alone |
+| **V2 palette alignment** | State colours must map to V2 tokens: success → `#4ECCA3`, warning → `#F5A623`, danger → `#E84855`, info → `#5B9BD5`; these are the only non-neutral accent colours allowed |
+| **No transparency except** | Sprite sheets use a transparent background; solid colour fill is forbidden as a background substitute |
+
+### 5.3.2 Required Source Files
+
+Every delivered PNG asset must have a matching source file in `assets/pixel/source/`:
+
+```text
+assets/pixel/source/
+  world/
+    shack_tileset_v1.aseprite   ← layers: base, shadow, light, damage_variant
+    shack_props_v1.aseprite
+  rigs/
+    rig_base_v1.aseprite
+    rig_skin_rusty_v1.aseprite
+    rig_parts_v1.aseprite
+  systems/
+    power_nodes_v1.aseprite
+    cooling_nodes_v1.aseprite
+  fx/
+    fan_spin_v1.aseprite        ← animation frames on timeline
+    monitor_flicker_v1.aseprite
+    heat_haze_v1.aseprite
+  ui/
+    world_state_icons_v1.aseprite
+```
+
+> **If Aseprite is unavailable:** use any tool that exports a flat PNG and keeps layers in a companion `.kra` (Krita) or `.xcf` (GIMP) file. The source file naming rule stays the same.
+
+**Export rule:** export to PNG from source tool with:
+- Scale: 1× (no upscaling)
+- Colour mode: RGBA
+- Background: transparent
+- No dithering
+
+### 5.3.3 Canvas Sizes and Grid Conventions
+
+| Asset file | Canvas (px) | Grid | Notes |
+|---|---|---|---|
+| `shack_tileset_v1.png` | 256×128 | 16×16 tiles | 16 cols × 8 rows; leave empty cells blank |
+| `shack_props_v1.png` | 128×128 | 16×16 | Mix of 1×1, 2×2, 1×2 objects; document layout in §5.4.3 |
+| `rig_base_v1.png` | 48×32 | (3×2 tiles) | Standalone sprite, not atlas |
+| `rig_skin_rusty_v1.png` | 48×32 | (3×2 tiles) | Same bounds as base; overlay in scene |
+| `rig_parts_v1.png` | 64×16 | 16×16 | 4 cols × 1 row: fan, panel, cable, indicator |
+| `power_nodes_v1.png` | 128×64 | 16×16 | 8 cols × 4 rows |
+| `cooling_nodes_v1.png` | 128×64 | 16×16 | 8 cols × 4 rows |
+| `fan_spin_v1.png` | 64×16 | 16×16 per frame | 4 frames in a single horizontal strip |
+| `monitor_flicker_v1.png` | 32×16 | 16×16 per frame | 2 frames horizontal strip |
+| `heat_haze_v1.png` | 48×16 | 16×16 per frame | 3 frames horizontal strip |
+| `world_state_icons_v1.png` | 112×16 | 16×16 per icon | 7 icons horizontal; order defined in §5.4.3 |
+
+### 5.3.4 Animation Specs
+
+| FX sheet | Frames | FPS | Loop | Behaviour |
+|---|---|---|---|---|
+| `fan_spin_v1.png` | 4 | 8 | Looping | Plays when `running`; opacity 100% → 30% when `throttle_active` |
+| `monitor_flicker_v1.png` | 2 | 4 | Looping | Plays when `running`; stops (show frame 0) when `offline/stale` |
+| `heat_haze_v1.png` | 3 | 6 | Looping | Visible only when `heat_warning == true`; hidden otherwise |
+
+Frame layout: all animation sheets use a **horizontal strip** (frames left-to-right); frame 0 is the leftmost.
+
+For `rig_parts_v1.png` the four pieces (fan, panel, cable, indicator) are **static sprites**, not animation frames — they are selected individually in scene nodes.
+
+### 5.3.5 Naming and Versioning Conventions
+
+```
+Source files : assets/pixel/source/<category>/<name>_v<N>.aseprite
+Exported PNGs: assets/pixel/<category>/<name>_v<N>.png
+
+Examples:
+  assets/pixel/source/world/shack_tileset_v1.aseprite
+  assets/pixel/world/shack_tileset_v1.png
+  assets/pixel/source/fx/fan_spin_v2.aseprite   ← when V2 art replaces V1
+  assets/pixel/fx/fan_spin_v2.png
+```
+
+**Rules:**
+- Never overwrite an existing versioned PNG; create `_v2` when the art changes.
+- Scene and GDScript references point to the version explicitly (e.g. `fan_spin_v1.png`, not `fan_spin.png`).
+- Source files are committed to the repo alongside exports.
+- When a new version ships, update scene node texture references only after the new PNG passes QA (§5.5.3).
+
+---
+
+## 5.4 Godot Asset Build Workflow
+
+Follow these steps in order whenever a new PNG is ready. All steps run in the Godot 4.x editor unless noted otherwise.
+
+### 5.4.1 Import Presets (Apply Once, Then Auto-Applied)
+
+**One-time setup — create a default import override for all PNGs under `assets/pixel/`:**
+
+1. In Godot editor, open **Project → Project Settings → Import Defaults**.
+2. Select resource type `Texture2D`.
+3. Set:
+   - `compress/mode` = `Lossless`
+   - `process/fix_alpha_border` = `false`
+   - `process/premult_alpha` = `false`
+   - `mipmaps/generate` = `false`
+   - `texture/filter` = `Nearest` (integer: `0`)
+4. Click **Set as Default for 'Texture2D'**.
+
+> **Verify:** after importing any PNG, open its `.import` file in a text editor and confirm `compress/mode=0` (Lossless), `mipmaps/generate=false`, `texture_filter=0` (Nearest).
+
+For **animation sheets** (`fan_spin_v1.png`, `monitor_flicker_v1.png`, `heat_haze_v1.png`): same import settings; the sprite frames are defined in `.tres` resources (§5.4.3), not in import settings.
+
+### 5.4.2 Creating `shack_tileset_v1.tres` (TileSet Resource)
+
+1. Open `scenes/world/first_property_shack.tscn` in the Godot editor.
+2. Select the `GroundTileMap` node.
+3. In the TileMap inspector, click **TileSet → New TileSet**; save as `assets/pixel/world/shack_tileset_v1.tres`.
+4. In the **TileSet editor** panel, click **Add Texture** and select `assets/pixel/world/shack_tileset_v1.png`.
+5. Click **Auto-Create Tiles** → confirm tile size `16×16`, spacing `0`, margin `0`.
+6. Assign tiles to layers:
+   - `GroundTileMap` → layer 0 — use floor/ground rows (rows 0–2 of the atlas).
+   - `WallsTileMap` → layer 1 — use wall/trim rows (rows 3–5).
+7. Do **not** add physics/navigation layers in V1 (no collision required for world-scene-only visuals).
+8. Save the `.tres` file (**Ctrl+S**).
+9. Assign `shack_tileset_v1.tres` to both `GroundTileMap` and `WallsTileMap` nodes (same resource, different layers).
+
+### 5.4.3 Creating `SpriteFrames` Resources for FX Sheets
+
+Repeat for each FX sheet. Example for `fan_spin_v1.png`:
+
+1. In the Godot FileSystem dock, **right-click the `assets/pixel/fx/` folder** (not the PNG) → **New Resource** → search `SpriteFrames` → select it → save as `assets/pixel/fx/fan_spin_frames_v1.tres`.
+   - *Alternatively:* select the `AmbientFxLayer/FanSpin` (`AnimatedSprite2D`) node, click its **Frames** property in the Inspector → **New SpriteFrames** → then save with **Ctrl+S** to `assets/pixel/fx/fan_spin_frames_v1.tres`.
+2. Open the saved `fan_spin_frames_v1.tres` resource by double-clicking it — the **SpriteFrames editor panel** opens at the bottom.
+3. Rename the default animation (`default`) to `spin` by double-clicking the animation name.
+4. Click **Add Frames from Sprite Sheet** (film-strip icon):
+   - Texture: `fan_spin_v1.png`
+   - Horizontal frames: `4`, Vertical frames: `1`
+   - Select all 4 frames → **Add 4 frames**.
+5. Set **FPS** = `8`, **Loop** = enabled (loop icon active).
+6. Save the resource (**Ctrl+S**).
+7. Assign `fan_spin_frames_v1.tres` to `AmbientFxLayer/FanSpin` (`AnimatedSprite2D`) → **Frames** property in the Inspector.
+
+| FX sheet | Resource file | Animation name | Frames | FPS | Loop |
+|---|---|---|---|---|---|
+| `fan_spin_v1.png` | `fan_spin_frames_v1.tres` | `spin` | 4 | 8 | true |
+| `monitor_flicker_v1.png` | `monitor_flicker_frames_v1.tres` | `flicker` | 2 | 4 | true |
+| `heat_haze_v1.png` | `heat_haze_frames_v1.tres` | `haze` | 3 | 6 | true |
+
+### 5.4.4 Icon Atlas Region Mapping (`world_state_icons_v1.png`)
+
+The icon strip is 112×16 px; icons are 16×16, ordered left-to-right as follows:
+
+| Index | State | Rect (x,y,w,h) | Colour token |
+|---|---|---|---|
+| 0 | `online` | `(0,0,16,16)` | `accent_success` `#4ECCA3` |
+| 1 | `throttled` | `(16,0,16,16)` | `accent_warning` `#F5A623` |
+| 2 | `overheating` | `(32,0,16,16)` | `accent_danger` `#E84855` |
+| 3 | `offline` | `(48,0,16,16)` | neutral dark `#3A3F47` |
+| 4 | `upgrading` | `(64,0,16,16)` | `accent_info` `#5B9BD5` |
+| 5 | `upgrade_complete` | `(80,0,16,16)` | `accent_success` `#4ECCA3` |
+| 6 | `stale_data` | `(96,0,16,16)` | `accent_warning` `#F5A623` |
+
+**In GDScript**, set an icon region with:
+```gdscript
+$RigStateIcon.region_rect = Rect2(icon_index * 16, 0, 16, 16)
+$RigStateIcon.region_enabled = true
+```
+
+### 5.4.5 Expected Generated Resource Files
+
+All `.tres` files are committed to the repo alongside their source PNG:
+
+```text
+assets/pixel/world/
+  shack_tileset_v1.tres          ← TileSet resource
+assets/pixel/fx/
+  fan_spin_frames_v1.tres        ← SpriteFrames
+  monitor_flicker_frames_v1.tres ← SpriteFrames
+  heat_haze_frames_v1.tres       ← SpriteFrames
+```
+
+No other generated resources are required for V1. `.import` sidecar files (auto-generated by Godot) are committed to the repo.
+
+---
+
+## 5.5 From-Zero Production Sequence
+
+### 5.5.1 Delivery Order (Unblocking Engineering Slices)
+
+Execute art production and engineering integration in this order to avoid blocking:
+
+```
+Step 1 — Unblocks W1 (no art needed)
+  → Create ColorRect placeholders in scene; no PNGs required.
+
+Step 2 — Unblocks W2 (required by W2 gate)
+  Art: shack_tileset_v1 (source + export)
+  Art: shack_props_v1   (source + export)
+  Engineering: import + TileSet resource creation (§5.4.2)
+
+Step 3 — Unblocks W3
+  Art: rig_base_v1, rig_skin_rusty_v1, rig_parts_v1
+  Engineering: import + RigVisualController wiring
+
+Step 4 — Unblocks W4 (can start after Step 3 in parallel for art)
+  Art: power_nodes_v1, cooling_nodes_v1, world_state_icons_v1
+  Engineering: import + PowerVisualController + CoolingVisualController
+               + icon atlas region mapping (§5.4.4)
+
+Step 5 — Unblocks W5
+  Art: fan_spin_v1, monitor_flicker_v1, heat_haze_v1
+  Engineering: SpriteFrames resources (§5.4.3) + AmbientFxController wiring
+```
+
+### 5.5.2 Minimal Viable Placeholder Art (If Final Art Is Delayed)
+
+If final pixel art is not ready for a slice, use this fallback so engineering is never blocked:
+
+| Placeholder type | How to create | When to replace |
+|---|---|---|
+| **Solid-colour tile** | 16×16 PNG, solid fill; floor = `#2C2416`, wall = `#3A3020` | W2 art delivery |
+| **Outline-box prop** | 16×16 or 32×32 PNG; 1-px `#FFFFFF` outline on transparent background | W2 art delivery |
+| **Rig stand-in** | 48×32 PNG; `#4A4A4A` fill + label pixel "RIG" in 5×3 pixel font | W3 art delivery |
+| **FX single-frame** | One 16×16 frame repeated to meet minimum frame count; tint = state colour | W5 art delivery |
+| **Icon stand-in** | 7-cell 112×16 strip; each cell = solid state colour only, no detail | W4 art delivery |
+
+Placeholder files use the **same file names and paths** as final art so no scene changes are needed at swap time.
+
+### 5.5.3 Handoff Checklist (Art → Engineering)
+
+Before any PNG is handed off for scene integration, art must confirm:
+
+- [ ] Source file committed to `assets/pixel/source/<category>/`
+- [ ] Exported PNG matches canvas size in §5.3.3 exactly (check with `file` command or Godot import preview)
+- [ ] Palette ≤16 colours (verify in Aseprite palette panel, or with `identify -verbose <file>.png | grep Colors` via ImageMagick)
+- [ ] No anti-aliasing or sub-pixel smoothing (zoom to 800% and inspect edges)
+- [ ] Transparent background (no solid fill behind sprites)
+- [ ] Animation frames are in a horizontal strip, leftmost = frame 0
+- [ ] Icon strip colours match V2 tokens in §5.4.4
+- [ ] Art reviewer sign-off obtained (name + date in PR description)
+
+---
+
 ## 6) Godot Scene Architecture
 
 ## 6.1 New/Updated Scene Files
@@ -351,18 +603,43 @@ No client-authored formulas for hashrate contribution, rewards, completion, or d
 
 ---
 
-## 10) Validation Checklist (Implementing Correctly)
+## 10) Asset QA Checklist
 
-Before merge of each slice, confirm:
-1. No new client-auth gameplay/economy/network logic introduced.
-2. Visual state transitions are driven by existing authoritative payloads (see §7.2 binding table).
-3. UI V2 global block header remains dominant in composition — world scene renders in `BackgroundLayer`, not above HUD.
-4. World additions do not break existing shell scene/state controller behavior.
-5. Debug toggle still permits V1↔V2 parity checks; `DebugWorldOverlay` shows live server values matching HUD values.
-6. Responsive behavior remains valid at 1920×1080, 2560×1440, and 125%/150% UI scale.
-7. All Godot import settings for new assets: `Filter: Nearest`, `Mipmaps: off`, `Compress: Lossless`.
-8. No new `CanvasLayer` with layer value higher than `HUDLayer`.
-9. Art sign-off obtained for any new art asset before merge (W2+).
+### 10.1 Pixel Art Quality (Art Review Gate — required before merge of W2+)
+
+- [ ] **Pixel crispness:** zoom to 400% in Godot preview — no blurred or anti-aliased edges; every pixel has a solid, intentional colour.
+- [ ] **No filtering artefacts:** open the `.import` sidecar for each new PNG and confirm `texture_filter=0` (Nearest), `mipmaps/generate=false`.
+- [ ] **No tile bleeding:** place tiles adjacent in TileMap; verify no 1-px colour leakage between neighbours at any zoom level.
+- [ ] **Palette compliance:** each asset file uses ≤16 colours; accent colours match V2 tokens exactly (§5.3.1).
+- [ ] **Silhouette readability:** every object reads as a distinct shape at 100% zoom without colour labels.
+- [ ] **Contrast:** foreground vs background luminance ratio ≥3.0:1 (use browser DevTools contrast checker or Aseprite contrast tool).
+- [ ] **Consistent outline:** 1-px dark outline present on all interactive/important objects; absent on pure background tiles.
+
+### 10.2 Animation Quality (W5 Gate)
+
+- [ ] **Frame strip layout:** horizontal strip confirmed; frame 0 leftmost; no blank columns inside strip.
+- [ ] **Loop readability:** play animation in Godot SpriteFrames editor — loop transition (frame N → frame 0) has no visual jump.
+- [ ] **State transitions:** FX starts/stops cleanly on state change (no mid-frame freeze artefacts); verify by triggering state changes in debug overlay.
+- [ ] **FX opacity:** `fan_spin` dims to 30% when `throttle_active`; verify with `modulate.a` in debugger.
+- [ ] **Performance budget:** in Godot Profiler, confirm all FX together consume ≤0.5 ms/frame while running.
+
+### 10.3 Icon State Distinguishability (W4 Gate)
+
+- [ ] **7 icons visible and distinct:** display `world_state_icons_v1.png` at 1× in Godot; all 7 icons are individually recognisable by silhouette alone (not colour alone).
+- [ ] **WCAG AA contrast on dark background:** each icon colour meets ≥4.5:1 contrast against `bg_base #0B0F14`; verify with a contrast checker using the exact hex values from §5.4.4.
+- [ ] **Region mapping correct:** in a test scene, cycle through all 7 `region_rect` values (§5.4.4) and confirm the correct icon appears for each.
+- [ ] **Stale-data icon distinct from offline icon:** the two must not look identical in isolation.
+
+### 10.4 Scene Integration (All Slices)
+
+- [ ] No new client-side gameplay/economy/network logic introduced.
+- [ ] All visual state transitions driven by existing authoritative payloads only (see §7.2 binding table).
+- [ ] UI V2 global block header dominant — world scene in `BackgroundLayer`, not above `HUDLayer`.
+- [ ] No new `CanvasLayer` with layer value ≥ `HUDLayer` value.
+- [ ] `DebugWorldOverlay` hidden in normal play; visible and showing live server values after debug hotkey.
+- [ ] Responsive layout valid at 1920×1080, 2560×1440, and 125%/150% UI scale.
+- [ ] No regressions in `PlayerOperationPanel` or `GlobalBlockHeader` behaviour.
+- [ ] Art reviewer sign-off obtained for any new art asset before merge (W2+).
 
 ---
 
