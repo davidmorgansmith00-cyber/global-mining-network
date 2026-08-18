@@ -22,6 +22,7 @@ services:
       ENVIRONMENT: ${ENVIRONMENT:-local}
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-global_mining_network}
       REDIS_URL: redis://redis:6379/0
+      MESSAGE_QUEUE_URL: ${MESSAGE_QUEUE_URL:-redis://redis:6379/0}
       MAINTENANCE_AUTH_HEADER: ${MAINTENANCE_AUTH_HEADER:-X-Maintenance-Token}
       MAINTENANCE_AUTH_TOKEN: ${MAINTENANCE_AUTH_TOKEN:-local-maintenance-token}
       MAINTENANCE_AUTH_PREVIOUS_TOKEN: ${MAINTENANCE_AUTH_PREVIOUS_TOKEN:-}
@@ -33,6 +34,8 @@ services:
       MAINTENANCE_CLEANUP_RATE_LIMIT_PERSISTENCE_ENABLED: ${MAINTENANCE_CLEANUP_RATE_LIMIT_PERSISTENCE_ENABLED:-true}
     ports:
       - "${API_PORT:-8000}:8000"
+    volumes:
+      - ./content:/content:ro
     depends_on:
       - db
       - redis
@@ -44,6 +47,7 @@ services:
       ENVIRONMENT: ${ENVIRONMENT:-local}
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-global_mining_network}
       REDIS_URL: redis://redis:6379/0
+      MESSAGE_QUEUE_URL: ${MESSAGE_QUEUE_URL:-redis://redis:6379/0}
       API_BASE_URL: ${API_BASE_URL:-http://api:8000}
       API_V1_PREFIX: ${API_V1_PREFIX:-/api/v1}
       MAINTENANCE_AUTH_HEADER: ${MAINTENANCE_AUTH_HEADER:-X-Maintenance-Token}
