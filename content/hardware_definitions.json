@@ -37,7 +37,7 @@
     "base_heat_generation": 150.0,
     "heat_dissipation_rate_per_minute": 0.05,
     "market_price": "8000",
-    "unlock_condition": "player_tier >= 2",
+    "unlock_condition": "tier >= 2",
     "previous_tier": "improved_workstation",
     "next_tier": null
   }

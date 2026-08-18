@@ -8,7 +8,7 @@ from pathlib import Path
 
 HARDWARE_DEFINITIONS_PATH = Path(__file__).resolve().parents[3] / "content" / "hardware_definitions.json"
 REWARD_PER_HASH: Decimal = Decimal("1")
-TIER_UNLOCK_PATTERN = re.compile(r"^\s*player_tier\s*>=\s*(\d+)\s*$")
+TIER_UNLOCK_PATTERN = re.compile(r"^\s*(?:player_)?tier\s*>=\s*(\d+)\s*$")
 SECONDS_PER_DAY = Decimal("86400")
 
 
@@ -74,7 +74,7 @@ class HardwareUpgradeService:
     def calculate_eta_to_upgrade(
         self,
         *,
-        effective_hashrate: float,
+        effective_hashrate: float,  # noqa: ARG002 – reserved for future hashrate-weighted model
         upgrade_cost: Decimal,
         offline_cap_per_day: Decimal,
     ) -> int:
@@ -83,10 +83,10 @@ class HardwareUpgradeService:
         Uses a conservative estimate: assume player earns at the offline cap rate
         (no online bonuses).  Returns 0 if the player can already afford it.
 
-        effective_hashrate is kept as a parameter to allow future hashrate-weighted
-        ETA refinements but the current calculation uses offline_cap_per_day directly.
+        effective_hashrate is accepted for API stability; the current calculation
+        uses offline_cap_per_day directly (conservative estimate).
         """
-        del effective_hashrate  # reserved for future hashrate-weighted model
+        _ = effective_hashrate  # reserved for future hashrate-weighted model
         if upgrade_cost <= Decimal("0"):
             return 0
         if offline_cap_per_day <= Decimal("0"):

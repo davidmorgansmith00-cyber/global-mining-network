@@ -60,7 +60,7 @@ VALUES
         0.05,
         3,
         8000.000000,
-        'player_tier >= 2',
+        'tier >= 2',
         'improved_workstation',
         NULL
     )
