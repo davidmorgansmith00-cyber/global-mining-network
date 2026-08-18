@@ -2,6 +2,7 @@ from fastapi import FastAPI
 
 from api import api_router
 from app.middleware import CorrelationIdMiddleware
+from domain.genesis.service import get_genesis_service
 from shared.database import database_is_configured
 from shared.logging import configure_logging, get_logger
 from shared.settings import settings
@@ -32,4 +33,5 @@ def health() -> dict[str, str]:
 
 @app.on_event("startup")
 def on_startup() -> None:
-    logger.info("api_started")
+    runtime = get_genesis_service().initialize_runtime()
+    logger.info(f"api_started genesis_status={runtime['status']}")

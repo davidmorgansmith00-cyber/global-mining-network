@@ -5,14 +5,16 @@ from decimal import Decimal
 import os
 
 from fastapi import APIRouter, HTTPException, Query, Request, status
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from domain.admin.service import AdminService
+from domain.genesis.service import get_genesis_service
 from domain.admin.totp import verify_totp_code
 
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 service = AdminService()
+genesis_service = get_genesis_service()
 
 
 class UpdateConfigRequest(BaseModel):
@@ -42,6 +44,21 @@ class ApproveContentRequest(BaseModel):
 
 class Verify2FARequest(BaseModel):
     code: str
+
+
+class CreateGenesisRequest(BaseModel):
+    starting_balance: Decimal
+    player_snapshot: list[dict[str, object]]
+    tier_assignments: dict[str, int] = Field(default_factory=dict)
+    launch_date: datetime | None = None
+
+
+class AnnounceGenesisRequest(BaseModel):
+    public_message: str
+
+
+class RollbackGenesisRequest(BaseModel):
+    reason: str
 
 
 def _require_role(request: Request, allowed_roles: set[str]) -> str:
@@ -167,3 +184,43 @@ def verify_2fa(payload: Verify2FARequest, request: Request) -> dict:
     if not verified:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="twofa_verification_failed")
     return {"verified": True}
+
+
+@router.get("/launch/genesis-status", status_code=status.HTTP_200_OK)
+def get_genesis_launch_status(request: Request) -> dict:
+    _require_role(request, {"admin", "analyst"})
+    return genesis_service.get_status_payload()
+
+
+@router.post("/launch/genesis", status_code=status.HTTP_200_OK)
+def create_genesis(payload: CreateGenesisRequest, request: Request) -> dict:
+    admin_id = _require_role(request, {"admin"})
+    _require_password(request)
+    _require_2fa(request)
+    genesis_id = genesis_service.create_genesis_block(
+        payload.starting_balance,
+        payload.tier_assignments,
+        payload.player_snapshot,
+        created_by_admin_id=admin_id,
+        launch_date=payload.launch_date,
+    )
+    record = genesis_service.get_genesis_block(genesis_id)
+    return {"success": True, "genesis": genesis_service.serialize_genesis_block(record)}
+
+
+@router.post("/launch/genesis/{genesis_id}/announce", status_code=status.HTTP_200_OK)
+def announce_genesis(genesis_id: str, payload: AnnounceGenesisRequest, request: Request) -> dict:
+    _require_role(request, {"admin"})
+    _require_password(request)
+    _require_2fa(request)
+    record = genesis_service.announce_genesis(genesis_id, payload.public_message)
+    return {"success": True, "genesis": genesis_service.serialize_genesis_block(record)}
+
+
+@router.post("/launch/genesis/{genesis_id}/rollback", status_code=status.HTTP_200_OK)
+def rollback_genesis(genesis_id: str, payload: RollbackGenesisRequest, request: Request) -> dict:
+    _require_role(request, {"admin"})
+    _require_password(request)
+    _require_2fa(request)
+    record = genesis_service.rollback_genesis(genesis_id, payload.reason)
+    return {"success": True, "genesis": genesis_service.serialize_genesis_block(record)}

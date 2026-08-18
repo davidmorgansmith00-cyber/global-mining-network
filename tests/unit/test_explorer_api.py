@@ -41,6 +41,13 @@ class ExplorerApiTests(unittest.TestCase):
         self.assertEqual(len(response["items"]), 1)
         self.assertEqual(response["items"][0]["type"], "player")
 
+    @patch("api.v1.explorer.service.get_block_details")
+    def test_get_block_details_returns_genesis_payload_when_available(self, mock_get_block_details: object) -> None:
+        mock_get_block_details.return_value = {"block_number": 1, "block_hash": "abc123", "chain_id": "chain"}
+        response = get_block_details(block_number=1)
+        self.assertEqual(response["block_number"], 1)
+        self.assertEqual(response["block_hash"], "abc123")
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Any
 
+from domain.genesis.service import get_genesis_service
 from shared.database import database_is_configured, open_connection
 
 
@@ -13,6 +14,9 @@ def _clamp_limit(limit: int, *, default: int = 50, maximum: int = 500) -> int:
 
 
 class ChainExplorerService:
+    def __init__(self) -> None:
+        self._genesis_service = get_genesis_service()
+
     def get_blocks(
         self,
         *,
@@ -56,6 +60,21 @@ class ChainExplorerService:
         ]
 
     def get_block_details(self, *, block_number: int) -> dict[str, Any] | None:
+        if block_number == 1:
+            genesis = self._genesis_service.get_current_genesis_block(include_archived=False)
+            if genesis is not None:
+                payload = self._genesis_service.serialize_genesis_block(genesis)
+                payload.update(
+                    {
+                        "block_id": genesis.block_hash,
+                        "difficulty": "0.000000",
+                        "reward_pool": "0.000000",
+                        "miners_count": 0,
+                        "completion_time": genesis.created_at.isoformat(),
+                        "miners": [],
+                    }
+                )
+                return payload
         if not database_is_configured():
             return None
         with open_connection() as connection:
@@ -243,10 +262,25 @@ class ChainExplorerService:
         ]
 
     def search(self, *, query: str, limit: int = 10) -> list[dict[str, str]]:
-        if not database_is_configured():
-            return []
-        needle = f"%{query.strip().lower()}%"
+        normalized_query = query.strip().lower()
         bounded_limit = _clamp_limit(limit, default=10, maximum=50)
+        items: list[dict[str, str]] = []
+        genesis = self._genesis_service.get_current_genesis_block(include_archived=False)
+        if genesis is not None and (
+            "genesis".startswith(normalized_query)
+            or genesis.block_hash.lower().startswith(normalized_query)
+            or genesis.chain_id.lower().startswith(normalized_query)
+        ):
+            items.append(
+                {
+                    "type": "block",
+                    "id": "1",
+                    "label": f"Genesis Block #1 · {genesis.block_hash[:12]}",
+                }
+            )
+        if not database_is_configured():
+            return items
+        needle = f"%{normalized_query}%"
         with open_connection() as connection:
             with connection.cursor() as cursor:
                 cursor.execute(
@@ -257,7 +291,7 @@ class ChainExplorerService:
                     ORDER BY created_at DESC
                     LIMIT %s
                     """,
-                    (needle, needle, bounded_limit),
+                    (needle, needle, max(bounded_limit - len(items), 0)),
                 )
                 player_rows = cursor.fetchall()
                 cursor.execute(
@@ -271,9 +305,12 @@ class ChainExplorerService:
                     (needle, bounded_limit),
                 )
                 pool_rows = cursor.fetchall()
-        results = [
-            {"type": "player", "id": row[0], "label": row[1] or row[0]}
-            for row in player_rows
-        ]
+        results = list(items)
+        results.extend(
+            [
+                {"type": "player", "id": row[0], "label": row[1] or row[0]}
+                for row in player_rows
+            ]
+        )
         results.extend({"type": "pool", "id": row[0], "label": row[1]} for row in pool_rows)
         return results[:bounded_limit]
