@@ -14,8 +14,39 @@ class BootstrapResponse(BaseModel):
     starter_machine: StarterMachine
 
 
+class CurrentHardwareInfo(BaseModel):
+    hardware_id: str
+    name: str
+    tier: int
+    base_hashrate: float
+    base_power_consumption: float
+    base_heat_generation: float
+    market_price: Decimal
+
+
+class NextUpgradeRecommendation(BaseModel):
+    hardware_id: str
+    name: str
+    tier: int
+    base_hashrate_improvement_pct: float
+    cost: Decimal
+    eta_seconds: int
+    unlock_blocked: bool
+
+
+class UpgradeProgressionEntry(BaseModel):
+    hardware_id: str
+    name: str
+    tier: int
+    market_price: Decimal
+    is_current: bool
+    is_owned: bool
+    is_unlocked: bool
+    unlock_condition: str | None
+
+
 class PlayerProfileResponse(BaseModel):
-    schema_version: str = "player.profile.v1.5"
+    schema_version: str = "player.profile.v1.6"
     player_id: str
     hardware_id: str
     base_hashrate: float
@@ -37,3 +68,6 @@ class PlayerProfileResponse(BaseModel):
     offline_cap_status_message: str
     inventory: list[dict[str, object]]
     available_for_purchase: list[dict[str, object]]
+    current_hardware: CurrentHardwareInfo | None
+    next_recommended_upgrade: NextUpgradeRecommendation | None
+    upgrade_progression: list[UpgradeProgressionEntry]

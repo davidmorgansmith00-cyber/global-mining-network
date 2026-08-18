@@ -6,6 +6,7 @@ from uuid import UUID
 
 from domain.hardware.schemas import CoolingState, HardwareConfig, PowerState
 from domain.hardware.service import GmnHardwareHashrateService
+from domain.hardware.upgrade_service import HardwareUpgradeService
 from domain.mining.service import MiningSimulationService
 from domain.market.service import NpcMarketService
 from domain.players.repository import (
@@ -17,7 +18,14 @@ from domain.players.repository import (
     DEFAULT_POWER_THROTTLE_MULTIPLIER,
     PlayerRepository,
 )
-from domain.players.schemas import BootstrapResponse, PlayerProfileResponse, StarterMachine
+from domain.players.schemas import (
+    BootstrapResponse,
+    CurrentHardwareInfo,
+    NextUpgradeRecommendation,
+    PlayerProfileResponse,
+    StarterMachine,
+    UpgradeProgressionEntry,
+)
 from shared.database import database_is_configured
 
 
@@ -82,6 +90,7 @@ class PlayerProfileService:
         self.hashrate_service = GmnHardwareHashrateService()
         self.progression_service = PlayerProgressionService()
         self.market_service = NpcMarketService()
+        self.upgrade_service = HardwareUpgradeService()
 
     def get_profile(self, player_id: str | None = None) -> PlayerProfileResponse:
         if database_is_configured() and player_id is not None:
@@ -165,6 +174,28 @@ class PlayerProfileService:
                         profile.last_offline_progress_at,
                         offline_ledger_entry,
                     )
+                    inventory = self.market_service.get_player_inventory(player_id)
+                    available_for_purchase = [
+                        item.model_dump()
+                        for item in self.market_service.get_available_for_purchase(
+                            player_id,
+                            player_tier=player_tier,
+                        )
+                    ]
+                    current_balance = self.market_service.get_player_reward_balance(player_id)
+                    owned_hardware_ids = {
+                        entry["item_id"]
+                        for entry in inventory
+                        if entry.get("item_type") == "hardware_upgrade"
+                    }
+                    current_hardware, next_recommended, progression = self._build_upgrade_fields(
+                        current_hardware_id=hardware_config.hardware_id,
+                        effective_hashrate=effective_hashrate,
+                        current_offline_cap=current_offline_cap,
+                        player_tier=player_tier,
+                        current_balance=current_balance,
+                        owned_hardware_ids=owned_hardware_ids,
+                    )
                     return PlayerProfileResponse(
                         player_id=player_id,
                         hardware_id=hardware_config.hardware_id,
@@ -193,14 +224,11 @@ class PlayerProfileService:
                             player_tier=offline_progress.offline_cap_tier,
                             cap_applied=offline_progress.cap_applied,
                         ),
-                        inventory=self.market_service.get_player_inventory(player_id),
-                        available_for_purchase=[
-                            item.model_dump()
-                            for item in self.market_service.get_available_for_purchase(
-                                player_id,
-                                player_tier=player_tier,
-                            )
-                        ],
+                        inventory=inventory,
+                        available_for_purchase=available_for_purchase,
+                        current_hardware=current_hardware,
+                        next_recommended_upgrade=next_recommended,
+                        upgrade_progression=progression,
                     )
 
         return self._default_profile(player_id=player_id)
@@ -266,6 +294,14 @@ class PlayerProfileService:
             ),
         )
         current_offline_cap = self.get_offline_cap_for_tier(1)
+        current_hardware, next_recommended, progression = self._build_upgrade_fields(
+            current_hardware_id=DEFAULT_HARDWARE_ID,
+            effective_hashrate=effective_hashrate,
+            current_offline_cap=current_offline_cap,
+            player_tier=1,
+            current_balance=Decimal("0"),
+            owned_hardware_ids=set(),
+        )
         return PlayerProfileResponse(
             player_id=player_id or DEFAULT_PLAYER_ID,
             hardware_id=hardware_config.hardware_id,
@@ -296,7 +332,76 @@ class PlayerProfileService:
             ),
             inventory=[],
             available_for_purchase=[],
+            current_hardware=current_hardware,
+            next_recommended_upgrade=next_recommended,
+            upgrade_progression=progression,
         )
+
+    def _build_upgrade_fields(
+        self,
+        *,
+        current_hardware_id: str,
+        effective_hashrate: float,
+        current_offline_cap: Decimal,
+        player_tier: int,
+        current_balance: Decimal,
+        owned_hardware_ids: set[str],
+    ) -> tuple[
+        CurrentHardwareInfo | None,
+        NextUpgradeRecommendation | None,
+        list[UpgradeProgressionEntry],
+    ]:
+        hw_def = self.upgrade_service.get_definition(current_hardware_id)
+        current_hardware: CurrentHardwareInfo | None = None
+        if hw_def is not None:
+            current_hardware = CurrentHardwareInfo(
+                hardware_id=hw_def.hardware_id,
+                name=hw_def.name,
+                tier=hw_def.tier,
+                base_hashrate=hw_def.base_hashrate,
+                base_power_consumption=hw_def.base_power_consumption,
+                base_heat_generation=hw_def.base_heat_generation,
+                market_price=hw_def.market_price,
+            )
+
+        recommendation = self.upgrade_service.get_next_upgrade_recommendation(
+            current_hardware_id=current_hardware_id,
+            effective_hashrate=effective_hashrate,
+            offline_cap_per_day=current_offline_cap,
+            player_tier=player_tier,
+            current_balance=current_balance,
+        )
+        next_recommended: NextUpgradeRecommendation | None = None
+        if recommendation is not None:
+            next_recommended = NextUpgradeRecommendation(
+                hardware_id=recommendation.hardware_id,
+                name=recommendation.name,
+                tier=recommendation.tier,
+                base_hashrate_improvement_pct=recommendation.base_hashrate_improvement_pct,
+                cost=recommendation.cost,
+                eta_seconds=recommendation.eta_seconds,
+                unlock_blocked=recommendation.unlock_blocked,
+            )
+
+        raw_progression = self.upgrade_service.get_upgrade_progression(
+            current_hardware_id=current_hardware_id,
+            owned_hardware_ids=owned_hardware_ids,
+            player_tier=player_tier,
+        )
+        progression = [
+            UpgradeProgressionEntry(
+                hardware_id=entry.hardware_id,
+                name=entry.name,
+                tier=entry.tier,
+                market_price=entry.market_price,
+                is_current=entry.is_current,
+                is_owned=entry.is_owned,
+                is_unlocked=entry.is_unlocked,
+                unlock_condition=entry.unlock_condition,
+            )
+            for entry in raw_progression
+        ]
+        return current_hardware, next_recommended, progression
 
     @staticmethod
     def _calculate_power_available(*, power_consumed: float, power_capacity: float) -> float:

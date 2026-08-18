@@ -1,0 +1,44 @@
+[
+  {
+    "hardware_id": "starter_rusty_home_computer",
+    "tier": 1,
+    "name": "Rusty Home Computer",
+    "description": "Basic starter hardware every miner begins with. It gets the job done.",
+    "base_hashrate": 12.0,
+    "base_power_consumption": 120.0,
+    "base_heat_generation": 40.0,
+    "heat_dissipation_rate_per_minute": 0.05,
+    "market_price": "0",
+    "unlock_condition": null,
+    "previous_tier": null,
+    "next_tier": "improved_workstation"
+  },
+  {
+    "hardware_id": "improved_workstation",
+    "tier": 2,
+    "name": "Improved Workstation",
+    "description": "Mid-range hardware for serious miners. Doubles hashrate at the cost of more power and heat.",
+    "base_hashrate": 25.0,
+    "base_power_consumption": 180.0,
+    "base_heat_generation": 90.0,
+    "heat_dissipation_rate_per_minute": 0.05,
+    "market_price": "2500",
+    "unlock_condition": null,
+    "previous_tier": "starter_rusty_home_computer",
+    "next_tier": "professional_mining_rig"
+  },
+  {
+    "hardware_id": "professional_mining_rig",
+    "tier": 3,
+    "name": "Professional Mining Rig",
+    "description": "High-performance dedicated mining hardware. Requires a matured operation to unlock.",
+    "base_hashrate": 60.0,
+    "base_power_consumption": 300.0,
+    "base_heat_generation": 150.0,
+    "heat_dissipation_rate_per_minute": 0.05,
+    "market_price": "8000",
+    "unlock_condition": "player_tier >= 2",
+    "previous_tier": "improved_workstation",
+    "next_tier": null
+  }
+]

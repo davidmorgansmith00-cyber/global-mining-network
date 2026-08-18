@@ -39,7 +39,7 @@ class NpcMarketServiceUnitTests(unittest.TestCase):
         player_id = str(uuid4())
         connection = mock_open_connection.return_value.__enter__.return_value
         cursor = connection.cursor.return_value.__enter__.return_value
-        cursor.fetchone.side_effect = [(player_id, 1)]
+        cursor.fetchone.side_effect = [(player_id, 1, "starter_rusty_home_computer")]
 
         result = self.service.execute_purchase(player_id, "starter_gpu_rig_mk1", 1)
 
@@ -60,7 +60,7 @@ class NpcMarketServiceUnitTests(unittest.TestCase):
         player_id = str(uuid4())
         connection = mock_open_connection.return_value.__enter__.return_value
         cursor = connection.cursor.return_value.__enter__.return_value
-        cursor.fetchone.side_effect = [(player_id, 1)]
+        cursor.fetchone.side_effect = [(player_id, 1, "starter_rusty_home_computer")]
 
         result = self.service.execute_purchase(player_id, "starter_gpu_rig_mk1", 1)
 

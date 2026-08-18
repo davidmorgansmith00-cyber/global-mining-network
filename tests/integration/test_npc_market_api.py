@@ -257,7 +257,7 @@ class NpcMarketApiIntegrationTests(unittest.TestCase):
                 profile = client.get("/api/v1/players/profile", params={"player_id": player_id})
                 self.assertEqual(profile.status_code, 200)
                 payload = profile.json()
-                self.assertEqual(payload["schema_version"], "player.profile.v1.5")
+                self.assertEqual(payload["schema_version"], "player.profile.v1.6")
                 self.assertGreaterEqual(len(payload["inventory"]), 1)
                 self.assertEqual(payload["inventory"][0]["item_id"], "starter_gpu_rig_mk1")
                 self.assertGreaterEqual(len(payload["available_for_purchase"]), 1)
