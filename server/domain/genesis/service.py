@@ -9,6 +9,7 @@ import hashlib
 import hmac
 import json
 import os
+from threading import Lock
 from typing import Any, Callable
 from uuid import uuid4
 
@@ -20,6 +21,7 @@ from shared.settings import settings
 
 
 GENESIS_LEDGER_ENTRY_TYPE = "genesis.balance.v1"
+GENESIS_ROLLBACK_LEDGER_ENTRY_TYPE = "genesis.balance.rollback.v1"
 DEFAULT_REQUIRED_WORK = Decimal("100")
 BALANCE_QUANTIZE = Decimal("0.000001")
 
@@ -536,12 +538,44 @@ class GenesisService:
                 )
                 cursor.execute(
                     """
-                    DELETE FROM economy_player_ledger_entries
-                    WHERE entry_type = %s
-                      AND metadata->>'genesis_id' = %s
+                    SELECT player_id, starting_balance, starting_tier, migrated_from_beta
+                    FROM genesis_player_snapshot
+                    WHERE genesis_id::text = %s
+                    ORDER BY player_id ASC
                     """,
-                    (GENESIS_LEDGER_ENTRY_TYPE, record.genesis_id),
+                    (record.genesis_id,),
                 )
+                snapshot_rows = cursor.fetchall()
+                for player_id, starting_balance, starting_tier, migrated_from_beta in snapshot_rows:
+                    cursor.execute(
+                        """
+                        INSERT INTO economy_player_ledger_entries (
+                            ledger_entry_id,
+                            block_number,
+                            player_id,
+                            amount,
+                            contribution_hashes,
+                            currency,
+                            entry_type,
+                            metadata
+                        )
+                        VALUES (%s::uuid, 1, %s, %s, 0, 'credits', %s, %s::jsonb)
+                        """,
+                        (
+                            str(uuid4()),
+                            str(player_id),
+                            Decimal(str(starting_balance)) * Decimal("-1"),
+                            GENESIS_ROLLBACK_LEDGER_ENTRY_TYPE,
+                            json.dumps(
+                                {
+                                    "genesis_id": record.genesis_id,
+                                    "starting_tier": int(starting_tier),
+                                    "migrated_from_beta": bool(migrated_from_beta),
+                                    "rollback_reason": record.rollback_reason,
+                                }
+                            ),
+                        ),
+                    )
                 cursor.execute(
                     """
                     DELETE FROM blockchain_finalized_blocks
@@ -803,8 +837,14 @@ class GenesisService:
         return public_key_bytes.hex()
 
 
-_genesis_service = GenesisService()
+_genesis_service: GenesisService | None = None
+_genesis_service_lock = Lock()
 
 
 def get_genesis_service() -> GenesisService:
+    global _genesis_service
+    if _genesis_service is None:
+        with _genesis_service_lock:
+            if _genesis_service is None:
+                _genesis_service = GenesisService()
     return _genesis_service

@@ -302,7 +302,7 @@ class ChainExplorerService:
                     ORDER BY created_at DESC
                     LIMIT %s
                     """,
-                    (needle, bounded_limit),
+                    (needle, max(bounded_limit - len(items) - len(player_rows), 0)),
                 )
                 pool_rows = cursor.fetchall()
         results = list(items)
