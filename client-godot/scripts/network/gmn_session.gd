@@ -14,7 +14,7 @@ var token_expires_at: float = 0.0
 
 ## Is this session currently valid?
 func is_valid() -> bool:
-	return player_id != "" and access_token != "" and get_tree().get_root().get_child(0).get_tree().get_frame() < token_expires_at
+	return player_id != "" and access_token != "" and (Time.get_ticks_msec() / 1000.0) < token_expires_at
 
 ## Refresh token if expired
 func should_refresh() -> bool:

@@ -49,14 +49,14 @@ func _process(delta: float) -> void:
 	_time_until_refresh -= delta
 	if _time_until_refresh <= 0.0:
 		_time_until_refresh = refresh_interval_seconds
-		var _ignored = _controller.refresh_authoritative_views()
+		var _ignored = await _controller.refresh_authoritative_views()
 		if auto_render:
 			_panel.render_from_controller(_controller)
 
 func refresh_now() -> void:
 	if _controller == null or _panel == null:
 		return
-	var _ignored = _controller.refresh_authoritative_views()
+	var _ignored = await _controller.refresh_authoritative_views()
 	_panel.render_from_controller(_controller)
 
 func _bind_action_signals() -> void:

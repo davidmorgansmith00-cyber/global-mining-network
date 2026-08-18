@@ -21,3 +21,7 @@ __pycache__/
 .DS_Store
 Thumbs.db
 .vscode/
+
+# Godot editor cache and generated script metadata
+client-godot/.godot/
+client-godot/**/*.uid
