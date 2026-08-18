@@ -155,8 +155,12 @@ func _open_gameplay_shell() -> void:
 		_set_controls_enabled(true)
 		_show_error("Gameplay shell could not be opened.")
 		return
-	await tree.process_frame
-	var gameplay_root := tree.current_scene
+	var gameplay_root: Node = null
+	for _attempt in range(10):
+		await tree.process_frame
+		gameplay_root = tree.current_scene
+		if gameplay_root != null and gameplay_root.has_method("configure_session"):
+			break
 	if gameplay_root != null and gameplay_root.has_method("configure_session"):
 		gameplay_root.configure_session(
 			str(session_payload.get("player_id", "")),
@@ -164,6 +168,8 @@ func _open_gameplay_shell() -> void:
 			str(session_payload.get("access_token", "")),
 			str(session_payload.get("refresh_token", "")),
 		)
+	else:
+		push_error("Gameplay shell was not ready for session handoff")
 
 func _set_controls_enabled(enabled: bool) -> void:
 	email_input.editable = enabled
