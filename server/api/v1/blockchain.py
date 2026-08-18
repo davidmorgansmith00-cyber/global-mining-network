@@ -30,6 +30,7 @@ from domain.blockchain.store import PostgresBlockchainStateStore
 from domain.difficulty.service import DifficultyAdjustmentService
 from domain.economy.ledger import PostgresLedgerPoster
 from domain.economy.read_models import project_player_reward_balances
+from domain.genesis.service import get_genesis_service
 from domain.mining.service import MiningSimulationService
 from shared.database import database_is_configured, open_connection
 from shared.logging import get_logger
@@ -67,6 +68,7 @@ _maintenance_auth_scope_requests_total: dict[str, int] = {}
 _operation_intent_transport_requests_total: dict[str, int] = {}
 _runtime_mining_service = _build_runtime_mining_service()
 _operation_runtime_lock = Lock()
+_genesis_service = get_genesis_service()
 
 
 def _advance_operation_runtime_once() -> None:
@@ -245,6 +247,19 @@ def reset_blockchain_runtime_counters_for_tests(
 def get_blockchain_status(recent_limit: int = Query(default=10, ge=1, le=100)) -> BlockchainStatusResponse:
     _advance_operation_runtime_once()
     return service.get_status(recent_limit=recent_limit)
+
+
+@router.get("/genesis/status", status_code=status.HTTP_200_OK)
+def get_genesis_status() -> dict[str, object]:
+    return _genesis_service.get_status_payload()
+
+
+@router.get("/genesis", status_code=status.HTTP_200_OK)
+def get_genesis_block_details() -> dict[str, object]:
+    record = _genesis_service.get_current_genesis_block(include_archived=False)
+    if record is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="genesis_not_found")
+    return _genesis_service.serialize_genesis_block(record, include_admin_identity=False)
 
 
 @router.get(
