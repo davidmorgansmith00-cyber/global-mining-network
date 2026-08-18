@@ -1,0 +1,117 @@
+<Window x:Class="GlobalMiningNetwork.Launcher.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Global Mining Network Launcher"
+        Height="600" Width="900"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="CanMinimize"
+        Background="#1A1A2E">
+
+    <Window.Resources>
+        <Style TargetType="Button" x:Key="PrimaryButton">
+            <Setter Property="Background" Value="#00B4D8"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Padding" Value="20,10"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Maintenance Banner (hidden by default) -->
+        <Border Grid.Row="0" x:Name="MaintenanceBanner" Background="#FF6B35"
+                Padding="10,6" Visibility="Collapsed">
+            <TextBlock x:Name="MaintenanceBannerText" Foreground="White"
+                       FontSize="13" TextWrapping="Wrap"
+                       Text="Scheduled maintenance in progress. The game may be unavailable."/>
+        </Border>
+
+        <!-- Header -->
+        <Border Grid.Row="1" Background="#16213E" Padding="20,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="⛏ Global Mining Network" Foreground="#00B4D8"
+                           FontSize="22" FontWeight="Bold" VerticalAlignment="Center"/>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12">
+                    <ComboBox x:Name="ChannelSelector" Width="140"
+                              SelectionChanged="ChannelSelector_SelectionChanged"
+                              ToolTip="Select update channel"/>
+                    <Button Content="Account" Click="AccountButton_Click"
+                            Style="{StaticResource PrimaryButton}" FontSize="13"
+                            Padding="12,6"/>
+                    <Button Content="Settings" Click="SettingsButton_Click"
+                            Style="{StaticResource PrimaryButton}" FontSize="13"
+                            Padding="12,6" Background="#0F3460"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Patch Notes -->
+        <Grid Grid.Row="2" Margin="20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="10"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Background="#16213E" CornerRadius="6" Padding="16">
+                <ScrollViewer>
+                    <StackPanel x:Name="PatchNotesPanel" Spacing="12">
+                        <TextBlock Text="Patch Notes" Foreground="#00B4D8"
+                                   FontSize="16" FontWeight="Bold" Margin="0,0,0,8"/>
+                        <TextBlock x:Name="PatchNotesLoading" Foreground="#888"
+                                   Text="Loading patch notes…"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+
+            <!-- Status Panel -->
+            <Border Grid.Column="2" Background="#16213E" CornerRadius="6" Padding="16">
+                <StackPanel Spacing="10" VerticalAlignment="Top">
+                    <TextBlock Text="Status" Foreground="#00B4D8"
+                               FontSize="16" FontWeight="Bold"/>
+                    <TextBlock x:Name="VersionLabel" Foreground="#CCC"
+                               FontSize="13" Text="Version: —"/>
+                    <TextBlock x:Name="ChannelLabel" Foreground="#CCC"
+                               FontSize="13" Text="Channel: stable"/>
+                    <TextBlock x:Name="UpdateStatusLabel" Foreground="#CCC"
+                               FontSize="13" Text="Up to date"/>
+
+                    <ProgressBar x:Name="UpdateProgressBar" Height="8"
+                                 Foreground="#00B4D8" Background="#0F3460"
+                                 Visibility="Collapsed" Minimum="0" Maximum="100"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Footer: Launch Button -->
+        <Border Grid.Row="3" Background="#16213E" Padding="20,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock x:Name="StatusBarText" Foreground="#888"
+                           VerticalAlignment="Center" FontSize="12"
+                           Text="Ready to launch"/>
+                <Button x:Name="LaunchButton" Grid.Column="1"
+                        Content="▶  LAUNCH GAME"
+                        Style="{StaticResource PrimaryButton}"
+                        Width="200" Height="50"
+                        Click="LaunchButton_Click"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

@@ -1,0 +1,18 @@
+Subject: New login to your Global Mining Network account
+
+Hi {display_name},
+
+A new login was detected on your account.
+
+  Device:    {device_name}
+  Location:  {ip_address}
+  Time:      {login_time} UTC
+
+If this was you, no action is needed.
+
+If you do not recognise this login, please revoke the session immediately
+from the launcher under Account → Manage Sessions, and consider changing
+your password.
+
+— The Global Mining Network Team
+https://globalminingnetwork.invalid

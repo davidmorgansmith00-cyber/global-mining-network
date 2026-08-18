@@ -1,0 +1,17 @@
+Subject: Your Global Mining Network account has been deleted
+
+Hi {display_name},
+
+This email confirms that your Global Mining Network account ({email})
+has been scheduled for deletion.
+
+Your game data will be fully removed within 30 days in accordance with our
+privacy policy.
+
+If you change your mind, contact support within 7 days to cancel the deletion:
+  support@globalminingnetwork.invalid
+
+If you did not request account deletion, please contact support immediately.
+
+— The Global Mining Network Team
+https://globalminingnetwork.invalid
