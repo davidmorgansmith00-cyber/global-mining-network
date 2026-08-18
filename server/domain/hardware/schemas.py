@@ -9,6 +9,7 @@ class HardwareConfig:
     base_hashrate: float
     base_power_consumption: float
     heat_generation: float
+    heat_dissipation_rate_per_minute: float = 0.05
 
 
 @dataclass(frozen=True)
@@ -19,4 +20,5 @@ class PowerState:
 
 @dataclass(frozen=True)
 class CoolingState:
-    cooling_efficiency: float
+    heat_generated: float
+    cooling_capacity: float

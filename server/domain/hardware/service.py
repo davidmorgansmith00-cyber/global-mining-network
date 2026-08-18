@@ -43,6 +43,47 @@ class GmnHardwareHashrateService:
         cubic_falloff = (excess_ratio * excess_ratio * excess_ratio).sqrt()
         return float(max(_MIN_MULTIPLIER, _MAX_MULTIPLIER - cubic_falloff))
 
+    def calculate_cooling_efficiency_multiplier(self, heat_generated: float, cooling_capacity: float) -> float:
+        """Return cooling efficiency multiplier (0.1–1.0) from heat vs cooling capacity.
+
+        When heat_generated <= cooling_capacity the multiplier is 1.0 (no penalty).
+        Above capacity a cubic-falloff curve applies down to a floor of 0.1, mirroring
+        the power-throttle curve pattern.
+        """
+        heat = max(_to_decimal(heat_generated), _ZERO)
+        capacity = _to_decimal(cooling_capacity)
+
+        if capacity <= _ZERO:
+            return float(_MIN_MULTIPLIER)
+        if heat <= capacity:
+            return float(_MAX_MULTIPLIER)
+
+        excess_ratio = (heat - capacity) / capacity
+        cubic_falloff = (excess_ratio * excess_ratio * excess_ratio).sqrt()
+        return float(max(_MIN_MULTIPLIER, _MAX_MULTIPLIER - cubic_falloff))
+
+    def calculate_heat_generated(
+        self,
+        base_heat_generation: float,
+        power_consumed: float,
+        power_capacity: float,
+    ) -> float:
+        """Compute heat emitted by hardware scaled by its power-consumption ratio.
+
+        heat_generated = base_heat_generation × (power_consumed / power_capacity)
+        Clamped to [0, base_heat_generation] so that over-capacity draw does not
+        generate *more* heat than the hardware's rated maximum.
+        """
+        heat = max(_to_decimal(base_heat_generation), _ZERO)
+        consumed = max(_to_decimal(power_consumed), _ZERO)
+        capacity = _to_decimal(power_capacity)
+
+        if capacity <= _ZERO:
+            return float(heat.quantize(_HASHRATE_PRECISION, rounding=ROUND_HALF_UP))
+
+        ratio = min(consumed / capacity, _MAX_MULTIPLIER)
+        return float((heat * ratio).quantize(_HASHRATE_PRECISION, rounding=ROUND_HALF_UP))
+
     def calculate_effective_hashrate(
         self,
         player_id: str,
@@ -59,7 +100,12 @@ class GmnHardwareHashrateService:
                 power_state.power_capacity,
             )
         )
-        cooling_multiplier = _clamp(cooling_state.cooling_efficiency)
+        cooling_multiplier = _clamp(
+            self.calculate_cooling_efficiency_multiplier(
+                cooling_state.heat_generated,
+                cooling_state.cooling_capacity,
+            )
+        )
 
         return float(
             (base_hashrate * power_multiplier * cooling_multiplier).quantize(

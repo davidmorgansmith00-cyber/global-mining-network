@@ -93,7 +93,11 @@ class PersistenceFlowTests(unittest.TestCase):
                           'effective_hashrate_updated_at',
                           'power_consumed',
                           'power_capacity',
-                          'power_throttle_multiplier_cached'
+                          'power_throttle_multiplier_cached',
+                          'heat_generated',
+                          'cooling_capacity',
+                          'cooling_efficiency_multiplier_cached',
+                          'last_heat_dissipation_at'
                       )
                     ORDER BY column_name
                     """
@@ -102,9 +106,13 @@ class PersistenceFlowTests(unittest.TestCase):
                 self.assertEqual(
                     player_columns,
                     [
+                        "cooling_capacity",
+                        "cooling_efficiency_multiplier_cached",
                         "effective_hashrate_cached",
                         "effective_hashrate_updated_at",
                         "hardware_id",
+                        "heat_generated",
+                        "last_heat_dissipation_at",
                         "power_capacity",
                         "power_consumed",
                         "power_throttle_multiplier_cached",

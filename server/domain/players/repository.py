@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from uuid import UUID
 
 from domain.hardware.schemas import HardwareConfig
@@ -13,6 +14,9 @@ DEFAULT_POWER_CONSUMED = 120.0
 DEFAULT_POWER_CAPACITY = 120.0
 DEFAULT_POWER_THROTTLE_MULTIPLIER = 1.0
 DEFAULT_COOLING_EFFICIENCY = 1.0
+DEFAULT_HEAT_GENERATED = 40.0
+DEFAULT_COOLING_CAPACITY = 100.0
+DEFAULT_COOLING_EFFICIENCY_MULTIPLIER = 1.0
 
 
 class PlayerRepository:
@@ -54,7 +58,14 @@ class PlayerRepository:
                         power_throttle_multiplier_cached = CASE
                             WHEN power_throttle_multiplier_cached <= 0 THEN %s
                             ELSE power_throttle_multiplier_cached
-                        END
+                        END,
+                        heat_generated = CASE WHEN heat_generated <= 0 THEN %s ELSE heat_generated END,
+                        cooling_capacity = CASE WHEN cooling_capacity <= 0 THEN %s ELSE cooling_capacity END,
+                        cooling_efficiency_multiplier_cached = CASE
+                            WHEN cooling_efficiency_multiplier_cached <= 0 THEN %s
+                            ELSE cooling_efficiency_multiplier_cached
+                        END,
+                        last_heat_dissipation_at = COALESCE(last_heat_dissipation_at, NOW())
                     WHERE player_id = %s
                     """,
                     (
@@ -63,6 +74,9 @@ class PlayerRepository:
                         DEFAULT_POWER_CONSUMED,
                         DEFAULT_POWER_CAPACITY,
                         DEFAULT_POWER_THROTTLE_MULTIPLIER,
+                        DEFAULT_HEAT_GENERATED,
+                        DEFAULT_COOLING_CAPACITY,
+                        DEFAULT_COOLING_EFFICIENCY_MULTIPLIER,
                         player_id,
                     ),
                 )
@@ -84,7 +98,9 @@ class PlayerRepository:
             return None
         return row[0], row[1], row[2]
 
-    def get_profile_state(self, player_id: UUID) -> tuple[str, float, float, float, float, float | None] | None:
+    def get_profile_state(
+        self, player_id: UUID
+    ) -> tuple[str, float, float, float, float, float, float, datetime | None, float | None] | None:
         with open_connection() as connection:
             with connection.cursor() as cursor:
                 cursor.execute(
@@ -93,8 +109,11 @@ class PlayerRepository:
                         COALESCE(players.hardware_id, player_profiles.starter_hardware_id),
                         COALESCE(players.power_consumed, hardware_definitions.base_power_consumption, %s),
                         COALESCE(players.power_capacity, player_profiles.power_capacity, %s),
-                        player_profiles.cooling_efficiency,
                         COALESCE(players.power_throttle_multiplier_cached, %s),
+                        COALESCE(players.heat_generated, %s),
+                        COALESCE(players.cooling_capacity, %s),
+                        COALESCE(players.cooling_efficiency_multiplier_cached, %s),
+                        players.last_heat_dissipation_at,
                         players.effective_hashrate_cached
                     FROM players
                     INNER JOIN player_profiles ON player_profiles.player_id = players.player_id
@@ -106,6 +125,9 @@ class PlayerRepository:
                         DEFAULT_POWER_CONSUMED,
                         DEFAULT_POWER_CAPACITY,
                         DEFAULT_POWER_THROTTLE_MULTIPLIER,
+                        DEFAULT_HEAT_GENERATED,
+                        DEFAULT_COOLING_CAPACITY,
+                        DEFAULT_COOLING_EFFICIENCY_MULTIPLIER,
                         player_id,
                     ),
                 )
@@ -118,7 +140,10 @@ class PlayerRepository:
             float(row[2]),
             float(row[3]),
             float(row[4]),
-            None if row[5] is None else float(row[5]),
+            float(row[5]),
+            float(row[6]),
+            row[7],
+            None if row[8] is None else float(row[8]),
         )
 
     def get_hardware_config(self, hardware_id: str) -> HardwareConfig | None:
@@ -126,7 +151,12 @@ class PlayerRepository:
             with connection.cursor() as cursor:
                 cursor.execute(
                     """
-                    SELECT hardware_id, base_hashrate, base_power_consumption, heat_generation
+                    SELECT
+                        hardware_id,
+                        base_hashrate,
+                        base_power_consumption,
+                        heat_generation,
+                        heat_dissipation_rate_per_minute
                     FROM hardware_definitions
                     WHERE hardware_id = %s
                     """,
@@ -140,6 +170,7 @@ class PlayerRepository:
             base_hashrate=float(row[1]),
             base_power_consumption=float(row[2]),
             heat_generation=float(row[3]),
+            heat_dissipation_rate_per_minute=float(row[4]),
         )
 
     def update_effective_hashrate_cache(
@@ -147,6 +178,8 @@ class PlayerRepository:
         player_id: UUID,
         effective_hashrate: float,
         power_throttle_multiplier: float,
+        heat_generated: float,
+        cooling_efficiency_multiplier: float,
     ) -> None:
         with open_connection() as connection:
             with connection.cursor() as cursor:
@@ -155,10 +188,19 @@ class PlayerRepository:
                     UPDATE players
                     SET effective_hashrate_cached = %s,
                         power_throttle_multiplier_cached = %s,
+                        heat_generated = %s,
+                        cooling_efficiency_multiplier_cached = %s,
+                        last_heat_dissipation_at = NOW(),
                         effective_hashrate_updated_at = NOW()
                     WHERE player_id = %s
                     """,
-                    (effective_hashrate, power_throttle_multiplier, player_id),
+                    (
+                        effective_hashrate,
+                        power_throttle_multiplier,
+                        heat_generated,
+                        cooling_efficiency_multiplier,
+                        player_id,
+                    ),
                 )
             connection.commit()
 
@@ -169,7 +211,7 @@ class PlayerRepository:
         hardware_id: str | None = None,
         power_consumed: float | None = None,
         power_capacity: float | None = None,
-        cooling_efficiency: float | None = None,
+        cooling_capacity: float | None = None,
     ) -> None:
         with open_connection() as connection:
             with connection.cursor() as cursor:
@@ -187,19 +229,19 @@ class PlayerRepository:
                     UPDATE players
                     SET power_consumed = COALESCE(%s, power_consumed),
                         power_capacity = COALESCE(%s, power_capacity),
+                        cooling_capacity = COALESCE(%s, cooling_capacity),
                         updated_at = NOW()
                     WHERE player_id = %s
                     """,
-                    (power_consumed, power_capacity, player_id),
+                    (power_consumed, power_capacity, cooling_capacity, player_id),
                 )
                 cursor.execute(
                     """
                     UPDATE player_profiles
                     SET power_capacity = COALESCE(%s, power_capacity),
-                        cooling_efficiency = COALESCE(%s, cooling_efficiency),
                         updated_at = NOW()
                     WHERE player_id = %s
                     """,
-                    (power_capacity, cooling_efficiency, player_id),
+                    (power_capacity, player_id),
                 )
             connection.commit()
