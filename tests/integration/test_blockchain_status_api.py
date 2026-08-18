@@ -2161,14 +2161,17 @@ class BlockchainStatusApiTests(unittest.TestCase):
                 )
                 metrics_headers = {settings.maintenance_auth_header: settings.maintenance_auth_token}
                 metrics_response = client.get("/api/v1/blockchain/maintenance/metrics", headers=metrics_headers)
+                metrics_plaintext = client.get("/api/v1/blockchain/maintenance/metrics/plaintext", headers=metrics_headers)
 
             self.assertEqual(start_response.status_code, 200)
             self.assertEqual(stop_response.status_code, 200)
             self.assertEqual(metrics_response.status_code, 200)
+            self.assertEqual(metrics_plaintext.status_code, 200)
 
             counters = metrics_response.json().get("operation_intent_transport_requests_total", {})
             self.assertEqual(counters.get("dual_match", 0), 2)
             self.assertEqual(counters.get("query_rejected_strict", 0), 0)
+            self.assertIn('gmn_operation_intent_transport_requests_total{mode="dual_match"} 2', metrics_plaintext.text)
         finally:
             settings.operation_intent_require_header_binding = original_strict_mode
 
