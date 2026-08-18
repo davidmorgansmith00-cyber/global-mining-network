@@ -109,10 +109,10 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | GMN-EC-04: Offline Progression Caps | Done | P0 | m2-economy-implementation-tickets.md line 117 | GMN-EC-01, GMN-EC-03 |
 | GMN-EC-05: NPC Market Purchase Flow | Done | P1 | m2-economy-implementation-tickets.md line 149 | GMN-EC-01 (independent path) |
 | GMN-EC-06: Starter Upgrade Loop | Done | P1 | m2-economy-implementation-tickets.md line 187 | GMN-EC-03, GMN-EC-05 |
-| GMN-EC-07: WebSocket Aggregated Updates | Planned | P1 | m2-economy-implementation-tickets.md line 221 | GMN-EC-01 through GMN-EC-06 |
+| GMN-EC-07: WebSocket Aggregated Updates | Done | P1 | m2-economy-implementation-tickets.md line 221 | GMN-EC-01 through GMN-EC-06 |
 | GMN-EC-08: Progression Funnel Telemetry | Planned | P2 | m2-economy-implementation-tickets.md line 259 | GMN-EC-06 |
 
-**Delivery Sequence:** GMN-EC-01 ✓ → GMN-EC-02 ✓ → GMN-EC-03 ✓ → GMN-EC-04 ✓ → GMN-EC-05 ✓ → GMN-EC-06 ✓ → GMN-EC-07 → GMN-EC-08
+**Delivery Sequence:** GMN-EC-01 ✓ → GMN-EC-02 ✓ → GMN-EC-03 ✓ → GMN-EC-04 ✓ → GMN-EC-05 ✓ → GMN-EC-06 ✓ → GMN-EC-07 ✓ → GMN-EC-08
 
 **Parallelization Allowed:**
 - GMN-EC-04 and GMN-EC-05 can start after GMN-EC-01 (no dependency on EC-02/03)
@@ -128,7 +128,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Offline catch-up respects caps and interval boundaries | Planned | GMN-EC-04 integration + replay tests pass |
 | NPC market purchases are atomic and auditable | Done | GMN-EC-05 race tests + ledger verification pass |
 | Starter upgrade flow is playable end-to-end | Planned | GMN-EC-06 integration test + time test pass |
-| WebSocket updates reach players with no loss on reconnect | Planned | GMN-EC-07 integration + reconnect tests pass |
+| WebSocket updates reach players with no loss on reconnect | Done | GMN-EC-07 integration + reconnect tests pass |
 | Progression funnel visible in analytics dashboard | Planned | GMN-EC-08 dashboard test passes |
 | All tests passing, no regressions | Planned | Full test suite: 100% pass rate |
 
