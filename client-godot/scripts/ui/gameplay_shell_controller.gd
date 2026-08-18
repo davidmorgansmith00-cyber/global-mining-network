@@ -15,6 +15,7 @@ var player_id: String = ""
 var latest_status_payload: Dictionary = {}
 var latest_snapshot_payload: Dictionary = {}
 var latest_rewards_payload: Dictionary = {}
+var latest_profile_payload: Dictionary = {}
 var ui_state := GameplayShellUiState.new()
 
 func _ready() -> void:
@@ -46,6 +47,9 @@ func build_snapshot_request_url() -> String:
 func build_rewards_request_url() -> String:
 	return api_client.build_rewards_url(player_id, rewards_recent_limit)
 
+func build_profile_request_url() -> String:
+	return api_client.build_player_profile_url(player_id)
+
 func build_events_stream_url() -> String:
 	return stream_client.build_global_events_url(player_id, session_id)
 
@@ -73,6 +77,7 @@ func refresh_authoritative_views() -> Dictionary:
 	var status_response: Dictionary = await api_client.fetch_status(status_recent_limit)
 	var snapshot_response: Dictionary = await api_client.fetch_snapshot(status_recent_limit)
 	var rewards_response: Dictionary = await api_client.fetch_rewards(player_id, rewards_recent_limit)
+	var profile_response: Dictionary = await api_client.fetch_player_profile(player_id)
 	var successful_response_count := 0
 
 	if status_response.get("ok", false):
@@ -86,8 +91,11 @@ func refresh_authoritative_views() -> Dictionary:
 	if rewards_response.get("ok", false):
 		successful_response_count += 1
 		latest_rewards_payload = rewards_response.get("payload", {})
+	if profile_response.get("ok", false):
+		successful_response_count += 1
+		latest_profile_payload = profile_response.get("payload", {})
 
-	if successful_response_count == 3:
+	if successful_response_count == 4:
 		ui_state.set_ready()
 	elif successful_response_count > 0:
 		ui_state.set_stale("Some authoritative views could not be refreshed")
@@ -104,10 +112,14 @@ func refresh_authoritative_views() -> Dictionary:
 		"status": status_response,
 		"snapshot": snapshot_response,
 		"rewards": rewards_response,
+		"profile": profile_response,
 	}
 
 func get_ui_state() -> Dictionary:
 	return ui_state.to_display()
+
+func get_server_base_hashrate() -> float:
+	return float(latest_profile_payload.get("base_hashrate", 0.0))
 
 func restore_stream_cursor_from_checkpoint() -> Dictionary:
 	if player_id == "" or session_id == "":

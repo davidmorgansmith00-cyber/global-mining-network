@@ -81,10 +81,9 @@ func _on_start_operation_pressed() -> void:
 		_set_action_status("Start rejected: operation_id is required")
 		return
 
-	var hashrate_text := _base_hashrate_input.text.strip_edges() if _base_hashrate_input != null else ""
-	var parsed_hashrate := hashrate_text.to_float()
+	var parsed_hashrate := _controller.get_server_base_hashrate()
 	if parsed_hashrate <= 0:
-		_set_action_status("Start rejected: base hashrate must be > 0")
+		_set_action_status("Start rejected: machine profile is not ready")
 		return
 
 	_set_action_status("Sending start intent...")

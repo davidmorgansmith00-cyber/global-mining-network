@@ -32,6 +32,11 @@ Phase 2 onboarding:
 - Login and registration use the server auth endpoints, then load `/api/v1/player/bootstrap` before entering gameplay.
 - Session tokens remain runtime-only; gameplay receives the authenticated session through an explicit scene handoff.
 
+Phase 3 starter operation screen:
+- The gameplay shell fetches `/api/v1/players/profile` and renders machine, tier, hashrate, power, throttle, heat, and cooling values from the server.
+- The operation start intent uses the server-returned `base_hashrate`; the client no longer accepts an authoritative hashrate typed by the player.
+- Global block status remains visible alongside the machine constraints.
+
 Operation intent plumbing:
 - `GmnApiClient` now includes non-authoritative start/stop intent pass-through calls:
 	- `POST /api/v1/blockchain/operations/intents/start?session_id=<active_session_id>` with payload `{ "operation_id", "base_hashrate_hps" }`

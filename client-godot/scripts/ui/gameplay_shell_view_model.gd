@@ -25,3 +25,16 @@ func map_rewards(payload: Dictionary) -> Dictionary:
 		"total_contribution_hashes_text": str(payload.get("total_contribution_hashes", "0")),
 		"reward_entries_count_text": str((payload.get("entries", []) as Array).size()),
 	}
+
+func map_profile(payload: Dictionary) -> Dictionary:
+	var hardware := payload.get("current_hardware", {}) as Dictionary
+	return {
+		"machine_name_text": str(hardware.get("name", payload.get("hardware_id", "-"))),
+		"base_hashrate_text": str(payload.get("base_hashrate", "0")),
+		"effective_hashrate_text": str(payload.get("effective_hashrate", "0")),
+		"power_text": "%s / %s" % [str(payload.get("power_consumed", "0")), str(payload.get("power_capacity", "0"))],
+		"power_throttle_text": str(payload.get("power_throttle_multiplier", "0")),
+		"heat_text": str(payload.get("heat_generated", "0")),
+		"cooling_text": "%s / %s" % [str(payload.get("cooling_efficiency_multiplier", "0")), str(payload.get("cooling_capacity", "0"))],
+		"tier_text": str(payload.get("player_tier", "0")),
+	}

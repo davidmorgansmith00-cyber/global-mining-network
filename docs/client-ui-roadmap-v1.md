@@ -85,6 +85,16 @@ Remaining Phase 1 work is shared route/error primitives, scene migration tests f
 
 Remaining Phase 2 work is launcher handoff metadata, explicit session restore UX, and full UI integration coverage against the local API.
 
+### Phase 3 Slice Started - 2026-08-18
+
+- Added authoritative player-profile loading to the gameplay shell.
+- Added starter machine, tier, base/effective hashrate, power, throttle, heat, and cooling readouts.
+- Made the displayed base hashrate read-only and sourced operation start from the server profile.
+- Kept the global block HUD and operation controls in the same persistent shell.
+- Added starter-machine profile mapping smoke coverage.
+
+Remaining Phase 3 work is live websocket-first refresh behavior, explicit operation status display, and end-to-end testing against the running local API.
+
 ## 4. Roadmap Summary
 
 | Phase | Outcome | Priority | Gate |
