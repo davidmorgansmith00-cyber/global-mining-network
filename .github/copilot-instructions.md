@@ -3,7 +3,7 @@
 **Last Updated:** 2026-08-18  
 **Current Phase:** M1 Simulation Core Vertical Slice  
 **Current Slice:** M1 Slice 2 - Client Gameplay Shell Integration  
-**Status:** In Progress (GMN-CL-01 ✅ GMN-CL-02 ✅)
+**Status:** In Progress (GMN-CL-01 ✅ GMN-CL-02 ✅ GMN-CL-05 ✅)
 
 ---
 
@@ -125,31 +125,31 @@ The tickets for M1 Slice 2 (Client Gameplay Shell Integration) are:
   - Acceptance: Client can bootstrap a session, values available to authorized requests, no client progression
   - Reference: `m1-client-gameplay-implementation-tickets.md` line 12
   - Completed: 2026-08-17T23:24:29Z
-  - Files: `client-godot/scripts/network/gmn_session.gd`, `client-godot/scripts/network/gmn_api_client.gd`
 
 - [x] **GMN-CL-02: Global Chain Status HUD** (P0) ✅ DONE
   - Acceptance: HUD displays authoritative block number/work/progress, no local derivation
   - Reference: `m1-client-gameplay-implementation-tickets.md` line 25
   - Completed: 2026-08-18T00:28:35Z
-  - Files: `client-godot/scripts/ui/gmn_block_status_hud.gd`, `client-godot/scripts/network/gmn_status_polling_service.gd`, `client-godot/scripts/gameplay/gmn_gameplay_shell_controller.gd`
+
+- [x] **GMN-CL-05: Gameplay Shell Scene Scaffold** (P0) ✅ DONE
+  - Acceptance: Controller orchestrates session/status/snapshot/events, contracts centralized
+  - Reference: `m1-client-gameplay-implementation-tickets.md` line 65
+  - Completed: 2026-08-18T00:38:48Z
+  - Files: `client-godot/scripts/gameplay/gmn_gameplay_shell_scene_root.gd`, `client-godot/tests/integration/test_gmn_gameplay_shell_scene.gd`
 
 - [ ] **GMN-CL-03: Snapshot + Reconnect Event Stream** (P0)
   - Acceptance: Reconnect resumes from saved cursor, duplicates avoided, cursor persistent
   - Reference: `m1-client-gameplay-implementation-tickets.md` line 38
 
-- [ ] **GMN-CL-04: Player Reward Timeline Panel** (P1)
-  - Acceptance: Timeline renders server entries without mutation, empty states handled
-  - Reference: `m1-client-gameplay-implementation-tickets.md` line 55
-
-- [ ] **GMN-CL-05: Gameplay Shell Scene Scaffold** (P0)
-  - Acceptance: Controller orchestrates session/status/snapshot/events, contracts centralized
-  - Reference: `m1-client-gameplay-implementation-tickets.md` line 65
-
 - [ ] **GMN-CL-06: Operation Intent Session-Bound Contract** (P0)
   - Acceptance: Start/stop calls succeed/fail with session binding, no player_id in payload
   - Reference: `m1-client-gameplay-implementation-tickets.md` line 82
 
-**Delivery order:** GMN-CL-01 ✅ → GMN-CL-02 ✅ → GMN-CL-05 → GMN-CL-03 → GMN-CL-06 → GMN-CL-04
+- [ ] **GMN-CL-04: Player Reward Timeline Panel** (P1)
+  - Acceptance: Timeline renders server entries without mutation, empty states handled
+  - Reference: `m1-client-gameplay-implementation-tickets.md` line 55
+
+**Delivery order:** GMN-CL-01 ✅ → GMN-CL-02 ✅ → GMN-CL-05 ✅ → GMN-CL-03 → GMN-CL-06 → GMN-CL-04
 
 ---
 
@@ -246,7 +246,7 @@ Every PR should:
 - [x] Verify no non-negotiables were violated (read "Always-On Non-Negotiables" section above)
 - [x] Include a test case for the acceptance criterion
 - [x] Update `docs/progress-tracker.md` section "## 6. Current Slice Checklist" to mark the ticket "Done"
-- [x] Ensure commit message includes the ticket ID (e.g., "GMN-CL-02: Global Chain Status HUD")
+- [x] Ensure commit message includes the ticket ID (e.g., "GMN-CL-05: Gameplay Shell Scene Scaffold")
 
 ---
 
@@ -262,7 +262,7 @@ If you encounter:
 
 ---
 
-**Version:** 1.3 (GMN-CL-02 Complete)  
+**Version:** 1.4 (GMN-CL-05 Complete)  
 **Last Reviewed:** 2026-08-18  
 **Maintained By:** Program Lead  
 **Status:** Active & In Use for M1 Slice 2 Execution
