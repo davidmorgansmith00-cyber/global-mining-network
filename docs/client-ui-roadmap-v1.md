@@ -105,11 +105,11 @@ Remaining Phase 3 work is live websocket-first refresh behavior, explicit operat
 
 Remaining Phase 4 work is the contract-backed upgrade flow, richer inventory/receipt presentation, and live local API purchase validation.
 
-### Upgrade Command Contract Required Before Upgrade UI
+### Upgrade Command Contract Implemented - 2026-08-18
 
-The current server exposes upgrade recommendations and progression fields in the player profile, but it does **not** currently expose a player upgrade command route. The client must not turn a recommendation into a local upgrade or reuse the market purchase route as an upgrade shortcut.
+The server now exposes a dedicated player upgrade runtime. The client must not turn a recommendation into a local upgrade or reuse the market purchase route as an upgrade shortcut.
 
-The minimum server contract needed by the client is:
+The implemented server contract is:
 
 **Start upgrade intent**
 
@@ -154,7 +154,7 @@ The response must distinguish at least `idle`, `running`, `completed`, `rejected
 
 **Contract acceptance gate**
 
-Upgrade UI can begin only after the backend provides:
+Upgrade UI can now begin against the implemented contract, subject to the following verified backend guarantees:
 
 1. Atomic ledger-backed cost deduction and upgrade record creation.
 2. Idempotent start behavior for repeated `idempotency_key` submissions.
@@ -162,7 +162,7 @@ Upgrade UI can begin only after the backend provides:
 4. Authoritative profile recalculation after confirmed completion.
 5. Unit, integration, race, replay, and permission tests.
 
-Until that gate is met, the client may render the server's `next_recommended_upgrade` and `upgrade_progression` as read-only information, but it must not show an executable upgrade button.
+The client may render the server's `next_recommended_upgrade` and `upgrade_progression` as read-only information until the upgrade UI slice is implemented. The backend migration is `0026_hardware_upgrade_runtime.sql`; routes are `/api/v1/hardware/upgrades/start` and `/api/v1/hardware/upgrades/current`.
 
 ## 4. Roadmap Summary
 

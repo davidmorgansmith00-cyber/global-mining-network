@@ -18,6 +18,7 @@ from api.v1.players import router as players_router
 from api.v1.pools import router as pools_router
 from api.v1.stream import router as stream_router
 from api.v1.support import router as support_router
+from api.v1.upgrades import router as upgrades_router
 
 
 api_router = APIRouter()
@@ -39,3 +40,4 @@ api_router.include_router(players_router)
 api_router.include_router(pools_router)
 api_router.include_router(stream_router)
 api_router.include_router(support_router)
+api_router.include_router(upgrades_router)
