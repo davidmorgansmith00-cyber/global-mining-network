@@ -105,6 +105,65 @@ Remaining Phase 3 work is live websocket-first refresh behavior, explicit operat
 
 Remaining Phase 4 work is the contract-backed upgrade flow, richer inventory/receipt presentation, and live local API purchase validation.
 
+### Upgrade Command Contract Required Before Upgrade UI
+
+The current server exposes upgrade recommendations and progression fields in the player profile, but it does **not** currently expose a player upgrade command route. The client must not turn a recommendation into a local upgrade or reuse the market purchase route as an upgrade shortcut.
+
+The minimum server contract needed by the client is:
+
+**Start upgrade intent**
+
+- Endpoint: `POST /api/v1/hardware/upgrades/start?session_id=<active_session_id>`
+- Request body:
+
+```json
+{
+	"hardware_id": "improved_workstation",
+	"idempotency_key": "upgrade-<client-generated-unique-key>"
+}
+```
+
+- Server derives `player_id` from the validated session.
+- Server validates unlock state, current hardware, balance, inventory, conflicting upgrades, and content version.
+- Server owns the actual start timestamp, cost, duration, and resulting upgrade record.
+- The client must not send price, duration, hashrate, power, cooling, or completion values.
+
+**Read upgrade status**
+
+- Endpoint: `GET /api/v1/hardware/upgrades/current?player_id=<player_id>`
+- Response must include a versioned contract such as:
+
+```json
+{
+	"schema_version": "hardware.upgrade.v1",
+	"status": "running",
+	"upgrade_id": "<server-id>",
+	"hardware_id": "improved_workstation",
+	"started_at": "2026-08-18T16:00:00Z",
+	"completes_at": "2026-08-20T16:00:00Z",
+	"server_now": "2026-08-18T18:00:00Z",
+	"completion_confirmed": false
+}
+```
+
+The client may display time remaining using server timestamps, but the server decides completion. On reconnect, the client reloads this status and the player profile; it never advances progress locally.
+
+**Completion and failure states**
+
+The response must distinguish at least `idle`, `running`, `completed`, `rejected`, and `cancelled`. Rejections should identify stable reasons such as `insufficient_balance`, `tier_locked`, `upgrade_in_progress`, `hardware_not_owned`, or `content_version_mismatch`.
+
+**Contract acceptance gate**
+
+Upgrade UI can begin only after the backend provides:
+
+1. Atomic ledger-backed cost deduction and upgrade record creation.
+2. Idempotent start behavior for repeated `idempotency_key` submissions.
+3. Server-time-based progress and reconnect-safe status reads.
+4. Authoritative profile recalculation after confirmed completion.
+5. Unit, integration, race, replay, and permission tests.
+
+Until that gate is met, the client may render the server's `next_recommended_upgrade` and `upgrade_progression` as read-only information, but it must not show an executable upgrade button.
+
 ## 4. Roadmap Summary
 
 | Phase | Outcome | Priority | Gate |
