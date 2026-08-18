@@ -75,10 +75,12 @@ class PlayerProfileService:
 
                 hardware_config = self.repository.get_hardware_config(hardware_id)
                 if hardware_config is not None:
+                    now = datetime.now(tz=timezone.utc)
                     heat_generated = self._apply_passive_dissipation(
                         heat_generated=heat_generated_stored,
                         dissipation_rate_per_minute=hardware_config.heat_dissipation_rate_per_minute,
                         last_dissipation_at=last_heat_dissipation_at,
+                        now=now,
                     )
 
                     power_throttle_multiplier = self.hashrate_service.calculate_power_throttle_multiplier(
@@ -107,6 +109,7 @@ class PlayerProfileService:
                         power_throttle_multiplier,
                         heat_generated,
                         cooling_efficiency_multiplier,
+                        now,
                     )
                     return PlayerProfileResponse(
                         player_id=player_id,
@@ -122,7 +125,7 @@ class PlayerProfileService:
                         heat_generated=heat_generated,
                         cooling_capacity=cooling_capacity,
                         cooling_efficiency_multiplier=cooling_efficiency_multiplier,
-                        last_heat_dissipation_at=datetime.now(tz=timezone.utc).isoformat(),
+                        last_heat_dissipation_at=now.isoformat(),
                         effective_hashrate=effective_hashrate,
                     )
 
@@ -210,6 +213,7 @@ class PlayerProfileService:
         heat_generated: float,
         dissipation_rate_per_minute: float,
         last_dissipation_at: datetime | None,
+        now: datetime | None = None,
     ) -> float:
         """Exponentially decay heat based on elapsed minutes since last dissipation.
 
@@ -220,7 +224,8 @@ class PlayerProfileService:
         if dissipation_rate_per_minute <= 0.0:
             return heat_generated
 
-        now = datetime.now(tz=timezone.utc)
+        if now is None:
+            now = datetime.now(tz=timezone.utc)
         if last_dissipation_at.tzinfo is None:
             last_dissipation_at = last_dissipation_at.replace(tzinfo=timezone.utc)
 

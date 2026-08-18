@@ -40,9 +40,9 @@ class GmnHardwareHashrateServiceTests(unittest.TestCase):
         self.assertEqual(effective_hashrate, 40.0)
 
     def test_formula_applies_cooling_penalty_when_heat_exceeds_capacity(self) -> None:
-        # Heat=150, capacity=100 → excess_ratio=0.5; cubic_falloff=sqrt(0.125)≈0.353553
+        # Heat=150, capacity=100 → excess_ratio=0.5; cubic_falloff=sqrt(0.5^3)=sqrt(0.125)≈0.353553
         # cooling_mult = max(0.1, 1.0 - 0.353553) ≈ 0.646447; power under capacity
-        # effective = 40 × 1.0 × 0.646447 ≈ 25.857880
+        # effective = 40 × 0.646447 ≈ 25.857864
         effective_hashrate = self.service.calculate_effective_hashrate(
             player_id="player_alpha",
             hardware_config=self.hardware,

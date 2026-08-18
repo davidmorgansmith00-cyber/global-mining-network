@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime
 from uuid import UUID
 
 from domain.hardware.schemas import HardwareConfig
@@ -180,6 +180,7 @@ class PlayerRepository:
         power_throttle_multiplier: float,
         heat_generated: float,
         cooling_efficiency_multiplier: float,
+        dissipation_timestamp: datetime,
     ) -> None:
         with open_connection() as connection:
             with connection.cursor() as cursor:
@@ -190,8 +191,8 @@ class PlayerRepository:
                         power_throttle_multiplier_cached = %s,
                         heat_generated = %s,
                         cooling_efficiency_multiplier_cached = %s,
-                        last_heat_dissipation_at = NOW(),
-                        effective_hashrate_updated_at = NOW()
+                        last_heat_dissipation_at = %s,
+                        effective_hashrate_updated_at = %s
                     WHERE player_id = %s
                     """,
                     (
@@ -199,6 +200,8 @@ class PlayerRepository:
                         power_throttle_multiplier,
                         heat_generated,
                         cooling_efficiency_multiplier,
+                        dissipation_timestamp,
+                        dissipation_timestamp,
                         player_id,
                     ),
                 )
