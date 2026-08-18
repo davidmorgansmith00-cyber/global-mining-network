@@ -1,9 +1,9 @@
 # Copilot Instructions for Global Mining Network
 
 **Last Updated:** 2026-08-18  
-**Current Phase:** M1 Simulation Core Vertical Slice  
-**Current Slice:** M1 Slice 2 - Client Gameplay Shell Integration  
-**Status:** COMPLETE ✅ (GMN-CL-01 ✅ GMN-CL-02 ✅ GMN-CL-05 ✅ GMN-CL-03 ✅ GMN-CL-06 ✅ GMN-CL-04 ✅)
+**Current Phase:** M2 Constraint Systems & Economy Foundations  
+**Current Slice:** M2 Slice 1 - Economy Foundations  
+**Status:** READY FOR EXECUTION (M1 Complete ✅ → M2 Gate Open ✅)
 
 ---
 
@@ -12,7 +12,7 @@
 These are **never negotiable**, across all phases and all tickets:
 
 1. **Server Authoritative Only**
-   - Server owns: balances, rewards, progression, block state, difficulty, finalization, settlement outcomes
+   - Server owns: balances, rewards, progression, block state, difficulty, finalization, settlement outcomes, effective hashrate, power state, cooling state
    - Client: presentation and input only
    - Client can never author or override authoritative values
 
@@ -46,26 +46,27 @@ If a request conflicts with these, **stop and call out the conflict explicitly**
 
 Start here for every task:
 
-| Document | Purpose | Key Sections for M1 Slice 2 |
+| Document | Purpose | Key Sections for M2 Slice 1 |
 |---|---|---|
 | **`docs/progress-tracker.md`** | CURRENT STATE: Where are we? What's done? | Section 3 ("Overall Program Status") + Section 10 ("Next Actions") |
-| **`docs/m1-client-gameplay-implementation-tickets.md`** | RANKED TICKETS: What to build next? | All 6 tickets (GMN-CL-01 through GMN-CL-06) in P0/P1 order |
-| **`docs/m1-client-gameplay-minimal-slice-plan.md`** | HOW TO BUILD: Scope, sequence, acceptance criteria | Section 4 ("Minimal Surface Backlog") + Section 6 ("Delivery Sequence") |
+| **`docs/m2-economy-implementation-tickets.md`** | RANKED TICKETS: What to build next? | All 8 tickets (GMN-EC-01 through GMN-EC-08) in P0/P1/P2 order |
+| **`docs/m2-economy-foundations-plan.md`** | HOW TO BUILD: Scope, sequence, acceptance criteria | (To be created; reference implementation-plan-v1.md § 6 for now) |
 
-**When you start:** Check progress-tracker.md section 3 first. If it says "M1 Slice 2", then read the tickets in m1-client-gameplay-implementation-tickets.md in order (by Priority).
+**When you start:** Check progress-tracker.md section 3 first. If it says "M2 Slice 1", then read the tickets in m2-economy-implementation-tickets.md in order (by Priority).
 
 ---
 
-### **Tier 2: API/Blockchain Contracts (Reference while coding)**
+### **Tier 2: API/Economy Contracts (Reference while coding)**
 
 Keep these open while implementing:
 
 | Document | Purpose | What to Find |
 |---|---|---|
-| **`docs/operation-intents-api-reference.md`** | Operation start/stop endpoint contracts | Request shapes, response shapes, error cases, authority model |
-| **`docs/m1-slice-1-simulation-kernel-tick-contract.md`** | Block, reward, difficulty, event stream contracts | What the server sends to the client |
+| **`docs/m2-economy-implementation-tickets.md`** | Economy feature contracts | Hardware formula, power/cooling models, market flow, upgrade progression |
+| **`docs/m1-slice-1-simulation-kernel-tick-contract.md`** | Block and time contracts | Time-based reconstruction, piecewise intervals (foundation for M2 work) |
+| **`docs/operation-intents-api-reference.md`** | Operation intent contracts | Still used in M2; upgrade start is an operation intent |
 
-**When you need:** Endpoint signatures, payload fields, error codes, response contract versions.
+**When you need:** Economy formulas, purchase flow protocols, upgrade mechanics, time boundaries.
 
 ---
 
@@ -75,10 +76,10 @@ Consult these to understand WHY and WHAT constraints apply:
 
 | Document | Purpose | Key Sections |
 |---|---|---|
-| **`docs/implementation-plan-v1.md`** | Product direction and phase breakdown | Section 1 ("Purpose and Implementation Principles"), Section 8 ("Phase-by-Phase Implementation Sequence") |
+| **`docs/implementation-plan-v1.md`** | Product direction and phase breakdown | Section 1 ("Purpose and Implementation Principles"), Section 6 ("Phase M2") |
 | **`docs/master-build-plan-v1.md`** | System architecture and gameplay order | Section 1 ("Program Charter and Non-Negotiables"), Section 8 ("Gameplay System Build Order") |
-| **`docs/global-mining-network-official-specification.md`** | Game fiction and product constraints | Section "Authority" and "Chain Ownership" |
-| **`docs/game-design-brief-v1.md`** | Game loop fantasy and economy philosophy | Section "The One-Chain Shared Experience" |
+| **`docs/global-mining-network-official-specification.md`** | Game fiction and product constraints | Section "Authority" and "Economy Philosophy" |
+| **`docs/game-design-brief-v1.md`** | Game loop fantasy and economy philosophy | Section "Constraint Systems" and "Progression Loop" |
 
 **When you need:** Understanding WHY a constraint exists, or checking if a design is aligned with overall strategy.
 
@@ -91,14 +92,15 @@ Use this table to find the right documents for your question:
 | You're asking... | Answer is in... | Find this section |
 |---|---|---|
 | "What am I building right now?" | `progress-tracker.md` | "## 3. Overall Program Status" + "## 10. Next Actions" |
-| "What's the exact acceptance criteria for this ticket?" | `m1-client-gameplay-implementation-tickets.md` | The ticket's "Acceptance criteria" subsection |
-| "What order should I build these 6 things?" | `m1-client-gameplay-minimal-slice-plan.md` | "## 6. Delivery Sequence" |
-| "What are the authority rules for the client?" | `m1-client-gameplay-minimal-slice-plan.md` | "## 3. Authority Boundaries" |
-| "What does the `/api/v1/blockchain/operations/intents/start` endpoint look like?" | `operation-intents-api-reference.md` | "## Start Intent" |
-| "What events does the server emit?" | `m1-slice-1-simulation-kernel-tick-contract.md` | "## Network Event Taxonomy" |
-| "What's the overall game vision?" | `global-mining-network-official-specification.md` | "## 1. Executive Summary" |
-| "Why are we doing time-based simulation and not per-second loops?" | `implementation-plan-v1.md` | "## 1. Purpose and Implementation Principles" |
-| "What are the non-negotiables for the whole project?" | `master-build-plan-v1.md` | "## 1) Program Charter and Non-Negotiables" |
+| "What's the exact acceptance criteria for this ticket?" | `m2-economy-implementation-tickets.md` | The ticket's "Acceptance criteria" subsection |
+| "What order should I build these 8 things?" | `m2-economy-implementation-tickets.md` | "## Delivery Order & Dependencies" |
+| "How do I calculate effective hashrate?" | `m2-economy-implementation-tickets.md` | "## Ticket GMN-EC-01" |
+| "What's the power throttle curve?" | `m2-economy-implementation-tickets.md` | "## Ticket GMN-EC-02" |
+| "How do offline caps work?" | `m2-economy-implementation-tickets.md` | "## Ticket GMN-EC-04" |
+| "What's the NPC market purchase protocol?" | `m2-economy-implementation-tickets.md` | "## Ticket GMN-EC-05" |
+| "How do upgrades work?" | `m2-economy-implementation-tickets.md` | "## Ticket GMN-EC-06" |
+| "Why are we using time-based simulation?" | `implementation-plan-v1.md` | "## 1. Purpose and Implementation Principles" |
+| "What are the non-negotiables?" | `master-build-plan-v1.md` | "## 1) Program Charter and Non-Negotiables" |
 
 ---
 
@@ -106,7 +108,7 @@ Use this table to find the right documents for your question:
 
 Every ticket gets executed via an 8-step cycle defined in `.github/agents/slice-executor.agent.md`:
 
-1. **Slice Planning** — Pick the next highest-impact ticket from `m1-client-gameplay-implementation-tickets.md`
+1. **Slice Planning** — Pick the next highest-impact ticket from `m2-economy-implementation-tickets.md`
 2. **Task Breakdown** — Split into concrete deliverables
 3. **Implementation** — Write code following authority boundaries
 4. **Validation** — Run full test suite; all tests must pass
@@ -117,75 +119,89 @@ Every ticket gets executed via an 8-step cycle defined in `.github/agents/slice-
 
 ---
 
-## 📋 CURRENT SLICE CHECKLIST: M1 Slice 2
+## 📋 CURRENT SLICE CHECKLIST: M2 Slice 1
 
-The tickets for M1 Slice 2 (Client Gameplay Shell Integration) are:
+The tickets for M2 Slice 1 (Economy Foundations) are:
 
-- [x] **GMN-CL-01: Session Bootstrap Wiring** (P0) ✅ DONE
-  - Acceptance: Client can bootstrap a session, values available to authorized requests, no client progression
-  - Reference: `m1-client-gameplay-implementation-tickets.md` line 12
-  - Completed: 2026-08-17T23:24:29Z
+- [ ] **GMN-EC-01: Hardware Effective Hashrate Formula** (P0)
+  - Acceptance: Effective hashrate calculated server-side from hardware base + power + cooling
+  - Reference: `m2-economy-implementation-tickets.md` line 11
+  - Status: Not Started
 
-- [x] **GMN-CL-02: Global Chain Status HUD** (P0) ✅ DONE
-  - Acceptance: HUD displays authoritative block number/work/progress, no local derivation
-  - Reference: `m1-client-gameplay-implementation-tickets.md` line 25
-  - Completed: 2026-08-18T00:28:35Z
+- [ ] **GMN-EC-02: Power Constraints and Facility Limits** (P0)
+  - Acceptance: Power budget enforced, throttle curve applied, client displays state
+  - Reference: `m2-economy-implementation-tickets.md` line 45
+  - Status: Not Started
 
-- [x] **GMN-CL-05: Gameplay Shell Scene Scaffold** (P0) ✅ DONE
-  - Acceptance: Controller orchestrates session/status/snapshot/events, contracts centralized
-  - Reference: `m1-client-gameplay-implementation-tickets.md` line 65
-  - Completed: 2026-08-18T00:38:48Z
+- [ ] **GMN-EC-03: Cooling Dynamics and Efficiency** (P0)
+  - Acceptance: Heat generation, cooling efficiency, curve applied multiplicatively with power throttle
+  - Reference: `m2-economy-implementation-tickets.md` line 81
+  - Status: Not Started
 
-- [x] **GMN-CL-03: Snapshot + Reconnect Event Stream** (P0) ✅ DONE
-  - Acceptance: Reconnect resumes from saved cursor, duplicates avoided, cursor persistent
-  - Reference: `m1-client-gameplay-implementation-tickets.md` line 38
-  - Completed: 2026-08-18T00:57:18Z
+- [ ] **GMN-EC-04: Offline Progression Caps** (P0)
+  - Acceptance: Offline work capped by player state tier, transparent to player, auditable in ledger
+  - Reference: `m2-economy-implementation-tickets.md` line 117
+  - Status: Not Started
 
-- [x] **GMN-CL-06: Operation Intent Session-Bound Contract** (P0) ✅ DONE
-  - Acceptance: Start/stop calls succeed/fail with session binding, no player_id in payload
-  - Reference: `m1-client-gameplay-implementation-tickets.md` line 81
-  - Completed: 2026-08-18T01:04:52Z
+- [ ] **GMN-EC-05: NPC Market Purchase Flow** (P1)
+  - Acceptance: Purchases atomic, stock race-safe, ledger-backed, idempotent
+  - Reference: `m2-economy-implementation-tickets.md` line 149
+  - Status: Not Started
 
-- [x] **GMN-CL-04: Player Reward Timeline Panel** (P1) ✅ DONE
-  - Acceptance: Timeline renders server entries without mutation, empty states handled
-  - Reference: `m1-client-gameplay-implementation-tickets.md` line 52
-  - Completed: 2026-08-18T01:10:10Z
-  - Files: `client-godot/scripts/network/gmn_player_reward_timeline_service.gd`, `client-godot/scenes/ui/gmn_player_reward_timeline_panel.gd`
+- [ ] **GMN-EC-06: Starter Upgrade Loop** (P1)
+  - Acceptance: Upgrades consume resources, take time, improve hashrate, visible in UI
+  - Reference: `m2-economy-implementation-tickets.md` line 187
+  - Status: Not Started
 
-**Delivery order:** GMN-CL-01 ✅ → GMN-CL-02 ✅ → GMN-CL-05 ✅ → GMN-CL-03 ✅ → GMN-CL-06 ✅ → GMN-CL-04 ✅
+- [ ] **GMN-EC-07: WebSocket Aggregated Updates** (P1)
+  - Acceptance: Clients receive state updates, reconnect-safe, slow clients handled, no backpressure
+  - Reference: `m2-economy-implementation-tickets.md` line 221
+  - Status: Not Started
+
+- [ ] **GMN-EC-08: Progression Funnel Telemetry** (P2)
+  - Acceptance: Telemetry events tracked, dashboard shows funnel, drop-off visible
+  - Reference: `m2-economy-implementation-tickets.md` line 259
+  - Status: Not Started
+
+**Delivery order:** GMN-EC-01 → GMN-EC-02 → GMN-EC-03 → GMN-EC-04 → GMN-EC-05 → GMN-EC-06 → GMN-EC-07 → GMN-EC-08
+
+**Parallelization:** GMN-EC-04 and GMN-EC-05 can start after GMN-EC-01 completes (not dependent on EC-02/03)
 
 ---
 
-## 🔐 PHASE-SPECIFIC CONSTRAINTS: M1 Slice 2
+## 🔐 PHASE-SPECIFIC CONSTRAINTS: M2 Slice 1
 
-For Client Gameplay Shell Integration, enforce:
+For Economy Foundations, enforce:
 
-1. **No Client Progression Mutation**
-   - Client cannot set or modify `accumulated_work`, `required_work`, `difficulty`, rewards, balances
-   - Client displays server-provided values only
-   - Reference: `m1-client-gameplay-minimal-slice-plan.md` section 3
+1. **No Client-Side Economy Calculations**
+   - Client cannot calculate effective hashrate, power state, cooling state, or throttle multipliers
+   - Client displays server-returned values only
+   - Reference: `m2-economy-implementation-tickets.md` "Notes for Implementation Team" section 2
 
-2. **Session Binding Required**
-   - All operation intents must include `session_id` query parameter
-   - Server derives `player_id` from session, client never sends it
-   - Reference: `operation-intents-api-reference.md` section "Authority Model"
+2. **Effective Hashrate Formula is Server-Authoritative**
+   - effective_hashrate = hardware_base × power_multiplier × cooling_multiplier
+   - All three factors calculated server-side; client receives final value
+   - Reference: GMN-EC-01 acceptance criteria
 
-3. **Reconnect-Safe Event Consumption**
-   - All network events must include sequence IDs
-   - Client must persist reconnect cursor on disk
-   - Client must resume from saved cursor after disconnect
-   - Reference: `m1-client-gameplay-minimal-slice-plan.md` section 4, item 3
+3. **Power and Cooling Modifiers are Multiplicative**
+   - Not additive (e.g., 0.8 × 0.9 = 0.72, not 0.8 + 0.9 - 1 = 0.7)
+   - Reference: GMN-EC-02 and GMN-EC-03 testing requirements
 
-4. **No Speculative Balances**
-   - Client must not show calculated/estimated rewards as authoritative
-   - Only server-returned values are displayed
-   - Reference: `m1-client-gameplay-minimal-slice-plan.md` section 4, item 5
+4. **Offline Caps are Policy, Not Punishment**
+   - Messaging must be transparent; no "penalty" language
+   - Caps are auditable in ledger with cap_applied flag
+   - Reference: GMN-EC-04 acceptance criteria
 
-5. **Version Contracts Must Be Stable**
-   - Request/response fields must match contract exactly
-   - If server adds new fields, they are read-only by client
-   - If server removes fields, client must handle gracefully
-   - Reference: `operation-intents-api-reference.md` section "Field Contract Summary"
+5. **Market Purchases are Atomic and Race-Safe**
+   - Stock depletion, balance deduction, inventory increase all happen or none happen
+   - No double-sells even under concurrent requests
+   - Reference: GMN-EC-05 acceptance criteria
+
+6. **Upgrade Progression is Time-Based and Server-Owned**
+   - Upgrade start is an operation intent; server determines actual start time
+   - Upgrade progress is server-tracked; client sees progress from status endpoint
+   - Upgrade completion is server-authoritative; hardware changes only after server confirmation
+   - Reference: GMN-EC-06 acceptance criteria
 
 ---
 
@@ -194,26 +210,26 @@ For Client Gameplay Shell Integration, enforce:
 If a request or design conflicts with Tier 1 or Tier 3 documents:
 
 1. **Stop and identify the conflict explicitly** in the task description
-2. **Link to the conflicting document and section** (e.g., "`master-build-plan-v1.md` § 1 says X, but task asks Y")
+2. **Link to the conflicting document and section** (e.g., "`master-build-plan-v1.md` § 1 says X, but ticket asks Y")
 3. **Propose an architecture-compliant alternative** that satisfies both the intent and the constraint
 4. **Do NOT proceed** until the conflict is resolved
 
 Example:
 ```
 CONFLICT: Ticket asks client to calculate effective hashrate locally.
-Constraint: `implementation-plan-v1.md` § 1 says "Keep the server authoritative for balances, rewards, progression, block state, settlement, and all meaningful outcomes."
-Resolution: Client receives effective_hashrate from server in status endpoint instead.
+Constraint: `m2-economy-implementation-tickets.md` GMN-EC-01 says "All calculations server-side only."
+Resolution: Client receives effective_hashrate from status endpoint, displays it directly.
 ```
 
 ---
 
 ## 📖 When Starting a New Phase
 
-When `progress-tracker.md` section 3 moves to a new phase (e.g., M1 → M2, or M2 → M3):
+When `progress-tracker.md` section 3 moves to a new phase (e.g., M2 → M3):
 
-1. **Read the phase-exit checklist** from `implementation-plan-v1.md` or `master-build-plan-v1.md` for the completed phase
+1. **Read the phase-exit checklist** from `implementation-plan-v1.md` for the completed phase
 2. **Read the phase-entry plan** for the new phase
-3. **Create a new "Current Slice Checklist" section** in `progress-tracker.md` with the tickets from the phase's implementation document
+3. **Create a new "Current Slice Checklist" section** in this file with the tickets from the phase's implementation document
 4. **Update this file** to reflect phase-specific constraints in the section "## 🔐 PHASE-SPECIFIC CONSTRAINTS"
 
 ---
@@ -223,17 +239,18 @@ When `progress-tracker.md` section 3 moves to a new phase (e.g., M1 → M2, or M
 **Execution tracking:**
 - `.github/copilot-instructions.md` (this file)
 - `docs/progress-tracker.md` (source of truth for what's done/next)
-- `docs/m1-client-gameplay-implementation-tickets.md` (ranked task queue)
+- `docs/m2-economy-implementation-tickets.md` (ranked task queue for M2 Slice 1)
 
 **Contracts & Specifications:**
-- `docs/m1-slice-1-simulation-kernel-tick-contract.md` (server-to-client contracts)
-- `docs/operation-intents-api-reference.md` (operation intent endpoints)
-- `docs/m1-client-gameplay-minimal-slice-plan.md` (minimal scope for this slice)
+- `docs/m2-economy-implementation-tickets.md` (economy feature contracts)
+- `docs/m1-slice-1-simulation-kernel-tick-contract.md` (time-based simulation foundation)
+- `docs/operation-intents-api-reference.md` (operation intent contracts, still used in M2)
 
 **Architecture & Direction:**
 - `docs/master-build-plan-v1.md` (overall strategy and non-negotiables)
 - `docs/implementation-plan-v1.md` (phases and their exit criteria)
 - `docs/global-mining-network-official-specification.md` (game vision and constraints)
+- `docs/game-design-brief-v1.md` (economy and progression design)
 
 **Code execution:**
 - `.github/agents/slice-executor.agent.md` (8-step execution cycle)
@@ -244,12 +261,12 @@ When `progress-tracker.md` section 3 moves to a new phase (e.g., M1 → M2, or M
 
 Every PR should:
 
-- [x] Link to the ticket it solves (in PR description)
-- [x] Reference the acceptance criteria from `m1-client-gameplay-implementation-tickets.md` (or current phase tickets)
-- [x] Verify no non-negotiables were violated (read "Always-On Non-Negotiables" section above)
-- [x] Include a test case for the acceptance criterion
-- [x] Update `docs/progress-tracker.md` section "## 6. Current Slice Checklist" to mark the ticket "Done"
-- [x] Ensure commit message includes the ticket ID (e.g., "GMN-CL-04: Player Reward Timeline Panel")
+- [ ] Link to the ticket it solves (in PR description)
+- [ ] Reference the acceptance criteria from `m2-economy-implementation-tickets.md`
+- [ ] Verify no non-negotiables were violated (read "Always-On Non-Negotiables" section above)
+- [ ] Include test cases for each acceptance criterion
+- [ ] Update `docs/progress-tracker.md` section "## Current Slice Checklist" to mark the ticket "Done"
+- [ ] Ensure commit message includes the ticket ID (e.g., "GMN-EC-01: Hardware Effective Hashrate Formula")
 
 ---
 
@@ -257,19 +274,20 @@ Every PR should:
 
 If you encounter:
 
-- **Architecture conflict** → Open the corresponding Tier 3 document, identify the conflict, propose compliant alternative
-- **Missing API endpoint** → Check `operation-intents-api-reference.md` and `m1-slice-1-simulation-kernel-tick-contract.md`; if endpoint is missing, file a blocker and link to the spec
-- **Ambiguous acceptance criteria** → Re-read the ticket in `m1-client-gameplay-implementation-tickets.md`, then the relevant section in `m1-client-gameplay-minimal-slice-plan.md`
+- **Economy formula conflict** → Check `m2-economy-implementation-tickets.md`, then `game-design-brief-v1.md`
+- **Authority boundary violation** → Stop; refer to "## 🔐 PHASE-SPECIFIC CONSTRAINTS" section above
+- **Missing contract field** → Check the ticket's "Acceptance criteria" section
+- **Time-based simulation edge case** → Check `m1-slice-1-simulation-kernel-tick-contract.md`
 - **Constraint conflict** → Follow "Conflict Resolution" section above
 - **Next phase unclear** → Check `progress-tracker.md` section 10, then read the next phase's entry from `implementation-plan-v1.md`
 
 ---
 
-## 📊 M1 SLICE 2 EXIT REVIEW
+## 📊 M1 SLICE 2 ARCHIVE (Reference Only)
 
-**Status:** ✅ COMPLETE
+**Previous phase:** M1 Simulation Core Vertical Slice - Client Gameplay Shell Integration
 
-**All 6 tickets delivered:**
+**Status:** ✅ Complete (6/6 tickets)
 - GMN-CL-01: Session Bootstrap Wiring ✅
 - GMN-CL-02: Global Chain Status HUD ✅
 - GMN-CL-05: Gameplay Shell Scene Scaffold ✅
@@ -277,21 +295,14 @@ If you encounter:
 - GMN-CL-06: Operation Intent Session-Bound Contract ✅
 - GMN-CL-04: Player Reward Timeline Panel ✅
 
-**Test coverage:** 61 tests across all 6 tickets, all passing ✅
-
-**Architecture validation:**
-- ✅ Server authoritative throughout
-- ✅ Session binding enforced on all operations
-- ✅ No client progression mutations
-- ✅ Reconnect-safe event handling with cursor persistence
-- ✅ Reward history rendered without inferred calculations
-- ✅ Empty states handled gracefully
-
-**Next phase:** M2 Constraint Systems and Economy Foundations (locked until M1 Slice 2 proof is complete)
+**Archive documents:**
+- `docs/m1-client-gameplay-implementation-tickets.md`
+- `docs/m1-client-gameplay-minimal-slice-plan.md`
+- `docs/m1-exit-review-m2-transition.md` (exit review report)
 
 ---
 
-**Version:** 1.7 (M1 Slice 2 COMPLETE)  
-**Last Reviewed:** 2026-08-18T01:10:10Z  
+**Version:** 2.0 (M2 Slice 1 Active)  
+**Last Reviewed:** 2026-08-18T01:31:04Z  
 **Maintained By:** Program Lead  
-**Status:** Archived for M1 Slice 2 | Ready for M2 Transition
+**Status:** Active & Ready for M2 Execution
