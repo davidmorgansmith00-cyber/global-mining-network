@@ -3,7 +3,7 @@
 **Status:** Active Tracking  
 **Version:** 2.0  
 **Date Initialized:** 2026-08-15
-**Last Updated:** 2026-08-18
+**Last Updated:** 2026-08-18 (M4 Slice 1 In Progress)
 
 ---
 
@@ -42,7 +42,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | M1 Simulation Core Vertical Slice | **Done** | Both slices complete (Slice 1 blockchain core + Slice 2 client gameplay); 61/61 tests passing |
 | M2 Constraint Systems and Economy Foundations | **In Progress** | Slice 1 ready to start; 8 tickets planned (GMN-EC-01 through GMN-EC-08) |
 | M3 Social-Competitive Core | **In Progress** | Slice 1 executing: pools, marketplace, leaderboards, and anti-cheat baseline |
-| M4 Productization and Launcher Beta | Planned | Launcher/update work begins after artifact pipeline exists |
+| M4 Productization and Launcher Beta | **In Progress** | M4 Slice 1: Windows Launcher, Patcher, Account UX, Accessibility Baseline started |
 | M5 Content, Events, and Admin Operations | Planned | Depends on content and admin platform baselines |
 | M6 Closed Beta Hardening | Planned | Depends on product stability and ops tooling |
 | M7 Open Beta and Launch Readiness | Planned | Depends on beta hardening |
@@ -67,7 +67,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Client Gameplay and UX | **Complete - M1 Slice 2** | Gameplay Lead | M1 Slice 2 complete; M2 will add constraint system UX (handled in backend tickets) |
 | WebSocket and Realtime Delivery | **In Progress - M2 Start** | Backend Lead | Event stream websocket service implemented in M1; M2 aggregated updates ticket (GMN-EC-07) queued |
 | Content Pipeline and Data Ops | In Progress | Content Lead | Initial content schema scaffold and validator created; M2 will add economy content |
-| Launcher, Installer, Patcher | Planned | Platform Lead | Starts in M3-M4 |
+| Launcher, Installer, Patcher | **In Progress - M4 Slice 1** | Platform Lead | Windows launcher WPF skeleton, patcher service, account UX flows and accessibility baseline created |
 | Admin, Analytics, Operations | **In Progress - M2 Start** | Operations Lead | Basic logging baseline started in M0; M2 telemetry ticket (GMN-EC-08) queued |
 | Security, Moderation, Support | **In Progress - M3 Slice 1** | Security Lead | Anti-cheat v1 anomaly scoring and enforcement audit trail are in active implementation |
 | QA, Simulation, Load Validation | In Progress | QA Lead | Automated persistence integration tests added and passing; M2 race/load tests planned |
@@ -113,6 +113,23 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 **Parallelization Allowed:**
 - Pool mechanics and player marketplace can advance in parallel on top of the M2 ledger/inventory foundation
 - Leaderboards and anti-cheat can validate against the same authoritative ledger state once new entry types land
+
+---
+
+## 7b. Active Slice: M4 Slice 1 — Productization & Launcher Beta
+
+**Phase:** M4 Productization and Launcher Beta  
+**Status:** IN PROGRESS  
+**Started:** 2026-08-18  
+
+| Item | Status | Tests | Notes |
+|---|---|---|---|
+| M4-LAUNCH-01: Windows Launcher MVP | **Done** ✅ | C# MSTest (build-time) | WPF project, MainWindow, ConfigManager, InstallManager, ChannelManager, GameLauncher, PatchNotesService, MaintenanceService |
+| M4-LAUNCH-02: Patcher/Updater System | **Done** ✅ | 10/10 Python ✅ | PatcherService, PatchManifest models, C# Updater with 1MB chunks + exponential backoff + rollback |
+| M4-LAUNCH-03: Account UX & Recovery Flows | **Done** ✅ | 24/24 Python ✅ | AccountService (verify_email, recovery codes, sessions, delete, privacy), DB migration 020, email templates |
+| M4-LAUNCH-04: Accessibility Baseline | **Done** ✅ | 15/15 Python ✅ | AccessibilitySettings, ColorPalettes (Default/HighContrast/Deuteranopia/Protanopia), docs/accessibility-guide.md |
+
+**New test total:** 49 new tests (204 total, all passing)
 
 ---
 

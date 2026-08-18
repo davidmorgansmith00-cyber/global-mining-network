@@ -1,6 +1,6 @@
 # Copilot Instructions for Global Mining Network
 
-**Last Updated:** 2026-08-18  
+**Last Updated:** 2026-08-18 (M4 Slice 1 delivered)  
 **Current Phase:** M2 Constraint Systems & Economy Foundations  
 **Current Slice:** M2 Slice 1 - Economy Foundations  
 **Status:** READY FOR EXECUTION (M1 Complete ✅ → M2 Gate Open ✅)
@@ -116,6 +116,29 @@ Every ticket gets executed via an 8-step cycle defined in `.github/agents/slice-
 6. **Tracker Update** — Mark item as "Done" in `progress-tracker.md`
 7. **Commit** — One scoped commit with ticket ID in message
 8. **Push** — To main branch + immediately kickoff next ticket
+
+---
+
+## 📋 M4 SLICE 1 CHECKLIST (Productization & Launcher Beta)
+
+- [x] **M4-LAUNCH-01: Windows Launcher MVP**
+  - Acceptance: WPF launcher with MainWindow, ConfigManager, InstallManager, ChannelManager, GameLauncher, PatchNotesService, MaintenanceService
+  - Status: ✅ Done (2026-08-18)
+
+- [x] **M4-LAUNCH-02: Patcher/Updater System**
+  - Acceptance: PatcherService (Python) + C# Updater with 1MB chunks, exponential backoff, rollback
+  - Tests: 10/10 passing
+  - Status: ✅ Done (2026-08-18)
+
+- [x] **M4-LAUNCH-03: Account UX & Recovery Flows**
+  - Acceptance: AccountService extended with verify_email, recovery codes (10×8-char), session management, account delete, privacy settings; DB migration 020; email templates
+  - Tests: 24/24 passing
+  - Status: ✅ Done (2026-08-18)
+
+- [x] **M4-LAUNCH-04: Accessibility Baseline (Pass 1)**
+  - Acceptance: AccessibilitySettings + ColorPalettes (Default/HighContrast/Deuteranopia/Protanopia WCAG AA); docs/accessibility-guide.md
+  - Tests: 15/15 passing
+  - Status: ✅ Done (2026-08-18)
 
 ---
 

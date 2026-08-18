@@ -1,0 +1,16 @@
+Subject: Verify your Global Mining Network account
+
+Hi {display_name},
+
+Welcome to Global Mining Network!
+
+Please verify your email address by entering the code below in the launcher:
+
+    {verification_code}
+
+This code expires in 24 hours.
+
+If you did not create this account, you can safely ignore this email.
+
+— The Global Mining Network Team
+https://globalminingnetwork.invalid
