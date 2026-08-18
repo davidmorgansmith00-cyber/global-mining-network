@@ -60,3 +60,12 @@ func map_history(blocks_payload: Dictionary, player_payload: Dictionary, events_
 		"player_history_text": "Your records: %d" % history.size(),
 		"events_text": "Active events: %d" % events.size(),
 	}
+
+func map_social(pools_payload: Dictionary, leaderboard_payload: Dictionary, position_payload: Dictionary) -> Dictionary:
+	var pools := pools_payload.get("pools", []) as Array
+	var leaderboard := leaderboard_payload.get("leaderboard", []) as Array
+	return {
+		"pools_text": "Pools available: %d" % pools.size(),
+		"leaderboard_text": "Top hashrate entries: %d" % leaderboard.size(),
+		"position_text": "Your hashrate rank: %s" % str(position_payload.get("hashrate_rank", "-")),
+	}

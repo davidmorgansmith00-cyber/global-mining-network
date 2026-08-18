@@ -46,6 +46,10 @@ Phase 5 history surfaces:
 - The gameplay shell reads canonical block history, player history, and active events from the explorer/events endpoints.
 - These summaries are read-only and do not create alternate chain state or client-side rewards.
 
+Phase 6 social surfaces:
+- The gameplay shell reads pool browse data, the hashrate leaderboard, and the current player's leaderboard position.
+- These are read-only summaries; pool membership commands and notifications remain separate server-authoritative flows.
+
 Operation intent plumbing:
 - `GmnApiClient` now includes non-authoritative start/stop intent pass-through calls:
 	- `POST /api/v1/blockchain/operations/intents/start?session_id=<active_session_id>` with payload `{ "operation_id", "base_hashrate_hps" }`

@@ -181,6 +181,16 @@ Remaining Phase 5 work is detailed block/history panels, pagination, event cards
 - Added plain-text response handling so server error bodies render as recoverable UI errors without JSON parse noise.
 - Added a minimum client window size and separated market/history rows to prevent panel overlap.
 
+### Phase 6 Slice Started - 2026-08-18
+
+- Added pool browse summary loading from `/api/v1/pools/browse`.
+- Added hashrate leaderboard summary loading from `/api/v1/leaderboards/hashrate`.
+- Added current-player leaderboard position loading from `/api/v1/players/{player_id}/leaderboard-position`.
+- Added social read-model smoke coverage.
+- Kept pool membership and notification commands out of this slice until their session-bound contracts are standardized.
+
+Remaining Phase 6 work is pool membership UX, notification inbox/reconnect handling, and social permission/error states.
+
 ## 4. Roadmap Summary
 
 | Phase | Outcome | Priority | Gate |

@@ -11,6 +11,7 @@ func run_all() -> Dictionary:
 		"starter_machine": GmnStarterMachineSmoke.new().run(),
 		"market": GmnMarketSmoke.new().run(),
 		"history": GmnHistorySmoke.new().run(),
+		"social": GmnSocialSmoke.new().run(),
 	}
 	var failures: Array[String] = []
 	for suite_name in suites.keys():

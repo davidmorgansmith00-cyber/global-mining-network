@@ -19,7 +19,11 @@ var latest_profile_payload: Dictionary = {}
 var latest_blocks_payload: Dictionary = {}
 var latest_history_payload: Dictionary = {}
 var latest_events_payload: Dictionary = {}
+var latest_pools_payload: Dictionary = {}
+var latest_leaderboard_payload: Dictionary = {}
+var latest_position_payload: Dictionary = {}
 var ui_state := GameplayShellUiState.new()
+var _refresh_in_progress := false
 
 func _ready() -> void:
 	api_client = GmnApiClient.new()
@@ -76,8 +80,12 @@ func login_and_store_session(email: String, password: String) -> Dictionary:
 	return response
 
 func refresh_authoritative_views() -> Dictionary:
+	if _refresh_in_progress:
+		return {"ok": false, "skipped": true, "error": "refresh_in_progress"}
+	_refresh_in_progress = true
 	if player_id == "":
 		ui_state.set_unauthorized()
+		_refresh_in_progress = false
 		return {
 			"status": {"ok": false, "error": "missing_player_id", "status_code": 401},
 			"snapshot": {"ok": false, "error": "missing_player_id", "status_code": 401},
@@ -95,6 +103,9 @@ func refresh_authoritative_views() -> Dictionary:
 	var blocks_response: Dictionary = await api_client.fetch_explorer_blocks()
 	var history_response: Dictionary = await api_client.fetch_player_history(player_id)
 	var events_response: Dictionary = await api_client.fetch_active_events()
+	var pools_response: Dictionary = await api_client.fetch_pools()
+	var leaderboard_response: Dictionary = await api_client.fetch_hashrate_leaderboard()
+	var position_response: Dictionary = await api_client.fetch_player_leaderboard_position(player_id)
 	var successful_response_count := 0
 
 	if status_response.get("ok", false):
@@ -117,6 +128,12 @@ func refresh_authoritative_views() -> Dictionary:
 		latest_history_payload = history_response.get("payload", {})
 	if events_response.get("ok", false):
 		latest_events_payload = events_response.get("payload", {})
+	if pools_response.get("ok", false):
+		latest_pools_payload = pools_response.get("payload", {})
+	if leaderboard_response.get("ok", false):
+		latest_leaderboard_payload = leaderboard_response.get("payload", {})
+	if position_response.get("ok", false):
+		latest_position_payload = position_response.get("payload", {})
 
 	if successful_response_count == 4:
 		ui_state.set_ready()
@@ -131,6 +148,7 @@ func refresh_authoritative_views() -> Dictionary:
 		else:
 			ui_state.set_error()
 
+	_refresh_in_progress = false
 	return {
 		"status": status_response,
 		"snapshot": snapshot_response,
@@ -139,6 +157,9 @@ func refresh_authoritative_views() -> Dictionary:
 		"blocks": blocks_response,
 		"history": history_response,
 		"events": events_response,
+		"pools": pools_response,
+		"leaderboard": leaderboard_response,
+		"position": position_response,
 	}
 
 func get_ui_state() -> Dictionary:

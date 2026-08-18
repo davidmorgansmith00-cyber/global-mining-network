@@ -49,6 +49,9 @@ reauthenticate_button_path = NodePath("ReauthenticateButton")
 blocks_history_label_path = NodePath("BlocksHistoryLabel")
 player_history_label_path = NodePath("PlayerHistoryLabel")
 active_events_label_path = NodePath("ActiveEventsLabel")
+pools_label_path = NodePath("PoolsLabel")
+leaderboard_label_path = NodePath("LeaderboardLabel")
+player_rank_label_path = NodePath("PlayerRankLabel")
 
 [node name="BlockNumberLabel" type="Label" parent="GameplayShellPanel"]
 layout_mode = 0
@@ -286,3 +289,27 @@ offset_right = 220.0
 offset_bottom = 566.0
 text = "Sign In Again"
 visible = false
+
+[node name="PoolsLabel" type="Label" parent="GameplayShellPanel"]
+layout_mode = 0
+offset_left = 700.0
+offset_top = 530.0
+offset_right = 1160.0
+offset_bottom = 554.0
+text = "Pools available: 0"
+
+[node name="LeaderboardLabel" type="Label" parent="GameplayShellPanel"]
+layout_mode = 0
+offset_left = 700.0
+offset_top = 562.0
+offset_right = 1160.0
+offset_bottom = 586.0
+text = "Top hashrate entries: 0"
+
+[node name="PlayerRankLabel" type="Label" parent="GameplayShellPanel"]
+layout_mode = 0
+offset_left = 700.0
+offset_top = 594.0
+offset_right = 1160.0
+offset_bottom = 618.0
+text = "Your hashrate rank: -"

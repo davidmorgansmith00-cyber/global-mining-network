@@ -25,6 +25,9 @@ class_name GameplayShellPanel
 @export var blocks_history_label_path: NodePath
 @export var player_history_label_path: NodePath
 @export var active_events_label_path: NodePath
+@export var pools_label_path: NodePath
+@export var leaderboard_label_path: NodePath
+@export var player_rank_label_path: NodePath
 
 var _view_model := GameplayShellViewModel.new()
 
@@ -35,6 +38,7 @@ func render_from_controller(controller: GameplayShellController) -> void:
 	var profile_ui := _view_model.map_profile(controller.latest_profile_payload)
 	var market_ui := _view_model.map_market(controller.latest_status_payload)
 	var history_ui := _view_model.map_history(controller.latest_blocks_payload, controller.latest_history_payload, controller.latest_events_payload)
+	var social_ui := _view_model.map_social(controller.latest_pools_payload, controller.latest_leaderboard_payload, controller.latest_position_payload)
 
 	_set_label_text(block_number_label_path, "Block: %s" % status_ui.get("active_block_number_text", "-"))
 	_set_label_text(required_work_label_path, "Required Work: %s" % status_ui.get("required_work_text", "0"))
@@ -55,6 +59,9 @@ func render_from_controller(controller: GameplayShellController) -> void:
 	_set_label_text(blocks_history_label_path, history_ui.get("blocks_text", "Blocks: 0"))
 	_set_label_text(player_history_label_path, history_ui.get("player_history_text", "Your records: 0"))
 	_set_label_text(active_events_label_path, history_ui.get("events_text", "Active events: 0"))
+	_set_label_text(pools_label_path, social_ui.get("pools_text", "Pools available: 0"))
+	_set_label_text(leaderboard_label_path, social_ui.get("leaderboard_text", "Top hashrate entries: 0"))
+	_set_label_text(player_rank_label_path, social_ui.get("position_text", "Your hashrate rank: -"))
 	var state_ui := controller.get_ui_state()
 	_set_label_text(ui_state_label_path, "State: %s - %s" % [
 		str(state_ui.get("state_code", "loading")),

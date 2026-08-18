@@ -17,6 +17,9 @@ const MARKET_PURCHASE_PATH := "/api/v1/market/purchase"
 const EXPLORER_BLOCKS_PATH := "/api/v1/explorer/blocks"
 const EXPLORER_PLAYER_HISTORY_PATH := "/api/v1/explorer/players/%s/history"
 const ACTIVE_EVENTS_PATH := "/api/v1/events/active"
+const POOLS_BROWSE_PATH := "/api/v1/pools/browse"
+const HASHRATE_LEADERBOARD_PATH := "/api/v1/leaderboards/hashrate"
+const PLAYER_LEADERBOARD_POSITION_PATH := "/api/v1/players/%s/leaderboard-position"
 
 var base_url: String = "http://127.0.0.1:8000"
 var session: GmnSession = GmnSession.new()
@@ -223,6 +226,15 @@ func fetch_player_history(target_player_id: String, limit: int = 10, offset: int
 
 func fetch_active_events() -> Dictionary:
 	return await _request_json(HTTPClient.METHOD_GET, "%s%s" % [base_url, ACTIVE_EVENTS_PATH])
+
+func fetch_pools(limit: int = 10, offset: int = 0) -> Dictionary:
+	return await _request_json(HTTPClient.METHOD_GET, "%s%s?limit=%d&offset=%d" % [base_url, POOLS_BROWSE_PATH, limit, offset])
+
+func fetch_hashrate_leaderboard(limit: int = 10, offset: int = 0) -> Dictionary:
+	return await _request_json(HTTPClient.METHOD_GET, "%s%s?limit=%d&offset=%d" % [base_url, HASHRATE_LEADERBOARD_PATH, limit, offset])
+
+func fetch_player_leaderboard_position(target_player_id: String) -> Dictionary:
+	return await _request_json(HTTPClient.METHOD_GET, "%s%s" % [base_url, PLAYER_LEADERBOARD_POSITION_PATH % target_player_id])
 
 func set_session(payload: Dictionary) -> void:
 	session.set_from_response(payload)

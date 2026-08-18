@@ -64,7 +64,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Marketplace and Trading | **In Progress - M3 Slice 1** | Economy Lead | Player marketplace listing/settlement added on top of ledger-backed inventory and balance rules |
 | Research, Manufacturing, Automation | Planned | Economy Lead | Starts after content and economy baseline |
 | Pools, Social, Notifications | **In Progress - M3 Slice 1** | Gameplay Lead | Pool creation/membership and pool leaderboard surfaces are now part of active implementation |
-| Client Gameplay and UX | **In Progress - UI Phase 5** | Gameplay Lead | Phase 4 market and upgrade contract complete; read-only explorer, player-history, and active-event summaries now added |
+| Client Gameplay and UX | **In Progress - UI Phase 6** | Gameplay Lead | Phase 5 history surfaces complete; pool browse and leaderboard read-model summaries now added |
 | WebSocket and Realtime Delivery | **In Progress - M2 Start** | Backend Lead | Event stream websocket service implemented in M1; M2 aggregated updates ticket (GMN-EC-07) queued |
 | Content Pipeline and Data Ops | **In Progress - M5 Slice 1** | Content Lead | M5-CONTENT-01 draft-7 schemas, content-pack validation, review/rollout scaffolding, and rollback coverage added |
 | Launcher, Installer, Patcher | **In Progress - M4 Slice 1** | Platform Lead | Windows launcher WPF skeleton, patcher service, account UX flows and accessibility baseline created |
