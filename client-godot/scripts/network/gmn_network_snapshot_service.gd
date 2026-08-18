@@ -21,7 +21,7 @@ signal snapshot_error(error: String)
 var api_client: GmnApiClient = null
 
 func _ready() -> void:
-	api_client = get_parent().get_node("GmnApiClient") if has_parent() else null
+	api_client = get_parent().get_node("GmnApiClient") if get_parent() != null else null
 
 ## Load initial snapshot from server
 func load_snapshot() -> Dictionary:

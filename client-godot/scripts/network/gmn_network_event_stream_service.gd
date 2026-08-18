@@ -30,7 +30,7 @@ var websocket: WebSocketPeer = null
 var reconnect_timer: Timer = null
 
 func _ready() -> void:
-	api_client = get_parent().get_node("GmnApiClient") if has_parent() else null
+	api_client = get_parent().get_node("GmnApiClient") if get_parent() != null else null
 	
 	# Create reconnect timer
 	reconnect_timer = Timer.new()

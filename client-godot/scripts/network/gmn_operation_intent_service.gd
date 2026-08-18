@@ -22,7 +22,7 @@ signal session_binding_error(error: String)
 var api_client: GmnApiClient = null
 
 func _ready() -> void:
-	api_client = get_parent().get_node("GmnApiClient") if has_parent() else null
+	api_client = get_parent().get_node("GmnApiClient") if get_parent() != null else null
 
 ## Set active session (called after successful login)
 func set_active_session(session_id: String, player_id_value: String) -> void:

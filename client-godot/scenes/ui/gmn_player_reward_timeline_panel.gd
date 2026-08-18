@@ -16,7 +16,7 @@ var reward_service: GmnPlayerRewardTimelineService = null
 var is_visible_panel: bool = false
 
 func _ready() -> void:
-	reward_service = get_parent().get_node("GmnPlayerRewardTimelineService") if has_parent() else null
+	reward_service = get_parent().get_node("GmnPlayerRewardTimelineService") if get_parent() != null else null
 	
 	# Connect to reward service signals
 	if reward_service:

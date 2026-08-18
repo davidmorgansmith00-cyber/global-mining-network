@@ -15,7 +15,7 @@ signal status_updated(status: Dictionary)
 signal status_error(error: String)
 
 func _ready() -> void:
-	api_client = get_parent().get_node("GmnApiClient") if has_parent() else null
+	api_client = get_parent().get_node("GmnApiClient") if get_parent() != null else null
 
 ## Start polling for status updates
 func start_polling(interval: float = 2.0) -> void:
