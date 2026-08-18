@@ -3,7 +3,7 @@ from __future__ import annotations
 import hashlib
 import threading
 import time
-from collections import defaultdict, deque
+from collections import deque
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
@@ -120,7 +120,8 @@ class MetricsCollector:
             self._endpoints[key].record(latency_ms, status_code)
 
     def get_endpoint_metrics(self, method: str, path: str) -> EndpointMetrics | None:
-        return self._endpoints.get(self._key(method, path))
+        with self._lock:
+            return self._endpoints.get(self._key(method, path))
 
     def get_all(self) -> list[EndpointMetrics]:
         with self._lock:

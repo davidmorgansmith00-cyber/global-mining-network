@@ -89,8 +89,8 @@ def readiness_check() -> dict:
                 with conn.cursor() as cur:
                     cur.execute("SELECT 1")
             checks["database"] = "ok"
-        except Exception as exc:
-            checks["database"] = f"error: {exc}"
+        except Exception:
+            checks["database"] = "error"
             all_ok = False
     else:
         checks["database"] = "not_configured"

@@ -82,7 +82,9 @@ def _pick_scenario() -> str:
 
 def _run_scenario(scenario: str, target_url: str, metrics: MetricsAggregator) -> None:
     if scenario == "login":
-        lat, code = _simulate_request(target_url, "/api/v1/auth/login", "POST", {"username": "test", "password": "test"})
+        username = os.getenv("LOAD_TEST_USERNAME", "load_test_user")
+        password = os.getenv("LOAD_TEST_PASSWORD", "load_test_pass")
+        lat, code = _simulate_request(target_url, "/api/v1/auth/login", "POST", {"username": username, "password": password})
         metrics.record("POST:/api/v1/auth/login", lat, code)
     elif scenario == "mining":
         lat, code = _simulate_request(target_url, "/api/v1/blockchain/status")
