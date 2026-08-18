@@ -13,11 +13,13 @@ class BootstrapResponse(BaseModel):
 
 
 class PlayerProfileResponse(BaseModel):
-    schema_version: str = "player.profile.v1.1"
+    schema_version: str = "player.profile.v1.2"
     player_id: str
     hardware_id: str
     base_hashrate: float
     power_available: float
+    power_consumed: float
     power_capacity: float
+    power_throttle_multiplier: float
     cooling_efficiency: float
     effective_hashrate: float

@@ -104,7 +104,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Item | Status | Priority | Reference | Dependencies |
 |---|---|---|---|---|
 | GMN-EC-01: Hardware Effective Hashrate Formula | Done | P0 | m2-economy-implementation-tickets.md line 11 | None |
-| GMN-EC-02: Power Constraints and Facility Limits | Planned | P0 | m2-economy-implementation-tickets.md line 45 | GMN-EC-01 |
+| GMN-EC-02: Power Constraints and Facility Limits | Done | P0 | m2-economy-implementation-tickets.md line 45 | GMN-EC-01 |
 | GMN-EC-03: Cooling Dynamics and Efficiency | Planned | P0 | m2-economy-implementation-tickets.md line 81 | GMN-EC-02 |
 | GMN-EC-04: Offline Progression Caps | Planned | P0 | m2-economy-implementation-tickets.md line 117 | GMN-EC-01, GMN-EC-03 |
 | GMN-EC-05: NPC Market Purchase Flow | Planned | P1 | m2-economy-implementation-tickets.md line 149 | GMN-EC-01 (independent path) |
@@ -156,10 +156,10 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 
 ## 12. Next Actions (Immediate)
 
-1. **Start GMN-EC-02 and GMN-EC-05 in parallel**
-   - GMN-EC-02 (power): Blocks GMN-EC-03, which blocks GMN-EC-04, which blocks GMN-EC-06, which blocks GMN-EC-07
+1. **Start GMN-EC-03 and GMN-EC-05 in parallel**
+   - GMN-EC-03 (cooling): Depends on GMN-EC-02 and blocks GMN-EC-04, GMN-EC-06, and GMN-EC-07
    - GMN-EC-05 (market): Blocks GMN-EC-06 (upgrades)
-   - Both are now unblocked by GMN-EC-01
+   - Both are now unblocked by GMN-EC-02
 
 2. **Prepare M2 exit review plan**
    - Timeline: After all 8 tickets complete (est. 3 weeks from start)
@@ -179,7 +179,7 @@ Whenever meaningful progress changes:
 3. Record blockers or risks.
 4. Update next actions.
 
-**Last update:** 2026-08-18T01:44:39Z (GMN-EC-01 delivered)
+**Last update:** 2026-08-18T02:08:33Z (GMN-EC-02 delivered)
 
 ---
 

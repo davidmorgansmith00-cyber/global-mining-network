@@ -87,14 +87,28 @@ class PersistenceFlowTests(unittest.TestCase):
                     SELECT column_name
                     FROM information_schema.columns
                     WHERE table_name = 'players'
-                      AND column_name IN ('hardware_id', 'effective_hashrate_cached', 'effective_hashrate_updated_at')
+                      AND column_name IN (
+                          'hardware_id',
+                          'effective_hashrate_cached',
+                          'effective_hashrate_updated_at',
+                          'power_consumed',
+                          'power_capacity',
+                          'power_throttle_multiplier_cached'
+                      )
                     ORDER BY column_name
                     """
                 )
                 player_columns = [row[0] for row in cursor.fetchall()]
                 self.assertEqual(
                     player_columns,
-                    ["effective_hashrate_cached", "effective_hashrate_updated_at", "hardware_id"],
+                    [
+                        "effective_hashrate_cached",
+                        "effective_hashrate_updated_at",
+                        "hardware_id",
+                        "power_capacity",
+                        "power_consumed",
+                        "power_throttle_multiplier_cached",
+                    ],
                 )
 
     def test_db_backed_register_login_bootstrap(self) -> None:
@@ -124,13 +138,26 @@ class PersistenceFlowTests(unittest.TestCase):
                 self.assertGreaterEqual(session_count, 2)
 
                 cursor.execute(
-                    "SELECT starter_hardware_id, starter_hashrate_hps FROM player_profiles WHERE player_id = %s",
+                    """
+                    SELECT
+                        player_profiles.starter_hardware_id,
+                        player_profiles.starter_hashrate_hps,
+                        players.power_consumed,
+                        players.power_capacity,
+                        players.power_throttle_multiplier_cached
+                    FROM player_profiles
+                    INNER JOIN players ON players.player_id = player_profiles.player_id
+                    WHERE player_profiles.player_id = %s
+                    """,
                     (player_id,),
                 )
                 profile_row = cursor.fetchone()
                 self.assertIsNotNone(profile_row)
                 self.assertEqual(profile_row[0], "starter_rusty_home_computer")
                 self.assertEqual(profile_row[1], 12)
+                self.assertEqual(float(profile_row[2]), 120.0)
+                self.assertEqual(float(profile_row[3]), 120.0)
+                self.assertEqual(float(profile_row[4]), 1.0)
 
                 cursor.execute("DELETE FROM auth_sessions WHERE player_id = %s", (player_id,))
                 cursor.execute("DELETE FROM player_profiles WHERE player_id = %s", (player_id,))

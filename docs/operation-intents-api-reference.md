@@ -85,26 +85,30 @@ Required response fields for successful start and stop intent responses:
 - status (string)
 - detail (string)
 
-## Player Profile (v1.1)
+## Player Profile (v1.2)
 Endpoint:
 - GET `/api/v1/players/profile?player_id=<player_id>`
 
 Response:
 ```json
 {
-  "schema_version": "player.profile.v1.1",
+  "schema_version": "player.profile.v1.2",
   "player_id": "<player-id>",
   "hardware_id": "starter_rusty_home_computer",
   "base_hashrate": 12.0,
   "power_available": 120.0,
+  "power_consumed": 120.0,
   "power_capacity": 120.0,
+  "power_throttle_multiplier": 1.0,
   "cooling_efficiency": 1.0,
   "effective_hashrate": 12.0
 }
 ```
 
 Server formula:
-- `effective_hashrate = base_hashrate × clamp(power_available / power_capacity, 0.0, 1.0) × clamp(cooling_efficiency, 0.0, 1.0)`
+- `power_throttle_multiplier = 1.0` when `power_consumed <= power_capacity`
+- Otherwise, `power_throttle_multiplier = max(0.1, 1.0 - (((power_consumed - power_capacity) / power_capacity) ^ 1.5))`
+- `effective_hashrate = base_hashrate × power_throttle_multiplier × clamp(cooling_efficiency, 0.0, 1.0)`
 - All hardware, power, cooling, and effective hashrate values are calculated server-side only.
 
 ## Transport Transition Note (Query -> Header)

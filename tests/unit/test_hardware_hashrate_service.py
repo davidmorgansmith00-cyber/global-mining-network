@@ -31,47 +31,39 @@ class GmnHardwareHashrateServiceTests(unittest.TestCase):
         effective_hashrate = self.service.calculate_effective_hashrate(
             player_id="player_alpha",
             hardware_config=self.hardware,
-            power_state=PowerState(power_available=90.0, power_capacity=120.0),
+            power_state=PowerState(power_consumed=90.0, power_capacity=120.0),
             cooling_state=CoolingState(cooling_efficiency=0.8),
         )
 
-        self.assertEqual(effective_hashrate, 24.0)
+        self.assertEqual(effective_hashrate, 32.0)
 
-    def test_power_multiplier_is_clamped_between_zero_and_one(self) -> None:
-        zero_power_hashrate = self.service.calculate_effective_hashrate(
-            player_id="player_alpha",
-            hardware_config=self.hardware,
-            power_state=PowerState(power_available=-10.0, power_capacity=120.0),
-            cooling_state=CoolingState(cooling_efficiency=1.0),
-        )
-        capped_power_hashrate = self.service.calculate_effective_hashrate(
-            player_id="player_alpha",
-            hardware_config=self.hardware,
-            power_state=PowerState(power_available=240.0, power_capacity=120.0),
-            cooling_state=CoolingState(cooling_efficiency=1.0),
-        )
-        zero_capacity_hashrate = self.service.calculate_effective_hashrate(
-            player_id="player_alpha",
-            hardware_config=self.hardware,
-            power_state=PowerState(power_available=120.0, power_capacity=0.0),
-            cooling_state=CoolingState(cooling_efficiency=1.0),
-        )
+    def test_power_throttle_curve_stays_full_under_capacity_and_floors_when_severely_over_capacity(self) -> None:
+        under_capacity_multiplier = self.service.calculate_power_throttle_multiplier(90.0, 120.0)
+        moderate_overdraw_multiplier = self.service.calculate_power_throttle_multiplier(180.0, 120.0)
+        severe_overdraw_multiplier = self.service.calculate_power_throttle_multiplier(240.0, 120.0)
 
-        self.assertEqual(zero_power_hashrate, 0.0)
-        self.assertEqual(capped_power_hashrate, 40.0)
-        self.assertEqual(zero_capacity_hashrate, 0.0)
+        self.assertEqual(under_capacity_multiplier, 1.0)
+        self.assertAlmostEqual(moderate_overdraw_multiplier, 0.646447, places=6)
+        self.assertEqual(severe_overdraw_multiplier, 0.1)
+
+    def test_power_throttle_handles_zero_power_and_zero_capacity_edges(self) -> None:
+        zero_power_multiplier = self.service.calculate_power_throttle_multiplier(0.0, 120.0)
+        zero_capacity_multiplier = self.service.calculate_power_throttle_multiplier(120.0, 0.0)
+
+        self.assertEqual(zero_power_multiplier, 1.0)
+        self.assertEqual(zero_capacity_multiplier, 0.1)
 
     def test_cooling_multiplier_is_clamped_between_zero_and_one(self) -> None:
         zero_cooling_hashrate = self.service.calculate_effective_hashrate(
             player_id="player_alpha",
             hardware_config=self.hardware,
-            power_state=PowerState(power_available=120.0, power_capacity=120.0),
+            power_state=PowerState(power_consumed=120.0, power_capacity=120.0),
             cooling_state=CoolingState(cooling_efficiency=-1.0),
         )
         capped_cooling_hashrate = self.service.calculate_effective_hashrate(
             player_id="player_alpha",
             hardware_config=self.hardware,
-            power_state=PowerState(power_available=120.0, power_capacity=120.0),
+            power_state=PowerState(power_consumed=120.0, power_capacity=120.0),
             cooling_state=CoolingState(cooling_efficiency=1.7),
         )
 
