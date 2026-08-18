@@ -21,8 +21,22 @@ def _parse_date(value: str | None) -> datetime | None:
 
 
 @router.get("/blocks", status_code=status.HTTP_200_OK)
-def get_block_history(limit: int = Query(50, ge=1, le=500), offset: int = Query(0, ge=0)) -> dict:
-    return {"items": service.get_blocks(limit=limit, offset=offset), "limit": limit, "offset": offset}
+def get_block_history(
+    limit: int = Query(50, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+    start_date: str | None = None,
+    end_date: str | None = None,
+) -> dict:
+    return {
+        "items": service.get_blocks(
+            limit=limit,
+            offset=offset,
+            start_date=_parse_date(start_date),
+            end_date=_parse_date(end_date),
+        ),
+        "limit": limit,
+        "offset": offset,
+    }
 
 
 @router.get("/blocks/{block_number}", status_code=status.HTTP_200_OK)
@@ -45,7 +59,7 @@ def get_player_earnings(player_id: str, start_date: str | None = None, end_date:
 
 @router.get("/transactions", status_code=status.HTTP_200_OK)
 def get_transactions(
-    type: str | None = None,
+    transaction_type: str | None = Query(None, alias="type"),
     player_id: str | None = None,
     limit: int = Query(50, ge=1, le=500),
     offset: int = Query(0, ge=0),
@@ -54,7 +68,7 @@ def get_transactions(
 ) -> dict:
     return {
         "items": service.get_transactions(
-            type=type,
+            transaction_type=transaction_type,
             player_id=player_id,
             limit=limit,
             offset=offset,

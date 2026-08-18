@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 from decimal import Decimal
+import hashlib
+import hmac
 import json
 import os
 from uuid import uuid4
@@ -33,8 +35,12 @@ class AdminService:
         return {str(row[0]) for row in rows}
 
     def verify_password(self, password: str) -> bool:
+        required_password_hash = os.getenv("ADMIN_DASHBOARD_PASSWORD_HASH", "").strip()
+        if required_password_hash:
+            candidate_hash = hashlib.sha256(password.encode("utf-8")).hexdigest()
+            return hmac.compare_digest(candidate_hash, required_password_hash)
         required_password = os.getenv("ADMIN_DASHBOARD_PASSWORD", "local-admin-password")
-        return password == required_password
+        return hmac.compare_digest(password, required_password)
 
     def get_dashboard_metrics(self) -> dict[str, object]:
         if not database_is_configured():

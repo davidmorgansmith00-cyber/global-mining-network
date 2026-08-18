@@ -22,7 +22,7 @@ def _generate_totp(*, secret: str, counter: int, digits: int) -> str:
     padded_secret = secret.strip().replace(" ", "").upper()
     key = b32decode(padded_secret + "=" * (-len(padded_secret) % 8), casefold=True)
     msg = struct.pack(">Q", counter)
-    digest = hmac.new(key, msg, hashlib.sha1).digest()
+    digest = hmac.new(key, msg, digestmod=hashlib.sha1).digest()
     offset = digest[-1] & 0x0F
     binary = struct.unpack(">I", digest[offset : offset + 4])[0] & 0x7FFFFFFF
     return str(binary % (10**digits)).zfill(digits)

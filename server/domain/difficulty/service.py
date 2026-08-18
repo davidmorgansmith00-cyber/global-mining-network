@@ -60,7 +60,6 @@ class DifficultyAdjustmentService:
             )
 
         next_required_work = current_required_work * proposed_multiplier
-        next_required_work = max(next_required_work, self.config.minimum_required_work)
         next_required_work = self.event_service.apply_difficulty_modifier(base_required_work=next_required_work)
         return self._quantize(max(next_required_work, self.config.minimum_required_work))
 

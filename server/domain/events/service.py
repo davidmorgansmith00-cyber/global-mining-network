@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from decimal import Decimal
 import json
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 from domain.blockchain.network_stream import NetworkEventStream, get_network_event_stream
 from shared.database import database_is_configured, open_connection
@@ -436,8 +436,8 @@ class EventService:
         now = datetime.now(UTC)
         if not database_is_configured():
             resolved: list[str] = []
-            for event in self.get_active_events():
-                if event.event_type == "fork" and event.end_at <= now:
+            for event in self._memory_events.values():
+                if event.status == "active" and event.event_type == "fork" and event.end_at <= now:
                     self.resolve_fork_event(event.event_id)
                     resolved.append(event.event_id)
             return resolved
@@ -466,7 +466,3 @@ class EventService:
             if event.modifier_type == modifier_type:
                 return event
         return None
-
-    @staticmethod
-    def _coerce_uuid(value: str) -> UUID:
-        return UUID(value)

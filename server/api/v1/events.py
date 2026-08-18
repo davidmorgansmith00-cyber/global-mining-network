@@ -26,6 +26,10 @@ class CreateBranchRequest(BaseModel):
     branch_name: str
 
 
+class ActivateEventRequest(BaseModel):
+    rollout_stage: str
+
+
 class RecordContributionRequest(BaseModel):
     branch_id: str
     player_id: str
@@ -50,9 +54,9 @@ def create_event(payload: CreateEventRequest) -> dict:
 
 
 @router.post("/{event_id}/activate", status_code=status.HTTP_200_OK)
-def activate_event(event_id: str, rollout_stage: str) -> dict:
-    service.activate_event(event_id, rollout_stage)
-    return {"event_id": event_id, "status": "active", "rollout_stage": rollout_stage}
+def activate_event(event_id: str, payload: ActivateEventRequest) -> dict:
+    service.activate_event(event_id, payload.rollout_stage)
+    return {"event_id": event_id, "status": "active", "rollout_stage": payload.rollout_stage}
 
 
 @router.post("/{event_id}/branches", status_code=status.HTTP_201_CREATED)

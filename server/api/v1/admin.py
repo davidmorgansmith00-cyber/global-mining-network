@@ -62,7 +62,9 @@ def _require_password(request: Request) -> None:
 
 def _require_2fa(request: Request) -> None:
     code = request.headers.get("X-Admin-2FA-Code", "").strip()
-    secret = os.getenv("ADMIN_TOTP_SECRET", "JBSWY3DPEHPK3PXP")
+    secret = os.getenv("ADMIN_TOTP_SECRET", "").strip()
+    if not secret:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="twofa_not_configured")
     if not verify_totp_code(secret=secret, code=code):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="twofa_verification_failed")
 
@@ -158,7 +160,9 @@ def get_audit_log(
 @router.post("/2fa-verify", status_code=status.HTTP_200_OK)
 def verify_2fa(payload: Verify2FARequest, request: Request) -> dict:
     _require_role(request, {"admin", "moderator", "analyst"})
-    secret = os.getenv("ADMIN_TOTP_SECRET", "JBSWY3DPEHPK3PXP")
+    secret = os.getenv("ADMIN_TOTP_SECRET", "").strip()
+    if not secret:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="twofa_not_configured")
     verified = verify_totp_code(secret=secret, code=payload.code, now=int(datetime.now(UTC).timestamp()))
     if not verified:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="twofa_verification_failed")

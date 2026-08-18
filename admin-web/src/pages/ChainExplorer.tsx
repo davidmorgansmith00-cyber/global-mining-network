@@ -24,11 +24,11 @@ export default function ChainExplorer(): JSX.Element {
       <table>
         <thead>
           <tr>
-            <th>Block</th>
-            <th>Difficulty</th>
-            <th>Reward Pool</th>
-            <th>Miners</th>
-            <th>Finalized</th>
+            <th scope="col">Block</th>
+            <th scope="col">Difficulty</th>
+            <th scope="col">Reward Pool</th>
+            <th scope="col">Miners</th>
+            <th scope="col">Finalized</th>
           </tr>
         </thead>
         <tbody>

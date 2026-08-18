@@ -13,7 +13,14 @@ def _clamp_limit(limit: int, *, default: int = 50, maximum: int = 500) -> int:
 
 
 class ChainExplorerService:
-    def get_blocks(self, *, limit: int = 50, offset: int = 0) -> list[dict[str, Any]]:
+    def get_blocks(
+        self,
+        *,
+        limit: int = 50,
+        offset: int = 0,
+        start_date: datetime | None = None,
+        end_date: datetime | None = None,
+    ) -> list[dict[str, Any]]:
         if not database_is_configured():
             return []
         bounded_limit = _clamp_limit(limit)
@@ -23,10 +30,17 @@ class ChainExplorerService:
                     """
                     SELECT block_number, block_id, difficulty, reward_pool, miners_count, completion_time
                     FROM v_block_summary
+                    WHERE completion_time >= %s
+                      AND completion_time <= %s
                     ORDER BY block_number DESC
                     LIMIT %s OFFSET %s
                     """,
-                    (bounded_limit, max(offset, 0)),
+                    (
+                        start_date or datetime(1970, 1, 1, tzinfo=UTC),
+                        end_date or datetime.now(UTC),
+                        bounded_limit,
+                        max(offset, 0),
+                    ),
                 )
                 rows = cursor.fetchall()
         return [
@@ -141,7 +155,7 @@ class ChainExplorerService:
     def get_transactions(
         self,
         *,
-        type: str | None = None,
+        transaction_type: str | None = None,
         player_id: str | None = None,
         limit: int = 50,
         offset: int = 0,
@@ -153,9 +167,9 @@ class ChainExplorerService:
         bounded_limit = _clamp_limit(limit)
         clauses = ["timestamp >= %s", "timestamp <= %s"]
         params: list[Any] = [start_date or datetime(1970, 1, 1, tzinfo=UTC), end_date or datetime.now(UTC)]
-        if type:
+        if transaction_type:
             clauses.append("type = %s")
-            params.append(type)
+            params.append(transaction_type)
         if player_id:
             clauses.append("(player_id = %s OR to_player = %s OR from_player = %s)")
             params.extend([player_id, player_id, player_id])
