@@ -45,6 +45,9 @@ market_item_input_path = NodePath("MarketItemInput")
 market_quantity_input_path = NodePath("MarketQuantityInput")
 purchase_button_path = NodePath("PurchaseButton")
 market_status_label_path = NodePath("MarketStatusLabel")
+blocks_history_label_path = NodePath("BlocksHistoryLabel")
+player_history_label_path = NodePath("PlayerHistoryLabel")
+active_events_label_path = NodePath("ActiveEventsLabel")
 
 [node name="BlockNumberLabel" type="Label" parent="GameplayShellPanel"]
 layout_mode = 0
@@ -249,3 +252,27 @@ offset_top = 470.0
 offset_right = 1160.0
 offset_bottom = 494.0
 text = "Market status: idle"
+
+[node name="BlocksHistoryLabel" type="Label" parent="GameplayShellPanel"]
+layout_mode = 0
+offset_left = 700.0
+offset_top = 370.0
+offset_right = 1160.0
+offset_bottom = 394.0
+text = "Blocks: 0"
+
+[node name="PlayerHistoryLabel" type="Label" parent="GameplayShellPanel"]
+layout_mode = 0
+offset_left = 700.0
+offset_top = 402.0
+offset_right = 1160.0
+offset_bottom = 426.0
+text = "Your records: 0"
+
+[node name="ActiveEventsLabel" type="Label" parent="GameplayShellPanel"]
+layout_mode = 0
+offset_left = 700.0
+offset_top = 434.0
+offset_right = 1160.0
+offset_bottom = 458.0
+text = "Active events: 0"

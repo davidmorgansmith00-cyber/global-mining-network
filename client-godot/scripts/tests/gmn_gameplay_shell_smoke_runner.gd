@@ -10,6 +10,7 @@ func run_all() -> Dictionary:
 		"onboarding": GmnOnboardingSmoke.new().run(),
 		"starter_machine": GmnStarterMachineSmoke.new().run(),
 		"market": GmnMarketSmoke.new().run(),
+		"history": GmnHistorySmoke.new().run(),
 	}
 	var failures: Array[String] = []
 	for suite_name in suites.keys():

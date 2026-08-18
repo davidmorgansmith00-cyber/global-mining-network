@@ -14,6 +14,9 @@ const CHECKPOINT_PATH_TEMPLATE := "/api/v1/blockchain/checkpoints/%s"
 const OPERATION_START_INTENT_PATH := "/api/v1/blockchain/operations/intents/start"
 const OPERATION_STOP_INTENT_PATH := "/api/v1/blockchain/operations/intents/stop"
 const MARKET_PURCHASE_PATH := "/api/v1/market/purchase"
+const EXPLORER_BLOCKS_PATH := "/api/v1/explorer/blocks"
+const EXPLORER_PLAYER_HISTORY_PATH := "/api/v1/explorer/players/%s/history"
+const ACTIVE_EVENTS_PATH := "/api/v1/events/active"
 
 var base_url: String = "http://127.0.0.1:8000"
 var session: GmnSession = GmnSession.new()
@@ -205,6 +208,21 @@ func send_market_purchase(item_id: String, quantity: int) -> Dictionary:
 		build_market_purchase_url(),
 		{"item_id": item_id, "quantity": quantity},
 	)
+
+func build_explorer_blocks_url(limit: int = 10, offset: int = 0) -> String:
+	return "%s%s?limit=%d&offset=%d" % [base_url, EXPLORER_BLOCKS_PATH, limit, offset]
+
+func fetch_explorer_blocks(limit: int = 10, offset: int = 0) -> Dictionary:
+	return await _request_json(HTTPClient.METHOD_GET, build_explorer_blocks_url(limit, offset))
+
+func build_player_history_url(target_player_id: String, limit: int = 10, offset: int = 0) -> String:
+	return "%s%s?limit=%d&offset=%d" % [base_url, EXPLORER_PLAYER_HISTORY_PATH % target_player_id, limit, offset]
+
+func fetch_player_history(target_player_id: String, limit: int = 10, offset: int = 0) -> Dictionary:
+	return await _request_json(HTTPClient.METHOD_GET, build_player_history_url(target_player_id, limit, offset))
+
+func fetch_active_events() -> Dictionary:
+	return await _request_json(HTTPClient.METHOD_GET, "%s%s" % [base_url, ACTIVE_EVENTS_PATH])
 
 func set_session(payload: Dictionary) -> void:
 	session.set_from_response(payload)

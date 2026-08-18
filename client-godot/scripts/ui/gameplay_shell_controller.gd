@@ -16,6 +16,9 @@ var latest_status_payload: Dictionary = {}
 var latest_snapshot_payload: Dictionary = {}
 var latest_rewards_payload: Dictionary = {}
 var latest_profile_payload: Dictionary = {}
+var latest_blocks_payload: Dictionary = {}
+var latest_history_payload: Dictionary = {}
+var latest_events_payload: Dictionary = {}
 var ui_state := GameplayShellUiState.new()
 
 func _ready() -> void:
@@ -78,6 +81,9 @@ func refresh_authoritative_views() -> Dictionary:
 	var snapshot_response: Dictionary = await api_client.fetch_snapshot(status_recent_limit)
 	var rewards_response: Dictionary = await api_client.fetch_rewards(player_id, rewards_recent_limit)
 	var profile_response: Dictionary = await api_client.fetch_player_profile(player_id)
+	var blocks_response: Dictionary = await api_client.fetch_explorer_blocks()
+	var history_response: Dictionary = await api_client.fetch_player_history(player_id)
+	var events_response: Dictionary = await api_client.fetch_active_events()
 	var successful_response_count := 0
 
 	if status_response.get("ok", false):
@@ -94,6 +100,12 @@ func refresh_authoritative_views() -> Dictionary:
 	if profile_response.get("ok", false):
 		successful_response_count += 1
 		latest_profile_payload = profile_response.get("payload", {})
+	if blocks_response.get("ok", false):
+		latest_blocks_payload = blocks_response.get("payload", {})
+	if history_response.get("ok", false):
+		latest_history_payload = history_response.get("payload", {})
+	if events_response.get("ok", false):
+		latest_events_payload = events_response.get("payload", {})
 
 	if successful_response_count == 4:
 		ui_state.set_ready()
@@ -113,6 +125,9 @@ func refresh_authoritative_views() -> Dictionary:
 		"snapshot": snapshot_response,
 		"rewards": rewards_response,
 		"profile": profile_response,
+		"blocks": blocks_response,
+		"history": history_response,
+		"events": events_response,
 	}
 
 func get_ui_state() -> Dictionary:

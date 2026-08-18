@@ -42,6 +42,10 @@ Phase 4 economy UX:
 - Purchases use `/api/v1/market/purchase?session_id=<active_session_id>` with `item_id` and `quantity` only.
 - Accepted purchases trigger a fresh authoritative profile/status read; the client does not calculate prices, balances, or stock.
 
+Phase 5 history surfaces:
+- The gameplay shell reads canonical block history, player history, and active events from the explorer/events endpoints.
+- These summaries are read-only and do not create alternate chain state or client-side rewards.
+
 Operation intent plumbing:
 - `GmnApiClient` now includes non-authoritative start/stop intent pass-through calls:
 	- `POST /api/v1/blockchain/operations/intents/start?session_id=<active_session_id>` with payload `{ "operation_id", "base_hashrate_hps" }`

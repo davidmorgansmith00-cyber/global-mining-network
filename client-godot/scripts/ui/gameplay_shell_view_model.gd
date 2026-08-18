@@ -49,3 +49,13 @@ func map_market(payload: Dictionary) -> Dictionary:
 		"items_text": " | ".join(names),
 		"item_count_text": str(items.size()),
 	}
+
+func map_history(blocks_payload: Dictionary, player_payload: Dictionary, events_payload: Dictionary) -> Dictionary:
+	var blocks := blocks_payload.get("items", []) as Array
+	var history := player_payload.get("items", []) as Array
+	var events := events_payload.get("items", []) as Array
+	return {
+		"blocks_text": "Blocks: %d" % blocks.size(),
+		"player_history_text": "Your records: %d" % history.size(),
+		"events_text": "Active events: %d" % events.size(),
+	}

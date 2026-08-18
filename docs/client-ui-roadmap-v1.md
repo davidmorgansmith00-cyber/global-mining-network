@@ -164,6 +164,16 @@ Upgrade UI can now begin against the implemented contract, subject to the follow
 
 The client may render the server's `next_recommended_upgrade` and `upgrade_progression` as read-only information until the upgrade UI slice is implemented. The backend migration is `0026_hardware_upgrade_runtime.sql`; routes are `/api/v1/hardware/upgrades/start` and `/api/v1/hardware/upgrades/current`.
 
+### Phase 5 Slice Started - 2026-08-18
+
+- Added read-only block explorer summary loading from `/api/v1/explorer/blocks`.
+- Added player history summary loading from `/api/v1/explorer/players/{player_id}/history`.
+- Added active event summary loading from `/api/v1/events/active`.
+- Added history/event read-model smoke coverage.
+- Kept canonical chain history and event results server-owned; no client mutation or reward inference was added.
+
+Remaining Phase 5 work is detailed block/history panels, pagination, event cards, and snapshot-to-live history continuity.
+
 ## 4. Roadmap Summary
 
 | Phase | Outcome | Priority | Gate |
