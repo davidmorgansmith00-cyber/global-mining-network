@@ -413,7 +413,7 @@ Work vertically. Each slice is shippable.
 4. Verify: rewards appear in notification feed after block solve.
 
 ### Slice 4 — GMN Navigation
-1. Build `GMNNavBar.tscn` with `MINE | HARDWARE | POWER | STORAGE | MARKET | NETWORK`.
+1. Build `GMNNavBar.tscn` with `MINE | HARDWARE | POWER | STORAGE | MARKET | RESEARCH | NETWORK`.
 2. Implement surface switching with locked-state display for unbuilt sections.
 3. Apply focus/keyboard/controller navigation rules.
 
