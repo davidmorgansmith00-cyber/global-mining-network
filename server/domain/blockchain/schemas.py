@@ -7,6 +7,7 @@ from typing import Annotated
 from pydantic import BaseModel, ConfigDict
 from pydantic import Field
 from pydantic import StringConstraints
+from domain.market.schemas import MarketCatalogItemResponse
 
 
 class RecentBlockOutcome(BaseModel):
@@ -24,6 +25,7 @@ class BlockchainStatusResponse(BaseModel):
     active_accumulated_work: Decimal
     active_progress_ratio: Decimal
     recent_outcomes: list[RecentBlockOutcome]
+    market_catalog: list[MarketCatalogItemResponse]
 
 
 class PlayerRewardHistoryItem(BaseModel):

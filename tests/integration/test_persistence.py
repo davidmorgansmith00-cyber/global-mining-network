@@ -59,6 +59,8 @@ class PersistenceFlowTests(unittest.TestCase):
             "blockchain_finalized_blocks",
             "economy_ledger_entries",
             "economy_player_ledger_entries",
+            "npc_market_inventory_state",
+            "player_inventory",
             "difficulty_settings",
             "network_events",
             "client_event_checkpoints",
@@ -80,7 +82,11 @@ class PersistenceFlowTests(unittest.TestCase):
                           'contribution_hashes',
                           'cap_applied',
                           'cap_amount',
-                          'offline_cap_tier'
+                          'offline_cap_tier',
+                          'item_id',
+                          'quantity',
+                          'unit_price',
+                          'total_cost'
                       )
                     ORDER BY column_name
                     """
@@ -92,7 +98,11 @@ class PersistenceFlowTests(unittest.TestCase):
                         "cap_amount",
                         "cap_applied",
                         "contribution_hashes",
+                        "item_id",
                         "offline_cap_tier",
+                        "quantity",
+                        "total_cost",
+                        "unit_price",
                     ],
                 )
 

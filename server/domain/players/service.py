@@ -7,6 +7,7 @@ from uuid import UUID
 from domain.hardware.schemas import CoolingState, HardwareConfig, PowerState
 from domain.hardware.service import GmnHardwareHashrateService
 from domain.mining.service import MiningSimulationService
+from domain.market.service import NpcMarketService
 from domain.players.repository import (
     DEFAULT_COOLING_CAPACITY,
     DEFAULT_COOLING_EFFICIENCY_MULTIPLIER,
@@ -80,6 +81,7 @@ class PlayerProfileService:
         self.repository = PlayerRepository()
         self.hashrate_service = GmnHardwareHashrateService()
         self.progression_service = PlayerProgressionService()
+        self.market_service = NpcMarketService()
 
     def get_profile(self, player_id: str | None = None) -> PlayerProfileResponse:
         if database_is_configured() and player_id is not None:
@@ -191,6 +193,14 @@ class PlayerProfileService:
                             player_tier=offline_progress.offline_cap_tier,
                             cap_applied=offline_progress.cap_applied,
                         ),
+                        inventory=self.market_service.get_player_inventory(player_id),
+                        available_for_purchase=[
+                            item.model_dump()
+                            for item in self.market_service.get_available_for_purchase(
+                                player_id,
+                                player_tier=player_tier,
+                            )
+                        ],
                     )
 
         return self._default_profile(player_id=player_id)
@@ -284,6 +294,8 @@ class PlayerProfileService:
                 player_tier=1,
                 cap_applied=False,
             ),
+            inventory=[],
+            available_for_purchase=[],
         )
 
     @staticmethod
