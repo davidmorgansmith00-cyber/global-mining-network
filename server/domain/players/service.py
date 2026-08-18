@@ -4,7 +4,6 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from uuid import UUID
 
-from domain.economy.ledger import PostgresLedgerPoster
 from domain.hardware.schemas import CoolingState, HardwareConfig, PowerState
 from domain.hardware.service import GmnHardwareHashrateService
 from domain.mining.service import MiningSimulationService
@@ -81,7 +80,6 @@ class PlayerProfileService:
         self.repository = PlayerRepository()
         self.hashrate_service = GmnHardwareHashrateService()
         self.progression_service = PlayerProgressionService()
-        self.ledger_poster = PostgresLedgerPoster()
 
     def get_profile(self, player_id: str | None = None) -> PlayerProfileResponse:
         if database_is_configured() and player_id is not None:
@@ -133,20 +131,27 @@ class PlayerProfileService:
                         cap_limit=current_offline_cap,
                         offline_cap_tier=player_tier,
                     )
-                    if offline_progress.window_ended_at > offline_progress.window_started_at:
-                        self.ledger_poster.post_offline_progress_entry(
-                            player_id=player_id,
-                            credited_work=offline_progress.credited_work,
-                            simulated_work=offline_progress.simulated_work,
-                            contribution_hashes=offline_progress.credited_work,
-                            cap_applied=offline_progress.cap_applied,
-                            cap_amount=offline_progress.cap_amount,
-                            offline_cap_tier=offline_progress.offline_cap_tier,
-                            cap_limit=offline_progress.cap_limit,
-                            window_started_at=offline_progress.window_started_at,
-                            window_ended_at=offline_progress.window_ended_at,
-                            posted_at=now,
-                        )
+                    elapsed_offline_seconds = int(
+                        (offline_progress.window_ended_at - offline_progress.window_started_at).total_seconds()
+                    )
+                    offline_ledger_entry: dict[str, object] | None = None
+                    next_last_offline_progress_at: datetime | None = None
+                    if elapsed_offline_seconds > 0:
+                        next_last_offline_progress_at = now
+                    if elapsed_offline_seconds > 0 and offline_progress.simulated_work > Decimal("0"):
+                        offline_ledger_entry = {
+                            "player_id": player_id,
+                            "credited_work": offline_progress.credited_work,
+                            "simulated_work": offline_progress.simulated_work,
+                            "contribution_hashes": offline_progress.credited_work,
+                            "cap_applied": offline_progress.cap_applied,
+                            "cap_amount": offline_progress.cap_amount,
+                            "offline_cap_tier": offline_progress.offline_cap_tier,
+                            "cap_limit": offline_progress.cap_limit,
+                            "window_started_at": offline_progress.window_started_at,
+                            "window_ended_at": offline_progress.window_ended_at,
+                            "posted_at": now,
+                        }
                     self.repository.update_effective_hashrate_cache(
                         player_uuid,
                         effective_hashrate,
@@ -154,7 +159,9 @@ class PlayerProfileService:
                         heat_generated,
                         cooling_efficiency_multiplier,
                         now,
-                        now,
+                        next_last_offline_progress_at,
+                        profile.last_offline_progress_at,
+                        offline_ledger_entry,
                     )
                     return PlayerProfileResponse(
                         player_id=player_id,

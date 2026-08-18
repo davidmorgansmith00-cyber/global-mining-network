@@ -244,6 +244,53 @@ class PlayerProfileApiIntegrationTests(unittest.TestCase):
         finally:
             self._cleanup_player_by_email(email=email)
 
+    def test_profile_endpoint_does_not_append_duplicate_offline_ledger_rows_on_immediate_repoll(self) -> None:
+        email = f"profile_repoll_{uuid4().hex[:10]}@example.com"
+        password = "password123"
+
+        try:
+            with TestClient(app) as client:
+                registered = client.post(
+                    "/api/v1/auth/register",
+                    json={"email": email, "password": password},
+                )
+                self.assertEqual(registered.status_code, 200)
+                player_id = registered.json()["player_id"]
+
+                with psycopg.connect(self.database_url) as connection:
+                    with connection.cursor() as cursor:
+                        cursor.execute(
+                            """
+                            UPDATE players
+                            SET last_offline_progress_at = %s
+                            WHERE player_id = %s
+                            """,
+                            (datetime.now(tz=UTC) - timedelta(minutes=2), UUID(player_id)),
+                        )
+                    connection.commit()
+
+                first = client.get("/api/v1/players/profile", params={"player_id": player_id})
+                second = client.get("/api/v1/players/profile", params={"player_id": player_id})
+                self.assertEqual(first.status_code, 200)
+                self.assertEqual(second.status_code, 200)
+
+                with psycopg.connect(self.database_url) as connection:
+                    with connection.cursor() as cursor:
+                        cursor.execute(
+                            """
+                            SELECT COUNT(*)
+                            FROM economy_player_ledger_entries
+                            WHERE player_id = %s
+                              AND entry_type = 'mining.offline_progress.v1'
+                            """,
+                            (player_id,),
+                        )
+                        row_count = cursor.fetchone()[0]
+
+                self.assertEqual(row_count, 1)
+        finally:
+            self._cleanup_player_by_email(email=email)
+
     def test_hardware_change_updates_power_and_heat_and_applies_throttle_on_next_profile_poll(self) -> None:
         email = f"profile_recalc_{uuid4().hex[:10]}@example.com"
         password = "password123"

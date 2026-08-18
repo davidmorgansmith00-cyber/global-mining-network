@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
+import json
+from uuid import uuid4
 from uuid import UUID
 
 from domain.hardware.schemas import HardwareConfig
@@ -206,9 +208,26 @@ class PlayerRepository:
         cooling_efficiency_multiplier: float,
         dissipation_timestamp: datetime,
         last_offline_progress_at: datetime | None = None,
-    ) -> None:
+        expected_last_offline_progress_at: datetime | None = None,
+        offline_ledger_entry: dict[str, object] | None = None,
+    ) -> bool:
         with open_connection() as connection:
             with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT last_offline_progress_at
+                    FROM players
+                    WHERE player_id = %s
+                    FOR UPDATE
+                    """,
+                    (player_id,),
+                )
+                row = cursor.fetchone()
+                current_last_offline_progress_at = None if row is None else row[0]
+                can_advance_offline_window = (
+                    last_offline_progress_at is not None
+                    and current_last_offline_progress_at == expected_last_offline_progress_at
+                )
                 cursor.execute(
                     """
                     UPDATE players
@@ -217,7 +236,10 @@ class PlayerRepository:
                         heat_generated = %s,
                         cooling_efficiency_multiplier_cached = %s,
                         last_heat_dissipation_at = %s,
-                        last_offline_progress_at = COALESCE(%s, last_offline_progress_at),
+                        last_offline_progress_at = CASE
+                            WHEN %s THEN %s
+                            ELSE last_offline_progress_at
+                        END,
                         effective_hashrate_updated_at = %s
                     WHERE player_id = %s
                     """,
@@ -227,12 +249,56 @@ class PlayerRepository:
                         heat_generated,
                         cooling_efficiency_multiplier,
                         dissipation_timestamp,
+                        can_advance_offline_window,
                         last_offline_progress_at,
                         dissipation_timestamp,
                         player_id,
                     ),
                 )
+                if can_advance_offline_window and offline_ledger_entry is not None:
+                    cursor.execute(
+                        """
+                        INSERT INTO economy_player_ledger_entries (
+                            ledger_entry_id,
+                            block_number,
+                            player_id,
+                            amount,
+                            contribution_hashes,
+                            currency,
+                            entry_type,
+                            cap_applied,
+                            cap_amount,
+                            offline_cap_tier,
+                            metadata,
+                            created_at
+                        )
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s)
+                        """,
+                        (
+                            uuid4(),
+                            None,
+                            str(offline_ledger_entry["player_id"]),
+                            offline_ledger_entry["credited_work"],
+                            offline_ledger_entry["contribution_hashes"],
+                            "work",
+                            "mining.offline_progress.v1",
+                            offline_ledger_entry["cap_applied"],
+                            offline_ledger_entry["cap_amount"],
+                            offline_ledger_entry["offline_cap_tier"],
+                            json.dumps(
+                                {
+                                    "simulated_work": str(offline_ledger_entry["simulated_work"]),
+                                    "credited_work": str(offline_ledger_entry["credited_work"]),
+                                    "cap_limit": str(offline_ledger_entry["cap_limit"]),
+                                    "window_started_at": offline_ledger_entry["window_started_at"].isoformat(),
+                                    "window_ended_at": offline_ledger_entry["window_ended_at"].isoformat(),
+                                }
+                            ),
+                            offline_ledger_entry["posted_at"],
+                        ),
+                    )
             connection.commit()
+        return can_advance_offline_window
 
     def get_blocks_finalized_contributed_count(self, player_id: UUID) -> int:
         with open_connection() as connection:
