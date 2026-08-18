@@ -15,7 +15,7 @@ class BootstrapResponse(BaseModel):
 
 
 class PlayerProfileResponse(BaseModel):
-    schema_version: str = "player.profile.v1.4"
+    schema_version: str = "player.profile.v1.5"
     player_id: str
     hardware_id: str
     base_hashrate: float
@@ -35,3 +35,5 @@ class PlayerProfileResponse(BaseModel):
     offline_cap_applied: bool
     offline_cap_amount: Decimal
     offline_cap_status_message: str
+    inventory: list[dict[str, object]]
+    available_for_purchase: list[dict[str, object]]

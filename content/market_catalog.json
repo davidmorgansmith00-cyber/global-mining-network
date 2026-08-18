@@ -1,0 +1,28 @@
+[
+  {
+    "item_id": "starter_gpu_rig_mk1",
+    "name": "Starter GPU Rig Mk1",
+    "description": "Entry-level mining rig that improves base hashrate output.",
+    "item_type": "hardware_upgrade",
+    "price": "250",
+    "inventory": 5
+  },
+  {
+    "item_id": "upgraded_cooler_v2",
+    "name": "Upgraded Cooler v2",
+    "description": "Improves cooling headroom for sustained throughput.",
+    "item_type": "hardware_upgrade",
+    "price": "500",
+    "inventory": "unlimited"
+  },
+  {
+    "item_id": "facility_power_pack_t1",
+    "name": "Facility Power Pack T1",
+    "description": "Increases local facility power budget.",
+    "item_type": "facility_upgrade",
+    "price": "300",
+    "inventory": 2,
+    "restock_rate_per_day": 1,
+    "unlock_condition": "tier >= 2"
+  }
+]

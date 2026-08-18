@@ -14,6 +14,7 @@ from domain.blockchain.schemas import (
     PlayerRewardHistoryResponse,
     RecentBlockOutcome,
 )
+from domain.market.service import NpcMarketService
 from shared.database import database_is_configured, open_connection
 
 
@@ -23,8 +24,10 @@ RATIO_QUANTIZE = Decimal("0.000001")
 class BlockchainReadModelService:
     def __init__(self, network_event_stream: NetworkEventStream | None = None) -> None:
         self.network_event_stream = network_event_stream or get_network_event_stream()
+        self.market_service = NpcMarketService()
 
     def get_status(self, *, recent_limit: int = 10) -> BlockchainStatusResponse:
+        market_catalog = self.market_service.get_market_catalog()
         if not database_is_configured():
             return BlockchainStatusResponse(
                 active_block_number=1,
@@ -32,6 +35,7 @@ class BlockchainReadModelService:
                 active_accumulated_work=Decimal("0"),
                 active_progress_ratio=Decimal("0"),
                 recent_outcomes=[],
+                market_catalog=market_catalog,
             )
 
         with open_connection() as connection:
@@ -107,6 +111,7 @@ class BlockchainReadModelService:
             active_accumulated_work=active_accumulated_work,
             active_progress_ratio=progress_ratio,
             recent_outcomes=outcomes,
+            market_catalog=market_catalog,
         )
 
     def get_player_reward_history(self, *, player_id: str, recent_limit: int = 20) -> PlayerRewardHistoryResponse:
