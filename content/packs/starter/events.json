@@ -1,0 +1,11 @@
+[
+  {
+    "id": "starter_launch_weekend",
+    "name": "Starter Launch Weekend",
+    "start_timestamp": "2026-09-01T00:00:00Z",
+    "end_timestamp": "2026-09-03T00:00:00Z",
+    "modifier_type": "reward_multiplier",
+    "modifier_value": 1.1,
+    "affected_players": "all"
+  }
+]

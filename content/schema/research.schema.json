@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "gmn/content/schema/research.schema.json",
+  "title": "Research Content Definitions",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": [
+      "id",
+      "name",
+      "unlock_condition",
+      "unlock_time_seconds",
+      "effects"
+    ],
+    "properties": {
+      "id": { "type": "string", "minLength": 1 },
+      "name": { "type": "string", "minLength": 1 },
+      "unlock_condition": {
+        "oneOf": [
+          {
+            "type": "object",
+            "required": ["tier"],
+            "properties": {
+              "tier": { "type": "integer", "minimum": 1 }
+            },
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "required": ["research_id"],
+            "properties": {
+              "research_id": { "type": "string", "minLength": 1 }
+            },
+            "additionalProperties": false
+          }
+        ]
+      },
+      "unlock_time_seconds": { "type": "integer", "minimum": 0 },
+      "effects": {
+        "type": "object",
+        "properties": {
+          "hashrate_multiplier": { "type": "number", "exclusiveMinimum": 0 },
+          "power_multiplier": { "type": "number", "exclusiveMinimum": 0 },
+          "unlocks": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 }
+          }
+        },
+        "additionalProperties": true
+      },
+      "prerequisite_ids": {
+        "type": "array",
+        "items": { "type": "string", "minLength": 1 }
+      }
+    },
+    "additionalProperties": false
+  }
+}

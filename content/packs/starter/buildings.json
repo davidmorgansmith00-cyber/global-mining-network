@@ -1,0 +1,21 @@
+[
+  {
+    "id": "starter_shed",
+    "name": "Starter Shed",
+    "tier": 1,
+    "power_capacity": 200.0,
+    "cooling_capacity": 120.0,
+    "cost": 0,
+    "unlock_tier": 1
+  },
+  {
+    "id": "garage_farm",
+    "name": "Garage Farm",
+    "tier": 2,
+    "power_capacity": 420.0,
+    "cooling_capacity": 240.0,
+    "cost": 2400,
+    "unlock_tier": 2,
+    "unlock_research_id": "research_power_bus"
+  }
+]

@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "gmn/content/schema/hardware.schema.json",
+  "title": "Hardware Content Definitions",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": [
+      "id",
+      "name",
+      "tier",
+      "base_hashrate",
+      "power_consumption",
+      "heat_generation",
+      "cost",
+      "unlock_tier"
+    ],
+    "properties": {
+      "id": { "type": "string", "minLength": 1 },
+      "name": { "type": "string", "minLength": 1 },
+      "tier": { "type": "integer", "minimum": 1 },
+      "base_hashrate": { "type": "number", "exclusiveMinimum": 0 },
+      "power_consumption": { "type": "number", "exclusiveMinimum": 0 },
+      "heat_generation": { "type": "number", "minimum": 0 },
+      "cost": { "type": "integer", "minimum": 0 },
+      "unlock_tier": { "type": "integer", "minimum": 1 },
+      "unlock_research_id": { "type": "string", "minLength": 1 }
+    },
+    "additionalProperties": false
+  }
+}

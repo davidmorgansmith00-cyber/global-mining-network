@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "gmn/content/schema/events.schema.json",
+  "title": "Event Content Definitions",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": [
+      "id",
+      "name",
+      "start_timestamp",
+      "end_timestamp",
+      "modifier_type",
+      "modifier_value",
+      "affected_players"
+    ],
+    "properties": {
+      "id": { "type": "string", "minLength": 1 },
+      "name": { "type": "string", "minLength": 1 },
+      "start_timestamp": { "type": "string", "format": "date-time" },
+      "end_timestamp": { "type": "string", "format": "date-time" },
+      "modifier_type": {
+        "type": "string",
+        "enum": ["reward_multiplier", "difficulty_modifier"]
+      },
+      "modifier_value": { "type": "number", "exclusiveMinimum": 0 },
+      "affected_players": {
+        "type": "string",
+        "enum": ["all", "cohort"]
+      },
+      "cohort_id": { "type": "string", "minLength": 1 }
+    },
+    "additionalProperties": false
+  }
+}

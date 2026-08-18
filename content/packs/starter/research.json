@@ -1,0 +1,30 @@
+[
+  {
+    "id": "research_cooling_basics",
+    "name": "Cooling Basics",
+    "unlock_condition": {
+      "tier": 1
+    },
+    "unlock_time_seconds": 900,
+    "effects": {
+      "power_multiplier": 1.0,
+      "unlocks": [
+        "garage_mining_stack"
+      ]
+    }
+  },
+  {
+    "id": "research_power_bus",
+    "name": "Power Bus Retrofit",
+    "unlock_condition": {
+      "research_id": "research_cooling_basics"
+    },
+    "unlock_time_seconds": 1800,
+    "effects": {
+      "hashrate_multiplier": 1.05,
+      "unlocks": [
+        "garage_farm"
+      ]
+    }
+  }
+]
