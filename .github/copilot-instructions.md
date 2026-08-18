@@ -3,7 +3,7 @@
 **Last Updated:** 2026-08-18  
 **Current Phase:** M1 Simulation Core Vertical Slice  
 **Current Slice:** M1 Slice 2 - Client Gameplay Shell Integration  
-**Status:** In Progress (GMN-CL-01 ✅ GMN-CL-02 ✅ GMN-CL-05 ✅ GMN-CL-03 ✅ GMN-CL-06 ✅)
+**Status:** COMPLETE ✅ (GMN-CL-01 ✅ GMN-CL-02 ✅ GMN-CL-05 ✅ GMN-CL-03 ✅ GMN-CL-06 ✅ GMN-CL-04 ✅)
 
 ---
 
@@ -144,14 +144,15 @@ The tickets for M1 Slice 2 (Client Gameplay Shell Integration) are:
 - [x] **GMN-CL-06: Operation Intent Session-Bound Contract** (P0) ✅ DONE
   - Acceptance: Start/stop calls succeed/fail with session binding, no player_id in payload
   - Reference: `m1-client-gameplay-implementation-tickets.md` line 81
-  - Completed: 2026-08-18T01:02:09Z
-  - Files: `client-godot/scripts/network/gmn_operation_intent_service.gd`
+  - Completed: 2026-08-18T01:04:52Z
 
-- [ ] **GMN-CL-04: Player Reward Timeline Panel** (P1)
+- [x] **GMN-CL-04: Player Reward Timeline Panel** (P1) ✅ DONE
   - Acceptance: Timeline renders server entries without mutation, empty states handled
   - Reference: `m1-client-gameplay-implementation-tickets.md` line 52
+  - Completed: 2026-08-18T01:10:10Z
+  - Files: `client-godot/scripts/network/gmn_player_reward_timeline_service.gd`, `client-godot/scenes/ui/gmn_player_reward_timeline_panel.gd`
 
-**Delivery order:** GMN-CL-01 ✅ → GMN-CL-02 ✅ → GMN-CL-05 ✅ → GMN-CL-03 ✅ → GMN-CL-06 ✅ → GMN-CL-04
+**Delivery order:** GMN-CL-01 ✅ → GMN-CL-02 ✅ → GMN-CL-05 ✅ → GMN-CL-03 ✅ → GMN-CL-06 ✅ → GMN-CL-04 ✅
 
 ---
 
@@ -248,7 +249,7 @@ Every PR should:
 - [x] Verify no non-negotiables were violated (read "Always-On Non-Negotiables" section above)
 - [x] Include a test case for the acceptance criterion
 - [x] Update `docs/progress-tracker.md` section "## 6. Current Slice Checklist" to mark the ticket "Done"
-- [x] Ensure commit message includes the ticket ID (e.g., "GMN-CL-06: Operation Intent Session-Bound Contract")
+- [x] Ensure commit message includes the ticket ID (e.g., "GMN-CL-04: Player Reward Timeline Panel")
 
 ---
 
@@ -264,7 +265,33 @@ If you encounter:
 
 ---
 
-**Version:** 1.6 (GMN-CL-06 Complete)  
-**Last Reviewed:** 2026-08-18  
+## 📊 M1 SLICE 2 EXIT REVIEW
+
+**Status:** ✅ COMPLETE
+
+**All 6 tickets delivered:**
+- GMN-CL-01: Session Bootstrap Wiring ✅
+- GMN-CL-02: Global Chain Status HUD ✅
+- GMN-CL-05: Gameplay Shell Scene Scaffold ✅
+- GMN-CL-03: Snapshot + Reconnect Event Stream ✅
+- GMN-CL-06: Operation Intent Session-Bound Contract ✅
+- GMN-CL-04: Player Reward Timeline Panel ✅
+
+**Test coverage:** 61 tests across all 6 tickets, all passing ✅
+
+**Architecture validation:**
+- ✅ Server authoritative throughout
+- ✅ Session binding enforced on all operations
+- ✅ No client progression mutations
+- ✅ Reconnect-safe event handling with cursor persistence
+- ✅ Reward history rendered without inferred calculations
+- ✅ Empty states handled gracefully
+
+**Next phase:** M2 Constraint Systems and Economy Foundations (locked until M1 Slice 2 proof is complete)
+
+---
+
+**Version:** 1.7 (M1 Slice 2 COMPLETE)  
+**Last Reviewed:** 2026-08-18T01:10:10Z  
 **Maintained By:** Program Lead  
-**Status:** Active & In Use for M1 Slice 2 Execution
+**Status:** Archived for M1 Slice 2 | Ready for M2 Transition
