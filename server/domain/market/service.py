@@ -12,6 +12,7 @@ from psycopg.errors import SerializationFailure
 
 from domain.hardware.upgrade_service import HardwareUpgradeService
 from domain.market.schemas import MarketCatalogItemResponse
+from domain.telemetry.service import get_telemetry_service
 from shared.database import database_is_configured, open_connection
 
 
@@ -239,17 +240,26 @@ class NpcMarketService:
                 continue
 
             new_balance = (balance - total_cost).quantize(Decimal("0.000001"))
-            return PurchaseResult(
-                success=True,
-                receipt=PurchaseReceipt(
-                    player_id=player_id,
-                    item_id=item.item_id,
-                    quantity=quantity,
-                    unit_price=item.price,
-                    total_cost=total_cost,
-                    new_balance=new_balance,
-                ),
+            receipt = PurchaseReceipt(
+                player_id=player_id,
+                item_id=item.item_id,
+                quantity=quantity,
+                unit_price=item.price,
+                total_cost=total_cost,
+                new_balance=new_balance,
             )
+            if is_hw_upgrade:
+                try:
+                    get_telemetry_service().emit_hardware_purchased(
+                        player_id=player_id,
+                        hardware_id=item.item_id,
+                        previous_hardware_id=previous_hardware_id,
+                        cost=total_cost,
+                        player_tier=player_tier,
+                    )
+                except Exception:
+                    pass  # telemetry must never affect player experience
+            return PurchaseResult(success=True, receipt=receipt)
         return PurchaseResult(success=False, error="transaction_conflict")
 
     def get_player_inventory(self, player_id: str) -> list[dict[str, object]]:

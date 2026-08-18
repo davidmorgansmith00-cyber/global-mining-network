@@ -46,6 +46,9 @@ class Settings(BaseModel):
         os.getenv("OPERATION_INTENT_REQUIRE_HEADER_BINDING"),
         default=False,
     )
+    analytics_backend: str = os.getenv("ANALYTICS_BACKEND", "noop")
+    analytics_http_url: str = os.getenv("ANALYTICS_HTTP_URL", "")
+    analytics_api_key: str = os.getenv("ANALYTICS_API_KEY", "")
 
 
 settings = Settings()

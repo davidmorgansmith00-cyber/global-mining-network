@@ -26,6 +26,7 @@ from domain.players.schemas import (
     StarterMachine,
     UpgradeProgressionEntry,
 )
+from domain.telemetry.service import get_telemetry_service
 from shared.database import database_is_configured
 
 
@@ -97,13 +98,24 @@ class PlayerProfileService:
             player_uuid = UUID(player_id)
             blocks_finalized_contributed_count = self.repository.get_blocks_finalized_contributed_count(player_uuid)
             player_tier = self.calculate_player_tier(blocks_finalized_contributed_count)
-            self.repository.update_player_progression(
+            old_player_tier = self.repository.update_player_progression(
                 player_uuid,
                 blocks_finalized_contributed_count=blocks_finalized_contributed_count,
                 player_tier=player_tier,
             )
             profile = self.repository.get_profile_state(UUID(player_id))
             if profile is not None:
+                # Emit tier upgrade event (fire-and-forget) when tier increases
+                if player_tier > old_player_tier:
+                    try:
+                        get_telemetry_service().emit_tier_upgraded(
+                            player_id=player_id,
+                            from_tier=old_player_tier,
+                            to_tier=player_tier,
+                            blocks_finalized_count=blocks_finalized_contributed_count,
+                        )
+                    except Exception:
+                        pass  # telemetry must never affect player experience
                 hardware_config = self.repository.get_hardware_config(profile.hardware_id)
                 if hardware_config is not None:
                     now = datetime.now(tz=timezone.utc)
@@ -163,6 +175,16 @@ class PlayerProfileService:
                             "window_ended_at": offline_progress.window_ended_at,
                             "posted_at": now,
                         }
+                        try:
+                            get_telemetry_service().emit_offline_progress(
+                                player_id=player_id,
+                                offline_duration_seconds=elapsed_offline_seconds,
+                                work_credited=offline_progress.credited_work,
+                                cap_applied=offline_progress.cap_applied,
+                                offline_cap_tier=offline_progress.offline_cap_tier,
+                            )
+                        except Exception:
+                            pass  # telemetry must never affect player experience
                     self.repository.update_effective_hashrate_cache(
                         player_uuid,
                         effective_hashrate,

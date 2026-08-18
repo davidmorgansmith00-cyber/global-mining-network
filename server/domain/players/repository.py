@@ -321,9 +321,16 @@ class PlayerRepository:
         *,
         blocks_finalized_contributed_count: int,
         player_tier: int,
-    ) -> None:
+    ) -> int:
+        """Update player progression and return the old player_tier before the update."""
         with open_connection() as connection:
             with connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT COALESCE(player_tier, 1) FROM players WHERE player_id = %s FOR UPDATE",
+                    (player_id,),
+                )
+                row = cursor.fetchone()
+                old_tier = int(row[0]) if row else 1
                 cursor.execute(
                     """
                     UPDATE players
@@ -335,6 +342,7 @@ class PlayerRepository:
                     (blocks_finalized_contributed_count, player_tier, player_id),
                 )
             connection.commit()
+        return old_tier
 
     def update_profile_hardware_state(
         self,
