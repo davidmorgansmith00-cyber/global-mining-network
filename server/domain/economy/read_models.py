@@ -22,6 +22,7 @@ def project_player_reward_balances() -> list[PlayerRewardBalance]:
                 """
                 SELECT player_id, COALESCE(SUM(amount), 0) AS reward_balance
                 FROM economy_player_ledger_entries
+                WHERE entry_type = 'block.finalized.player_reward.v1'
                 GROUP BY player_id
                 ORDER BY player_id ASC
                 """

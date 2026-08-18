@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from pydantic import BaseModel
 
 
@@ -13,7 +15,7 @@ class BootstrapResponse(BaseModel):
 
 
 class PlayerProfileResponse(BaseModel):
-    schema_version: str = "player.profile.v1.3"
+    schema_version: str = "player.profile.v1.4"
     player_id: str
     hardware_id: str
     base_hashrate: float
@@ -26,3 +28,10 @@ class PlayerProfileResponse(BaseModel):
     cooling_efficiency_multiplier: float
     last_heat_dissipation_at: str | None
     effective_hashrate: float
+    player_tier: int
+    blocks_finalized_contributed_count: int
+    current_offline_cap: Decimal
+    offline_work_earned: Decimal
+    offline_cap_applied: bool
+    offline_cap_amount: Decimal
+    offline_cap_status_message: str

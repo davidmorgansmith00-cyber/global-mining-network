@@ -67,6 +67,18 @@ class TickResult:
     finalized_block_number: int | None = None
 
 
+@dataclass(frozen=True)
+class OfflineProgressionResult:
+    window_started_at: datetime
+    window_ended_at: datetime
+    simulated_work: Decimal
+    credited_work: Decimal
+    cap_limit: Decimal
+    cap_applied: bool
+    cap_amount: Decimal
+    offline_cap_tier: int
+
+
 class MiningSimulationService:
     def __init__(
         self,
@@ -147,6 +159,52 @@ class MiningSimulationService:
                 hashrate_multiplier=multiplier,
                 paused=paused,
             )
+        )
+
+    @staticmethod
+    def simulate_offline_progress(
+        *,
+        window_started_at: datetime,
+        window_ended_at: datetime,
+        effective_hashrate_hps: Decimal,
+        cap_limit: Decimal,
+        offline_cap_tier: int,
+    ) -> OfflineProgressionResult:
+        started_at = _to_utc(window_started_at)
+        ended_at = _to_utc(window_ended_at)
+        if ended_at <= started_at:
+            return OfflineProgressionResult(
+                window_started_at=started_at,
+                window_ended_at=ended_at,
+                simulated_work=Decimal("0"),
+                credited_work=Decimal("0"),
+                cap_limit=max(cap_limit, Decimal("0")),
+                cap_applied=False,
+                cap_amount=Decimal("0"),
+                offline_cap_tier=max(1, offline_cap_tier),
+            )
+
+        slices = slice_progression_intervals(
+            window_started_at=started_at,
+            window_ended_at=ended_at,
+            base_hashrate_hps=max(effective_hashrate_hps, Decimal("0")),
+            boundary_states=[],
+        )
+        simulated_work = sum((segment.contribution_hashes for segment in slices), Decimal("0"))
+        resolved_cap_limit = max(cap_limit, Decimal("0"))
+        credited_work = min(simulated_work, resolved_cap_limit)
+        cap_applied = simulated_work > resolved_cap_limit
+        cap_amount = simulated_work - credited_work
+
+        return OfflineProgressionResult(
+            window_started_at=started_at,
+            window_ended_at=ended_at,
+            simulated_work=simulated_work,
+            credited_work=credited_work,
+            cap_limit=resolved_cap_limit,
+            cap_applied=cap_applied,
+            cap_amount=cap_amount,
+            offline_cap_tier=max(1, offline_cap_tier),
         )
 
     def process_tick(self, *, operation_id: str, ended_at: datetime | None = None) -> TickResult:

@@ -7,6 +7,7 @@ import unittest
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
+from uuid import UUID, uuid4
 
 import psycopg
 
@@ -23,6 +24,7 @@ from domain.blockchain.store import PostgresBlockchainStateStore
 from domain.economy.ledger import PostgresLedgerPoster
 from domain.economy.read_models import project_player_reward_balances
 from domain.mining.service import MiningSimulationService
+from domain.players.service import PlayerProfileService
 from tools.apply_migrations import apply_migrations
 
 
@@ -240,6 +242,129 @@ class BlockchainPersistenceAndLedgerTests(unittest.TestCase):
         self.assertEqual(projection["player_a"], Decimal("120.000000"))
         self.assertEqual(projection["player_b"], Decimal("80.000000"))
         self.assertEqual(sum(projection.values(), Decimal("0")), Decimal("200.000000"))
+
+    def test_offline_progress_entries_preserve_cap_audit_fields(self) -> None:
+        posted_at = datetime(2026, 8, 18, 1, 0, tzinfo=UTC)
+
+        PostgresLedgerPoster().post_offline_progress_entry(
+            player_id="player_a",
+            credited_work=Decimal("1000.000000"),
+            simulated_work=Decimal("1440.000000"),
+            contribution_hashes=Decimal("1000.000000"),
+            cap_applied=True,
+            cap_amount=Decimal("440.000000"),
+            offline_cap_tier=1,
+            cap_limit=Decimal("1000"),
+            window_started_at=posted_at - timedelta(minutes=2),
+            window_ended_at=posted_at,
+            posted_at=posted_at,
+        )
+
+        with psycopg.connect(self.database_url) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT amount, contribution_hashes, cap_applied, cap_amount, offline_cap_tier, currency, entry_type
+                    FROM economy_player_ledger_entries
+                    WHERE player_id = %s
+                    ORDER BY created_at DESC
+                    LIMIT 1
+                    """,
+                    ("player_a",),
+                )
+                row = cursor.fetchone()
+
+        self.assertIsNotNone(row)
+        self.assertEqual(row[0], Decimal("1000.000000"))
+        self.assertEqual(row[1], Decimal("1000.000000"))
+        self.assertTrue(row[2])
+        self.assertEqual(row[3], Decimal("440.000000"))
+        self.assertEqual(row[4], 1)
+        self.assertEqual(row[5], "work")
+        self.assertEqual(row[6], "mining.offline_progress.v1")
+
+    def test_ledger_replay_matches_persisted_player_tier_and_offline_cap(self) -> None:
+        email = "replay_progression@example.com"
+        password_hash = "hash"
+        player_id = "11111111-1111-4111-8111-111111111111"
+        profile_service = PlayerProfileService()
+
+        with psycopg.connect(self.database_url) as connection:
+            with connection.cursor() as cursor:
+                cursor.execute("DELETE FROM auth_sessions WHERE player_id::text = %s", (player_id,))
+                cursor.execute("DELETE FROM player_profiles WHERE player_id::text = %s", (player_id,))
+                cursor.execute("DELETE FROM players WHERE player_id::text = %s", (player_id,))
+                cursor.execute(
+                    """
+                    INSERT INTO players (player_id, email, password_hash)
+                    VALUES (%s, %s, %s)
+                    """,
+                    (player_id, email, password_hash),
+                )
+            connection.commit()
+
+        try:
+            profile_service.repository.create_profile(UUID(player_id))
+            with psycopg.connect(self.database_url) as connection:
+                with connection.cursor() as cursor:
+                    for block_number in range(1, 21):
+                        cursor.execute(
+                            """
+                            INSERT INTO economy_player_ledger_entries (
+                                ledger_entry_id,
+                                block_number,
+                                player_id,
+                                amount,
+                                contribution_hashes,
+                                currency,
+                                entry_type,
+                                metadata
+                            )
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, '{}'::jsonb)
+                            """,
+                            (
+                                uuid4(),
+                                block_number,
+                                player_id,
+                                Decimal("5.000000"),
+                                Decimal("5.000000"),
+                                "credits",
+                                "block.finalized.player_reward.v1",
+                            ),
+                        )
+                    connection.commit()
+
+            profile = profile_service.get_profile(player_id=player_id)
+
+            with psycopg.connect(self.database_url) as connection:
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        """
+                        SELECT COUNT(DISTINCT block_number)
+                        FROM economy_player_ledger_entries
+                        WHERE player_id = %s
+                          AND entry_type = 'block.finalized.player_reward.v1'
+                        """,
+                        (player_id,),
+                    )
+                    block_count = cursor.fetchone()[0]
+
+            replayed_tier = profile_service.calculate_player_tier(block_count)
+            replayed_cap = profile_service.get_offline_cap_for_tier(replayed_tier)
+
+            self.assertEqual(profile.blocks_finalized_contributed_count, block_count)
+            self.assertEqual(profile.player_tier, replayed_tier)
+            self.assertEqual(profile.current_offline_cap, replayed_cap)
+            self.assertEqual(profile.player_tier, 3)
+            self.assertEqual(profile.current_offline_cap, Decimal("10000"))
+        finally:
+            with psycopg.connect(self.database_url) as connection:
+                with connection.cursor() as cursor:
+                    cursor.execute("DELETE FROM auth_sessions WHERE player_id::text = %s", (player_id,))
+                    cursor.execute("DELETE FROM economy_player_ledger_entries WHERE player_id = %s", (player_id,))
+                    cursor.execute("DELETE FROM player_profiles WHERE player_id::text = %s", (player_id,))
+                    cursor.execute("DELETE FROM players WHERE player_id::text = %s", (player_id,))
+                connection.commit()
 
 
 if __name__ == "__main__":
