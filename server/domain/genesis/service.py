@@ -366,11 +366,11 @@ class GenesisService:
             "status": self.get_genesis_status(),
             "ready": readiness["ready"],
             "checks": readiness["checks"],
-            "genesis": None if record is None else self.serialize_genesis_block(record),
+            "genesis": None if record is None else self.serialize_genesis_block(record, include_admin_identity=False),
         }
 
-    def serialize_genesis_block(self, record: GenesisBlockRecord) -> dict[str, Any]:
-        return {
+    def serialize_genesis_block(self, record: GenesisBlockRecord, *, include_admin_identity: bool = True) -> dict[str, Any]:
+        payload = {
             "genesis_id": record.genesis_id,
             "block_number": 1,
             "block_hash": record.block_hash,
@@ -378,7 +378,6 @@ class GenesisService:
             "chain_id": record.chain_id,
             "created_at": record.created_at.isoformat(),
             "announced_at": None if record.announced_at is None else record.announced_at.isoformat(),
-            "created_by_admin_id": record.created_by_admin_id,
             "signature": record.signature,
             "public_message": record.public_message,
             "archived_at": None if record.archived_at is None else record.archived_at.isoformat(),
@@ -396,6 +395,9 @@ class GenesisService:
                 for item in self.list_player_snapshots(record.genesis_id)
             ],
         }
+        if include_admin_identity:
+            payload["created_by_admin_id"] = record.created_by_admin_id
+        return payload
 
     def _persist_genesis(
         self,

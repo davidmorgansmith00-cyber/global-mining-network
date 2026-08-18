@@ -45,6 +45,24 @@ class GenesisApiTests(unittest.TestCase):
         response = client.get("/api/v1/blockchain/genesis")
         self.assertEqual(response.status_code, 404)
 
+    @patch("app.main.get_genesis_service")
+    @patch("api.v1.blockchain._genesis_service.get_current_genesis_block", return_value=object())
+    @patch(
+        "api.v1.blockchain._genesis_service.serialize_genesis_block",
+        return_value={"genesis_id": "genesis-1", "created_by_admin_id": "hidden"},
+    )
+    def test_public_genesis_endpoint_requests_redacted_payload(
+        self,
+        mock_serialize: object,
+        _mock_current: object,
+        mock_startup_service: object,
+    ) -> None:
+        mock_startup_service.return_value.initialize_runtime.return_value = {"status": "pre-genesis"}
+        client = TestClient(app)
+        response = client.get("/api/v1/blockchain/genesis")
+        self.assertEqual(response.status_code, 200)
+        mock_serialize.assert_called_once_with(_mock_current.return_value, include_admin_identity=False)
+
     @patch("api.v1.admin.genesis_service.create_genesis_block", return_value="genesis-1")
     @patch("api.v1.admin.genesis_service.get_genesis_block")
     @patch("api.v1.admin.genesis_service.serialize_genesis_block", return_value={"genesis_id": "genesis-1"})

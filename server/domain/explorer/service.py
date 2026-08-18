@@ -63,7 +63,7 @@ class ChainExplorerService:
         if block_number == 1:
             genesis = self._genesis_service.get_current_genesis_block(include_archived=False)
             if genesis is not None:
-                payload = self._genesis_service.serialize_genesis_block(genesis)
+                payload = self._genesis_service.serialize_genesis_block(genesis, include_admin_identity=False)
                 payload.update(
                     {
                         "block_id": genesis.block_hash,

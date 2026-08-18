@@ -259,7 +259,7 @@ def get_genesis_block_details() -> dict[str, object]:
     record = _genesis_service.get_current_genesis_block(include_archived=False)
     if record is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="genesis_not_found")
-    return _genesis_service.serialize_genesis_block(record)
+    return _genesis_service.serialize_genesis_block(record, include_admin_identity=False)
 
 
 @router.get(
