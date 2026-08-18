@@ -8,6 +8,7 @@ const AUTH_LOGOUT_PATH := "/api/v1/auth/logout"
 const STATUS_PATH := "/api/v1/blockchain/status"
 const SNAPSHOT_PATH := "/api/v1/blockchain/network-snapshot"
 const PLAYER_PROFILE_PATH := "/api/v1/players/profile"
+const PLAYER_BOOTSTRAP_PATH := "/api/v1/player/bootstrap"
 const REWARDS_PATH_TEMPLATE := "/api/v1/blockchain/players/%s/rewards"
 const CHECKPOINT_PATH_TEMPLATE := "/api/v1/blockchain/checkpoints/%s"
 const OPERATION_START_INTENT_PATH := "/api/v1/blockchain/operations/intents/start"
@@ -138,6 +139,12 @@ func fetch_snapshot(recent_limit: int = 10) -> Dictionary:
 
 func fetch_player_profile(target_player_id: String) -> Dictionary:
 	return await _request_json(HTTPClient.METHOD_GET, build_player_profile_url(target_player_id))
+
+func build_player_bootstrap_url(target_player_id: String) -> String:
+	return "%s%s?player_id=%s" % [base_url, PLAYER_BOOTSTRAP_PATH, target_player_id]
+
+func fetch_player_bootstrap(target_player_id: String) -> Dictionary:
+	return await _request_json(HTTPClient.METHOD_GET, build_player_bootstrap_url(target_player_id))
 
 func fetch_rewards(target_player_id: String, recent_limit: int = 20) -> Dictionary:
 	return await _request_json(HTTPClient.METHOD_GET, build_rewards_url(target_player_id, recent_limit))

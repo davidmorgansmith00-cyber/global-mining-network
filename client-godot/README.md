@@ -12,6 +12,7 @@ Current scaffold:
 - `scripts/ui/gameplay_shell_scene_root.gd`: scene-level coordinator that binds controller + panel and drives periodic refresh/render.
 - `scripts/ui/gameplay_shell_ui_state.gd`: shared loading, ready, stale, error, unauthorized, and maintenance state model.
 - `scenes/gameplay_shell.tscn`: concrete gameplay shell scene with controller/panel nodes and label bindings.
+- `scenes/onboarding.tscn`: Phase 2 login/registration entry scene and gameplay handoff.
 - `scripts/tests/gmn_contract_validation_smoke.gd`: client-side contract key validation smoke suite.
 - `scripts/tests/gmn_operation_intent_contract_smoke.gd`: validates operation-intent request shape (`session_id` query requirement and no `player_id` payload field).
 - `scripts/tests/gmn_reconnect_smoke.gd`: reconnect cursor monotonicity smoke suite.
@@ -25,6 +26,11 @@ Phase 1 foundation:
 - UI state is explicit and presentational only: `loading`, `ready`, `stale`, `error`, `unauthorized`, and `maintenance`.
 - Session responses retain `session_id`; operation intents bind to that session ID and never include `player_id` in the payload.
 - The shell renders a visible authoritative-state status line and preserves the existing reconnect/polling behavior.
+
+Phase 2 onboarding:
+- `onboarding.tscn` is the project main scene.
+- Login and registration use the server auth endpoints, then load `/api/v1/player/bootstrap` before entering gameplay.
+- Session tokens remain runtime-only; gameplay receives the authenticated session through an explicit scene handoff.
 
 Operation intent plumbing:
 - `GmnApiClient` now includes non-authoritative start/stop intent pass-through calls:

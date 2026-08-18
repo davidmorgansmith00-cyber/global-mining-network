@@ -74,6 +74,17 @@ The Phase 1 contract audit must also resolve any mismatch between operation-inte
 
 Remaining Phase 1 work is shared route/error primitives, scene migration tests for the legacy path, and the first-run route foundation from Phase 2.
 
+### Phase 2 Slice Started - 2026-08-18
+
+- Added `scenes/onboarding.tscn` as the project main scene.
+- Added login and registration controls using the existing `GmnApiClient` auth methods.
+- Added server bootstrap gating through `GET /api/v1/player/bootstrap` before gameplay entry.
+- Added runtime session handoff into `gameplay_shell.tscn`; tokens are not persisted by the client.
+- Added recoverable validation, loading, authentication failure, and bootstrap failure states.
+- Added onboarding URL/session contract smoke coverage.
+
+Remaining Phase 2 work is launcher handoff metadata, explicit session restore UX, and full UI integration coverage against the local API.
+
 ## 4. Roadmap Summary
 
 | Phase | Outcome | Priority | Gate |

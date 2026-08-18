@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Global Mining Network"
-run/main_scene="res://scenes/gameplay_shell.tscn"
+run/main_scene="res://scenes/onboarding.tscn"
 config/features=PackedStringArray("4.7")
 
 [display]

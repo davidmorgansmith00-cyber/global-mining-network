@@ -39,6 +39,14 @@ func _ready() -> void:
 	if auto_render:
 		_panel.render_from_controller(_controller)
 
+func configure_session(player: String, session: String, access_token: String, refresh_token: String) -> void:
+	if _controller == null:
+		return
+	_controller.configure_session(player, session, access_token, refresh_token)
+	await _controller.refresh_authoritative_views()
+	if _panel != null:
+		_panel.render_from_controller(_controller)
+
 func _process(delta: float) -> void:
 	if _controller == null or _panel == null:
 		return
