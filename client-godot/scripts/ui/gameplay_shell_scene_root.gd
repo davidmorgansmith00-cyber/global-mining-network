@@ -9,6 +9,10 @@ class_name GameplayShellSceneRoot
 @export var stop_operation_button_path: NodePath = NodePath("GameplayShellPanel/StopOperationButton")
 @export var action_status_label_path: NodePath = NodePath("GameplayShellPanel/ActionStatusLabel")
 @export var ui_state_label_path: NodePath = NodePath("GameplayShellPanel/UiStateLabel")
+@export var market_item_input_path: NodePath = NodePath("GameplayShellPanel/MarketItemInput")
+@export var market_quantity_input_path: NodePath = NodePath("GameplayShellPanel/MarketQuantityInput")
+@export var purchase_button_path: NodePath = NodePath("GameplayShellPanel/PurchaseButton")
+@export var market_status_label_path: NodePath = NodePath("GameplayShellPanel/MarketStatusLabel")
 @export var refresh_interval_seconds: float = 3.0
 @export var auto_render: bool = true
 
@@ -19,6 +23,10 @@ var _base_hashrate_input: LineEdit
 var _start_operation_button: Button
 var _stop_operation_button: Button
 var _action_status_label: Label
+var _market_item_input: LineEdit
+var _market_quantity_input: LineEdit
+var _purchase_button: Button
+var _market_status_label: Label
 var _time_until_refresh: float = 0.0
 
 func _ready() -> void:
@@ -29,6 +37,10 @@ func _ready() -> void:
 	_start_operation_button = get_node_or_null(start_operation_button_path)
 	_stop_operation_button = get_node_or_null(stop_operation_button_path)
 	_action_status_label = get_node_or_null(action_status_label_path)
+	_market_item_input = get_node_or_null(market_item_input_path)
+	_market_quantity_input = get_node_or_null(market_quantity_input_path)
+	_purchase_button = get_node_or_null(purchase_button_path)
+	_market_status_label = get_node_or_null(market_status_label_path)
 	if _controller == null or _panel == null:
 		push_warning("Gameplay shell scene is missing controller or panel binding")
 		return
@@ -72,6 +84,30 @@ func _bind_action_signals() -> void:
 		_start_operation_button.pressed.connect(_on_start_operation_pressed)
 	if _stop_operation_button != null and not _stop_operation_button.pressed.is_connected(_on_stop_operation_pressed):
 		_stop_operation_button.pressed.connect(_on_stop_operation_pressed)
+	if _purchase_button != null and not _purchase_button.pressed.is_connected(_on_purchase_pressed):
+		_purchase_button.pressed.connect(_on_purchase_pressed)
+
+func _on_purchase_pressed() -> void:
+	if _controller == null:
+		return
+	var item_id := _market_item_input.text.strip_edges() if _market_item_input != null else ""
+	var quantity := int(_market_quantity_input.text) if _market_quantity_input != null else 0
+	if item_id == "" or quantity <= 0:
+		_set_market_status("Purchase rejected: item and quantity are required")
+		return
+	_set_market_status("Submitting purchase...")
+	var response: Dictionary = await _controller.send_market_purchase(item_id, quantity)
+	if response.get("ok", false):
+		_set_market_status("Purchase accepted. Refreshing authoritative profile...")
+		await _controller.refresh_authoritative_views()
+		if _panel != null:
+			_panel.render_from_controller(_controller)
+	else:
+		_set_market_status("Purchase failed: %s" % str(response.get("error", "server rejected request")))
+
+func _set_market_status(text: String) -> void:
+	if _market_status_label != null:
+		_market_status_label.text = text
 
 func _on_start_operation_pressed() -> void:
 	if _controller == null:

@@ -95,6 +95,16 @@ Remaining Phase 2 work is launcher handoff metadata, explicit session restore UX
 
 Remaining Phase 3 work is live websocket-first refresh behavior, explicit operation status display, and end-to-end testing against the running local API.
 
+### Phase 4 Slice Started - 2026-08-18
+
+- Added server-backed NPC market catalog rendering to the gameplay shell.
+- Added item ID and quantity purchase controls with session-bound purchase requests.
+- Added accepted-purchase refresh behavior for authoritative profile and market state.
+- Added market request-shape and catalog mapping smoke coverage.
+- Kept upgrade controls pending because the current server contract does not expose a player upgrade command endpoint.
+
+Remaining Phase 4 work is the contract-backed upgrade flow, richer inventory/receipt presentation, and live local API purchase validation.
+
 ## 4. Roadmap Summary
 
 | Phase | Outcome | Priority | Gate |

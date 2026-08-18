@@ -13,6 +13,7 @@ const REWARDS_PATH_TEMPLATE := "/api/v1/blockchain/players/%s/rewards"
 const CHECKPOINT_PATH_TEMPLATE := "/api/v1/blockchain/checkpoints/%s"
 const OPERATION_START_INTENT_PATH := "/api/v1/blockchain/operations/intents/start"
 const OPERATION_STOP_INTENT_PATH := "/api/v1/blockchain/operations/intents/stop"
+const MARKET_PURCHASE_PATH := "/api/v1/market/purchase"
 
 var base_url: String = "http://127.0.0.1:8000"
 var session: GmnSession = GmnSession.new()
@@ -193,6 +194,16 @@ func send_operation_stop_intent(operation_id: String) -> Dictionary:
 		HTTPClient.METHOD_POST,
 		url,
 		payload,
+	)
+
+func build_market_purchase_url() -> String:
+	return "%s%s?session_id=%s" % [base_url, MARKET_PURCHASE_PATH, session.session_id]
+
+func send_market_purchase(item_id: String, quantity: int) -> Dictionary:
+	return await _request_json(
+		HTTPClient.METHOD_POST,
+		build_market_purchase_url(),
+		{"item_id": item_id, "quantity": quantity},
 	)
 
 func set_session(payload: Dictionary) -> void:

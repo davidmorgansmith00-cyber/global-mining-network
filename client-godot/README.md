@@ -37,6 +37,11 @@ Phase 3 starter operation screen:
 - The operation start intent uses the server-returned `base_hashrate`; the client no longer accepts an authoritative hashrate typed by the player.
 - Global block status remains visible alongside the machine constraints.
 
+Phase 4 economy UX:
+- The gameplay shell renders the server-provided NPC market catalog from blockchain status.
+- Purchases use `/api/v1/market/purchase?session_id=<active_session_id>` with `item_id` and `quantity` only.
+- Accepted purchases trigger a fresh authoritative profile/status read; the client does not calculate prices, balances, or stock.
+
 Operation intent plumbing:
 - `GmnApiClient` now includes non-authoritative start/stop intent pass-through calls:
 	- `POST /api/v1/blockchain/operations/intents/start?session_id=<active_session_id>` with payload `{ "operation_id", "base_hashrate_hps" }`

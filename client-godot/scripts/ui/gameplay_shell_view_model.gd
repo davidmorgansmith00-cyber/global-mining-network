@@ -38,3 +38,14 @@ func map_profile(payload: Dictionary) -> Dictionary:
 		"cooling_text": "%s / %s" % [str(payload.get("cooling_efficiency_multiplier", "0")), str(payload.get("cooling_capacity", "0"))],
 		"tier_text": str(payload.get("player_tier", "0")),
 	}
+
+func map_market(payload: Dictionary) -> Dictionary:
+	var items := payload.get("market_catalog", []) as Array
+	var names: Array[String] = []
+	for item_variant in items:
+		var item := item_variant as Dictionary
+		names.append("%s (%s)" % [str(item.get("item_id", "-")), str(item.get("price", "-"))])
+	return {
+		"items_text": " | ".join(names),
+		"item_count_text": str(items.size()),
+	}

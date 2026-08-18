@@ -121,6 +121,11 @@ func get_ui_state() -> Dictionary:
 func get_server_base_hashrate() -> float:
 	return float(latest_profile_payload.get("base_hashrate", 0.0))
 
+func send_market_purchase(item_id: String, quantity: int) -> Dictionary:
+	if session_id == "":
+		return {"ok": false, "error": "missing_session_id"}
+	return await api_client.send_market_purchase(item_id, quantity)
+
 func restore_stream_cursor_from_checkpoint() -> Dictionary:
 	if player_id == "" or session_id == "":
 		return {

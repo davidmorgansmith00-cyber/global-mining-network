@@ -40,6 +40,11 @@ throttle_label_path = NodePath("ThrottleLabel")
 heat_label_path = NodePath("HeatLabel")
 cooling_label_path = NodePath("CoolingLabel")
 base_hashrate_input_path = NodePath("BaseHashrateInput")
+market_items_label_path = NodePath("MarketItemsLabel")
+market_item_input_path = NodePath("MarketItemInput")
+market_quantity_input_path = NodePath("MarketQuantityInput")
+purchase_button_path = NodePath("PurchaseButton")
+market_status_label_path = NodePath("MarketStatusLabel")
 
 [node name="BlockNumberLabel" type="Label" parent="GameplayShellPanel"]
 layout_mode = 0
@@ -202,3 +207,45 @@ offset_top = 322.0
 offset_right = 760.0
 offset_bottom = 350.0
 text = "Action status: idle"
+
+[node name="MarketItemsLabel" type="Label" parent="GameplayShellPanel"]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 370.0
+offset_right = 1160.0
+offset_bottom = 414.0
+text = "Market: loading"
+autowrap_mode = 2
+
+[node name="MarketItemInput" type="LineEdit" parent="GameplayShellPanel"]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 426.0
+offset_right = 300.0
+offset_bottom = 454.0
+placeholder_text = "item_id"
+
+[node name="MarketQuantityInput" type="LineEdit" parent="GameplayShellPanel"]
+layout_mode = 0
+offset_left = 316.0
+offset_top = 426.0
+offset_right = 430.0
+offset_bottom = 454.0
+placeholder_text = "quantity"
+text = "1"
+
+[node name="PurchaseButton" type="Button" parent="GameplayShellPanel"]
+layout_mode = 0
+offset_left = 446.0
+offset_top = 426.0
+offset_right = 590.0
+offset_bottom = 458.0
+text = "Buy Item"
+
+[node name="MarketStatusLabel" type="Label" parent="GameplayShellPanel"]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 470.0
+offset_right = 1160.0
+offset_bottom = 494.0
+text = "Market status: idle"
