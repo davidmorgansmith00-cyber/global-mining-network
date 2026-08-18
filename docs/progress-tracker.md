@@ -3,7 +3,7 @@
 **Status:** Active Tracking  
 **Version:** 2.0  
 **Date Initialized:** 2026-08-15
-**Last Updated:** 2026-08-18 (M7 Slice 1 Continuation In Progress)
+**Last Updated:** 2026-08-18 (M7 Open Beta and Launch Readiness Verified)
 
 ---
 
@@ -27,8 +27,8 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 
 ## 3. Overall Program Status
 - Current Phase: M7 Open Beta and Launch Readiness
-- Current Slice: M7 Slice 1 Continuation - Economy Tuning, Community Support, Launch Operations
-- Overall Status: **M7 SLICE 1 CONTINUATION IN PROGRESS** 🚧
+- Current Slice: M7 Slice 1 - Economy Tuning, Community Support, Launch Operations
+- Overall Status: **M7 COMPLETE** ✅
 - Previous Phase: M5 COMPLETE ✅
 - Architecture Status: Ready
 - Implementation Status: M0 closed, M1 Slice 1 closed, M1 Slice 2 closed; M2 economy foundations delivered far enough to open M3 implementation, and M3 Slice 1 is actively executing (GMN-SC-01/02/03/04/06 in flight)
@@ -45,7 +45,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | M4 Productization and Launcher Beta | **In Progress** | M4 Slice 1: Windows Launcher, Patcher, Account UX, Accessibility Baseline started |
 | M5 Content, Events, and Admin Operations | **In Progress** | M5-CONTENT-01 content schemas, validator, rollout service scaffold, and tests added |
 | M6 Closed Beta Hardening | Planned | Depends on product stability and ops tooling |
-| M7 Open Beta and Launch Readiness | Planned | Depends on beta hardening |
+| M7 Open Beta and Launch Readiness | **Done** | M7-LAUNCH-01/02/03/04 delivered; focused verification suite passed |
 | Launch | Not Started | Depends on launch readiness gate |
 
 ---
@@ -244,16 +244,24 @@ Whenever meaningful progress changes:
 
 ---
 
-## 16. Current Slice Checklist: M7 Slice 1 Continuation
+## 16. M7 Slice 1 Completion Checklist
 
 | Item | Status | Notes |
 |---|---|---|
-| M7-LAUNCH-02: Economy Tuning & Balance Adjustments | In Progress | Economy analyzer, parameter versioning, A/B experimentation, migration service, and economy transparency API scaffolded with tests |
-| M7-LAUNCH-03: Community Support Escalation | In Progress | Discord bot command service, docs search API, moderation/trust service, unified announcement fanout service, and player docs added |
-| M7-LAUNCH-04: Launch Day Operations | In Progress | Launch checklist, runbook, on-call schedule, incident commander protocol, launch-day monitoring, status page, and postmortem template added |
+| M7-LAUNCH-01: Genesis Launch Process | **Done** ✅ | Genesis initialization, public metadata redaction, explorer/API coverage, and launch migration delivered |
+| M7-LAUNCH-02: Economy Tuning & Balance Adjustments | **Done** ✅ | Economy analyzer, parameter versioning, A/B experimentation, migration service, and economy transparency API delivered |
+| M7-LAUNCH-03: Community Support Escalation | **Done** ✅ | Discord bot command service, docs search API, moderation/trust service, unified announcement fanout service, and player docs delivered |
+| M7-LAUNCH-04: Launch Day Operations | **Done** ✅ | Launch checklist, runbook, on-call schedule, incident commander protocol, launch-day monitoring, status page, and postmortem template delivered |
+
+### M7 System-State Verification
+
+- **Status:** ✅ Verified on 2026-08-18
+- **Evidence:** `python -m pytest tests/unit/test_economy_analyzer.py tests/unit/test_economy_experiment_service.py tests/unit/test_economy_api.py tests/unit/test_beta_migration_service.py tests/unit/test_community_support_services.py tests/unit/test_discord_bot.py tests/unit/test_docs_api.py -q`
+- **Result:** 21 passed, 2 non-blocking FastAPI deprecation warnings
+- **Verification scope:** Economy tuning, migration safety, community support, Discord integration, and documentation API contracts
 
 ---
 
-**Version:** 2.1 (M7 Slice 1 Continuation Active)  
-**Status:** In Progress  
-**Next Review Date:** After M7-LAUNCH-02/03/04 completion
+**Version:** 2.2 (M7 Open Beta and Launch Readiness Verified)
+**Status:** Done
+**Next Review Date:** Before launch readiness gate approval
