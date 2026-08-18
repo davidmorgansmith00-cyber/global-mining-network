@@ -13,6 +13,7 @@ class_name GameplayShellSceneRoot
 @export var market_quantity_input_path: NodePath = NodePath("GameplayShellPanel/MarketQuantityInput")
 @export var purchase_button_path: NodePath = NodePath("GameplayShellPanel/PurchaseButton")
 @export var market_status_label_path: NodePath = NodePath("GameplayShellPanel/MarketStatusLabel")
+@export var reauthenticate_button_path: NodePath = NodePath("GameplayShellPanel/ReauthenticateButton")
 @export var refresh_interval_seconds: float = 3.0
 @export var auto_render: bool = true
 
@@ -27,6 +28,7 @@ var _market_item_input: LineEdit
 var _market_quantity_input: LineEdit
 var _purchase_button: Button
 var _market_status_label: Label
+var _reauthenticate_button: Button
 var _time_until_refresh: float = 0.0
 
 func _ready() -> void:
@@ -41,6 +43,7 @@ func _ready() -> void:
 	_market_quantity_input = get_node_or_null(market_quantity_input_path)
 	_purchase_button = get_node_or_null(purchase_button_path)
 	_market_status_label = get_node_or_null(market_status_label_path)
+	_reauthenticate_button = get_node_or_null(reauthenticate_button_path)
 	if _controller == null or _panel == null:
 		push_warning("Gameplay shell scene is missing controller or panel binding")
 		return
@@ -50,6 +53,7 @@ func _ready() -> void:
 	_time_until_refresh = refresh_interval_seconds
 	if auto_render:
 		_panel.render_from_controller(_controller)
+	_sync_reauthentication_action()
 
 func configure_session(player: String, session: String, access_token: String, refresh_token: String) -> void:
 	if _controller == null:
@@ -58,6 +62,7 @@ func configure_session(player: String, session: String, access_token: String, re
 	await _controller.refresh_authoritative_views()
 	if _panel != null:
 		_panel.render_from_controller(_controller)
+	_sync_reauthentication_action()
 
 func _process(delta: float) -> void:
 	if _controller == null or _panel == null:
@@ -72,6 +77,7 @@ func _process(delta: float) -> void:
 		var _ignored = await _controller.refresh_authoritative_views()
 		if auto_render:
 			_panel.render_from_controller(_controller)
+		_sync_reauthentication_action()
 
 func refresh_now() -> void:
 	if _controller == null or _panel == null:
@@ -86,6 +92,21 @@ func _bind_action_signals() -> void:
 		_stop_operation_button.pressed.connect(_on_stop_operation_pressed)
 	if _purchase_button != null and not _purchase_button.pressed.is_connected(_on_purchase_pressed):
 		_purchase_button.pressed.connect(_on_purchase_pressed)
+	if _reauthenticate_button != null and not _reauthenticate_button.pressed.is_connected(_on_reauthenticate_pressed):
+		_reauthenticate_button.pressed.connect(_on_reauthenticate_pressed)
+	_sync_reauthentication_action()
+
+func _sync_reauthentication_action() -> void:
+	if _reauthenticate_button == null or _controller == null:
+		return
+	_reauthenticate_button.visible = str(_controller.get_ui_state().get("state_code", "")) == GameplayShellUiState.UNAUTHORIZED
+
+func _on_reauthenticate_pressed() -> void:
+	if _controller == null or not is_inside_tree():
+		return
+	_controller.stream_client.disconnect_stream()
+	_controller.api_client.session.clear()
+	await get_tree().change_scene_to_file("res://scenes/onboarding.tscn")
 
 func _on_purchase_pressed() -> void:
 	if _controller == null:
