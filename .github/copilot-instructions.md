@@ -3,7 +3,7 @@
 **Last Updated:** 2026-08-18  
 **Current Phase:** M1 Simulation Core Vertical Slice  
 **Current Slice:** M1 Slice 2 - Client Gameplay Shell Integration  
-**Status:** In Progress (GMN-CL-01 ✅ GMN-CL-02 ✅ GMN-CL-05 ✅)
+**Status:** In Progress (GMN-CL-01 ✅ GMN-CL-02 ✅ GMN-CL-05 ✅ GMN-CL-03 ✅)
 
 ---
 
@@ -135,21 +135,22 @@ The tickets for M1 Slice 2 (Client Gameplay Shell Integration) are:
   - Acceptance: Controller orchestrates session/status/snapshot/events, contracts centralized
   - Reference: `m1-client-gameplay-implementation-tickets.md` line 65
   - Completed: 2026-08-18T00:38:48Z
-  - Files: `client-godot/scripts/gameplay/gmn_gameplay_shell_scene_root.gd`, `client-godot/tests/integration/test_gmn_gameplay_shell_scene.gd`
 
-- [ ] **GMN-CL-03: Snapshot + Reconnect Event Stream** (P0)
+- [x] **GMN-CL-03: Snapshot + Reconnect Event Stream** (P0) ✅ DONE
   - Acceptance: Reconnect resumes from saved cursor, duplicates avoided, cursor persistent
   - Reference: `m1-client-gameplay-implementation-tickets.md` line 38
+  - Completed: 2026-08-18T00:57:18Z
+  - Files: `client-godot/scripts/network/gmn_network_snapshot_service.gd`, `client-godot/scripts/network/gmn_network_event_stream_service.gd`
 
 - [ ] **GMN-CL-06: Operation Intent Session-Bound Contract** (P0)
   - Acceptance: Start/stop calls succeed/fail with session binding, no player_id in payload
-  - Reference: `m1-client-gameplay-implementation-tickets.md` line 82
+  - Reference: `m1-client-gameplay-implementation-tickets.md` line 81
 
 - [ ] **GMN-CL-04: Player Reward Timeline Panel** (P1)
   - Acceptance: Timeline renders server entries without mutation, empty states handled
-  - Reference: `m1-client-gameplay-implementation-tickets.md` line 55
+  - Reference: `m1-client-gameplay-implementation-tickets.md` line 52
 
-**Delivery order:** GMN-CL-01 ✅ → GMN-CL-02 ✅ → GMN-CL-05 ✅ → GMN-CL-03 → GMN-CL-06 → GMN-CL-04
+**Delivery order:** GMN-CL-01 ✅ → GMN-CL-02 ✅ → GMN-CL-05 ✅ → GMN-CL-03 ✅ → GMN-CL-06 → GMN-CL-04
 
 ---
 
@@ -246,7 +247,7 @@ Every PR should:
 - [x] Verify no non-negotiables were violated (read "Always-On Non-Negotiables" section above)
 - [x] Include a test case for the acceptance criterion
 - [x] Update `docs/progress-tracker.md` section "## 6. Current Slice Checklist" to mark the ticket "Done"
-- [x] Ensure commit message includes the ticket ID (e.g., "GMN-CL-05: Gameplay Shell Scene Scaffold")
+- [x] Ensure commit message includes the ticket ID (e.g., "GMN-CL-03: Snapshot + Reconnect Event Stream")
 
 ---
 
@@ -262,7 +263,7 @@ If you encounter:
 
 ---
 
-**Version:** 1.4 (GMN-CL-05 Complete)  
+**Version:** 1.5 (GMN-CL-03 Complete)  
 **Last Reviewed:** 2026-08-18  
 **Maintained By:** Program Lead  
 **Status:** Active & In Use for M1 Slice 2 Execution
