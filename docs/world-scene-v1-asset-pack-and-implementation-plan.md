@@ -124,9 +124,9 @@ Path: `assets/pixel/systems/`
 
 ### E) Ambient FX Sheets
 Path: `assets/pixel/fx/`
-- `fan_spin_v1.png` — **4 frames @ 8 fps**, loop; dims to 30% opacity when `throttle_active`
+- `fan_spin_v1.png` — **4 frames @ 8 fps**, loop; dims to 30% opacity when `throttle_active` (derived: `power_throttle_multiplier < 1.0`)
 - `monitor_flicker_v1.png` — **2 frames @ 4 fps**, loop; stops when `offline/stale`
-- `heat_haze_v1.png` — **3 frames @ 6 fps**, loop; shown only when `heat_warning == true`
+- `heat_haze_v1.png` — **3 frames @ 6 fps**, loop; shown only when `heat_warning` is active (derived: `cooling_efficiency_multiplier < 1.0`)
 - **Delivered by (Slice):** W5
 
 ### F) World-State Icon Microset
@@ -208,9 +208,9 @@ assets/pixel/source/
 
 | FX sheet | Frames | FPS | Loop | Behaviour |
 |---|---|---|---|---|
-| `fan_spin_v1.png` | 4 | 8 | Looping | Plays when `running`; opacity 100% → 30% when `throttle_active` |
+| `fan_spin_v1.png` | 4 | 8 | Looping | Plays when `running`; opacity 100% → 30% when `throttle_active` (derived: `power_throttle_multiplier < 1.0`) |
 | `monitor_flicker_v1.png` | 2 | 4 | Looping | Plays when `running`; stops (show frame 0) when `offline/stale` |
-| `heat_haze_v1.png` | 3 | 6 | Looping | Visible only when `heat_warning == true`; hidden otherwise |
+| `heat_haze_v1.png` | 3 | 6 | Looping | Visible only when `heat_warning` active (derived: `cooling_efficiency_multiplier < 1.0`); hidden otherwise |
 
 Frame layout: all animation sheets use a **horizontal strip** (frames left-to-right); frame 0 is the leftmost.
 
@@ -461,23 +461,27 @@ World scene visuals should map from already-existing authoritative state used by
 
 The following is the **complete V1 binding table**. All fields are read from existing server contracts already consumed by V2 HUD panels (see `docs/client-ui-roadmap-v2.md` §4). No new server contracts are required for W1–W6.
 
-| Server field | Source contract | World visual effect | GDScript signal/property |
-|---|---|---|---|
-| `OperationIntent.status == "running"` | `OperationIntent` | `FanSpin` plays; `MonitorFlicker` plays; `RigStateFx` active | `rig_visual_controller.set_operation_status(status)` |
-| `OperationIntent.status == "idle"` | `OperationIntent` | All FX paused; rig dim | same |
-| `PowerState.throttle_active == true` | `PowerState` (GMN-EC-02) | `PowerStateIcon` = throttled icon; FX dim to 30% | `power_visual_controller.set_throttle(active: bool)` |
-| `CoolingState.heat_warning == true` | `CoolingState` (GMN-EC-03) | `CoolingStateFx` (heat haze) visible; `CoolingStateIcon` = overheating | `cooling_visual_controller.set_heat_warning(active: bool)` |
-| `stale_data == true` (connection lost / no update > threshold) | UIStateController freshness flag | All state icons → stale-data icon; rig lights dimmed | `rig_visual_controller.set_stale(stale: bool)` |
-| `UpgradeState.running == true` | `UpgradeState` (GMN-EC-06) | `RigStateIcon` = upgrading icon | `rig_visual_controller.set_upgrade_running(active: bool)` |
-| `UpgradeState.complete_pending == true` | `UpgradeState` | `RigStateIcon` = upgrade-complete icon | same |
+> **Current state binding source:** The V2 `UIStateController` autoload is not yet implemented. Until it is established, world visuals must read from `GameplayShellController` (the current V1 controller node), which stores authoritative payloads in `latest_profile_payload`, `latest_status_payload`, and exposes freshness via `get_ui_state()` / `GameplayShellUiState.state_code`. When V2 `UIStateController` is introduced, migrate these bindings without changing the public controller API on the world scripts.
 
-> **Rule:** World scene GDScript must **receive** these values from the existing UI state model — it must never call server APIs directly or calculate values locally. The UIStateController (or equivalent signal bus) is the single source of truth that both HUD panels and world visuals read from.
+> **`throttle_active` and `heat_warning` are not explicit booleans on the server model.** `PlayerProfileResponse` exposes `power_throttle_multiplier: float` and `cooling_efficiency_multiplier: float`. Derive the display booleans on the receiving side: `throttle_active = power_throttle_multiplier < 1.0`; `heat_warning = cooling_efficiency_multiplier < 1.0`. Both values are fully server-authoritative — the client derives a boolean for rendering only, not for logic.
+
+| Server field | Source contract | Client payload path | World visual effect | GDScript API |
+|---|---|---|---|---|
+| `OperationIntent.status == "running"` | `OperationIntent` | `GameplayShellController.latest_status_payload` | `FanSpin` plays; `MonitorFlicker` plays; `RigStateFx` active | `rig_visual_controller.set_operation_status(status)` |
+| `OperationIntent.status == "idle"` | `OperationIntent` | same | All FX paused; rig dim | same |
+| `power_throttle_multiplier < 1.0` | `PlayerProfileResponse` (GMN-EC-02) | `GameplayShellController.latest_profile_payload["power_throttle_multiplier"]` | `PowerStateIcon` = throttled icon; FX dim to 30% | `power_visual_controller.set_throttle(active: bool)` |
+| `cooling_efficiency_multiplier < 1.0` | `PlayerProfileResponse` (GMN-EC-03) | `GameplayShellController.latest_profile_payload["cooling_efficiency_multiplier"]` | `CoolingStateFx` (heat haze) visible; `CoolingStateIcon` = overheating | `cooling_visual_controller.set_heat_warning(active: bool)` |
+| `GameplayShellUiState.state_code != "ready"` | `GameplayShellUiState` | `GameplayShellController.get_ui_state()["state_code"]` | All state icons → stale-data icon; rig lights dimmed | `rig_visual_controller.set_stale(stale: bool)` |
+| `UpgradeState.running == true` | `UpgradeState` (GMN-EC-06) | `GameplayShellController.latest_profile_payload["upgrade_progression"]` | `RigStateIcon` = upgrading icon | `rig_visual_controller.set_upgrade_running(active: bool)` |
+| `UpgradeState.complete_pending == true` | `UpgradeState` | same | `RigStateIcon` = upgrade-complete icon | same |
+
+> **Rule:** World scene GDScript must **receive** these values from the existing shared controller — it must never call server APIs directly or derive game-logic values from raw physics/math. `GameplayShellController` (migrating to `UIStateController` in V2) is the single source of truth that both HUD panels and world visuals read from.
 
 ## 7.3 Presentation Mapping Examples
-- `operation_status == running` → rig animation ON + monitor flicker.
-- `throttle_active` → warning icon + reduced fan/lights pulse.
-- `heat_warning` → heat haze/fx + warning icon.
-- `offline/stale` → dimmed rig lights + stale badge.
+- `operation_status == "running"` → rig animation ON + monitor flicker.
+- `power_throttle_multiplier < 1.0` → `throttle_active` warning icon + reduced fan/lights pulse.
+- `cooling_efficiency_multiplier < 1.0` → `heat_warning` heat haze/FX + warning icon.
+- `ui_state_code != "ready"` → dimmed rig lights + stale badge.
 - `upgrade_running` → subtle maintenance indicator.
 
 No client-authored formulas for hashrate contribution, rewards, completion, or difficulty.
@@ -533,7 +537,7 @@ No client-authored formulas for hashrate contribution, rewards, completion, or d
 ## Slice W4 — Server-Driven Visual States
 **Goal:** bind world visuals to existing authoritative states.
 - Implement `PowerVisualController.gd` and `CoolingVisualController.gd` per the contracts in §7.2.
-- Wire controllers to receive state from UIStateController (or its existing signal bus) — not from direct REST calls.
+- Wire controllers to receive state from `GameplayShellController.latest_profile_payload` and `get_ui_state()` — not from direct REST calls, and not from a named `UIStateController` autoload (which does not yet exist). Once V2 `UIStateController` is established, this wiring migrates without changing the world-script public API.
 - Import `power_nodes_v1.png`, `cooling_nodes_v1.png`, `world_state_icons_v1.png`.
 - Implement stale/offline visual fallback: all state icons switch to `stale-data` icon when `stale == true`.
 - Ensure `DebugWorldOverlay` shows current bound values (operation status, throttle, heat warning) as text labels when debug hotkey active.
@@ -549,7 +553,7 @@ No client-authored formulas for hashrate contribution, rewards, completion, or d
 - Wire `AmbientFxController.gd`:
   - `FanSpin` animates only when `operation_status == "running"`.
   - `MonitorFlicker` animates only when `operation_status == "running"`.
-  - `CoolingStateFx` (heat haze) visible only when `heat_warning == true`.
+  - `CoolingStateFx` (heat haze) visible only when `cooling_efficiency_multiplier < 1.0` (i.e., `heat_warning` derived from server-provided `cooling_efficiency_multiplier` field in `PlayerProfileResponse`).
   - All FX pause when `stale == true`.
 - Visual priority check: all ambient FX must not obscure or compete with HUD text readability.
 
@@ -680,23 +684,30 @@ Use this checklist before starting each slice to confirm prerequisites are met.
 - [ ] Engineering owner assigned
 - [ ] Art owner assigned
 - [ ] Godot 4.x project confirmed available and loadable in repo
-- [ ] `UIRoot.tscn` and `BackgroundLayer` node exist and are confirmed accessible (check `scenes/ui/UIRoot.tscn`)
-- [ ] Developer debug hotkey confirmed (what key/action name triggers `DebugLayer` toggle?)
-- [ ] `UIStateController` (or equivalent signal bus) identified — confirm the GDScript node/autoload name that emits operation status, throttle, heat warning, stale state
+- [ ] `UIRoot.tscn` and `BackgroundLayer` node exist and are confirmed accessible (check `client-godot/scenes/gameplay_shell.tscn` and the V2 `UIRoot.tscn` once created)
+- [ ] Developer debug hotkey confirmed (the key/action name that triggers `DebugLayer` toggle — see `ui-v2-plan.md` §9.1; exact key **not yet defined** in input map; must be confirmed from the project input map before W1 merge)
+- [x] **State binding source confirmed:** Current client state model is `GameplayShellController` (node) + `GameplayShellUiState` (class). `UIStateController` does not yet exist as a named autoload; world visuals bind to `GameplayShellController.latest_profile_payload` and `get_ui_state()`. See §7.2.
+- [x] **`OperationIntent.status` enum confirmed:** `running`, `idle`, `starting`, `stopping`, `rejected`, `stale`. Use this set; extend if server adds values.
+- [x] **World scene visibility scope confirmed:** In-game only. Not shown on `MainMenu`. Visible only after session bootstrap inside the in-game scene.
+- [x] **Camera2D confirmed not needed for V1:** Fixed-origin render only; no `Camera2D` in W1–W6.
+- [x] **Interaction zones:** Placeholder-only for V1; no click/inspect logic in W1–W6.
+- [ ] `HUDLayer` depth ordering confirmed — `BackgroundLayer` and `HUDLayer` are both `Control` children of `UIRoot (CanvasLayer)`; confirm node-order depth from `UIRoot.tscn` once it exists (world scene `Node2D` is a child of `BackgroundLayer` and must render below `HUDLayer` by node order)
 
 ### Before W2 (Tileset + Props)
 - [ ] W1 merged and passing
 - [ ] Art owner has confirmed `shack_tileset_v1.png` and `shack_props_v1.png` delivery date
-- [ ] Art reviewer(s) assigned for sign-off
+- [ ] Art reviewer(s) assigned for sign-off (must be named before W2 kickoff; W2 cannot merge without a named reviewer)
 
 ### Before W3 (Rig Modular System)
 - [ ] W2 merged and passing
 - [ ] `rig_base_v1.png`, `rig_skin_rusty_v1.png`, `rig_parts_v1.png` delivered and reviewed
-- [ ] `OperationIntent.status` enum values confirmed (running, idle, starting, stopping, rejected — any others?)
+- [x] **`OperationIntent.status` enum values confirmed** (see above; no additional values beyond the confirmed set needed for W3)
 
 ### Before W4 (Server-Driven Visual States)
 - [ ] W3 merged and passing
-- [ ] `PowerState` and `CoolingState` contracts confirmed available in current server build (GMN-EC-02/03 shipped)
+- [x] **`power_throttle_multiplier` and `cooling_efficiency_multiplier` confirmed present** in `PlayerProfileResponse` (schema version `player.profile.v1.6`, fields: `power_throttle_multiplier: float`, `cooling_efficiency_multiplier: float`). No stub needed; these are live in the current server build.
+- [x] **`throttle_active` derivation confirmed:** `power_throttle_multiplier < 1.0` (derived client-side from server value; not a boolean server field).
+- [x] **`heat_warning` derivation confirmed:** `cooling_efficiency_multiplier < 1.0` (derived client-side from server value; not a boolean server field). Do not threshold client-side using raw heat/capacity numbers — use the server-computed multiplier.
 - [ ] `world_state_icons_v1.png` delivered and reviewed; colors match V2 palette tokens
 
 ### Before W5 (Ambient FX)
@@ -715,15 +726,26 @@ Use this checklist before starting each slice to confirm prerequisites are met.
 
 The following items are explicitly uncertain. They must be resolved before or during the relevant slice. **Do not silently decide these — capture the answer here when resolved.**
 
+### 15.1 Resolved Contract Confirmations
+
+These were open questions; all confirmed from current repo code and planning docs.
+
+| # | Question | Resolution | Source |
+|---|---|---|---|
+| OQ-01 | Exact GDScript autoload/node name for `UIStateController`? | **Not yet implemented.** Current binding is `GameplayShellController` (Node) + `GameplayShellUiState` (RefCounted class). V2 `UIStateController` is planned but not present. World visuals bind to `GameplayShellController.latest_profile_payload` and `get_ui_state()`. | `client-godot/scripts/ui/gameplay_shell_controller.gd`, `client-godot/scripts/ui/gameplay_shell_ui_state.gd` |
+| OQ-03 | Are `power_throttle_multiplier` / `cooling_efficiency_multiplier` available at W4? | **Yes.** Both are live fields in `PlayerProfileResponse` (schema `player.profile.v1.6`). No stub needed. | `server/domain/players/schemas.py:PlayerProfileResponse` |
+| OQ-04 | Full `OperationIntent.status` enum set? | **Confirmed:** `running`, `idle`, `starting`, `stopping`, `rejected`, `stale`. Extend only if server adds new values. | `docs/client-ui-roadmap-v2.md`, `docs/operation-intents-api-reference.md` |
+| OQ-05 | Does the world scene need a `Camera2D`? | **No.** Fixed-origin render for W1–W6. Do not add `Camera2D` unless explicitly re-scoped. | Architecture decision; see `docs/ui-v2-plan.md` §9.1 (fixed-canvas layout; no camera) |
+| OQ-07 | World scene visible on `MainMenu`? | **In-game only.** Not shown during `MainMenu`. Visible only after session bootstrap in the in-game scene. | Architecture decision |
+| OQ-08 | Interaction zones (click-to-inspect) in V1? | **Placeholder-only.** No interaction logic in W1–W6. | Scope decision |
+| OQ-10 | Is `heat_warning` a boolean on `CoolingState` or derived? | **Derived.** `PlayerProfileResponse` exposes `cooling_efficiency_multiplier: float`; derive `heat_warning = cooling_efficiency_multiplier < 1.0`. Do not threshold from raw heat/capacity. `throttle_active = power_throttle_multiplier < 1.0` follows the same pattern. | `server/domain/players/schemas.py:PlayerProfileResponse` |
+
+### 15.2 Pending — Must Resolve Before Implementation
+
+These items remain open and **must** be captured here once confirmed.
+
 | # | Question | Relevant slice | Assumption if not resolved before slice starts |
 |---|---|---|---|
-| OQ-01 | What is the exact GDScript autoload/node name for `UIStateController`? Does it already emit the signals needed (operation status, throttle, heat warning, stale)? | W1/W4 | Assume an autoload named `UIStateController` with signals `operation_status_changed(status: String)`, `throttle_changed(active: bool)`, `heat_warning_changed(active: bool)`, `stale_changed(stale: bool)` |
-| OQ-02 | What developer hotkey exposes `DebugLayer`? Is it the same hotkey as the existing `DebugLayer` toggle? | W1 | Assume the existing debug hotkey (document the actual key name once confirmed) |
-| OQ-03 | Are `PowerState` and `CoolingState` server contracts (GMN-EC-02/03) shipped at the time of W4? If not, W4 must stub those bindings. | W4 | Treat as stubbed placeholders if not shipped; stub must be replaced before W6 merge |
-| OQ-04 | What is the full set of `OperationIntent.status` enum values? Any values beyond running/idle/starting/stopping/rejected? | W3 | Use the set above; expand if server adds values |
-| OQ-05 | Does the world scene need a `Camera2D`? Or is a fixed-origin render sufficient for V1? | W1 | Fixed-origin render only; no `Camera2D` in W1–W6 unless explicitly re-opened |
+| OQ-02 | What developer hotkey exposes `DebugLayer`? (Key/action name in the Godot input map.) | W1 | Use the existing debug hotkey once confirmed; do not hard-code a key without checking the input map |
 | OQ-06 | Who is the art reviewer for sign-off on W2+ assets? | W2 | Must be named before W2 kickoff; W2 cannot merge without a named reviewer |
-| OQ-07 | Should the world scene be visible on the `MainMenu` screen, or only during in-game (after session start)? | W1 | In-game only (after session bootstrap); MainMenu uses its own background |
-| OQ-08 | Are there interaction zones (click-to-inspect) needed for V1, or are `InteractionZones` placeholder-only? | W1–W6 | Placeholder-only for V1; no interaction logic in W1–W6 |
-| OQ-09 | What is the Godot node name / `CanvasLayer.layer` value for `HUDLayer` in `UIRoot.tscn`? | W1 | Must be confirmed before scene integration; world scene `BackgroundLayer` must be a lower layer value |
-| OQ-10 | Is `heat_warning` a boolean flag on `CoolingState` or a threshold-crossed condition derived from `CoolingState.heat`? | W4 | Treat as a boolean server-provided flag; do not threshold-check client-side |
+| OQ-09 | What is the Godot node-order / depth relationship between `BackgroundLayer` and `HUDLayer` inside `UIRoot.tscn`? (They are `Control` children of a single `CanvasLayer`; confirm node order from `UIRoot.tscn` once it exists.) | W1 | `BackgroundLayer` must appear **before** `HUDLayer` in node order inside `UIRoot` so it renders behind the HUD; verify and do not add a new `CanvasLayer` for the world scene |
