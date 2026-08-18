@@ -76,6 +76,17 @@ func login_and_store_session(email: String, password: String) -> Dictionary:
 	return response
 
 func refresh_authoritative_views() -> Dictionary:
+	if player_id == "":
+		ui_state.set_unauthorized()
+		return {
+			"status": {"ok": false, "error": "missing_player_id", "status_code": 401},
+			"snapshot": {"ok": false, "error": "missing_player_id", "status_code": 401},
+			"rewards": {"ok": false, "error": "missing_player_id", "status_code": 401},
+			"profile": {"ok": false, "error": "missing_player_id", "status_code": 401},
+			"blocks": {"ok": false, "error": "missing_player_id", "status_code": 401},
+			"history": {"ok": false, "error": "missing_player_id", "status_code": 401},
+			"events": {"ok": false, "error": "missing_player_id", "status_code": 401},
+		}
 	ui_state.set_loading()
 	var status_response: Dictionary = await api_client.fetch_status(status_recent_limit)
 	var snapshot_response: Dictionary = await api_client.fetch_snapshot(status_recent_limit)

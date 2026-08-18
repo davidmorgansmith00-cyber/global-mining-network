@@ -174,6 +174,13 @@ The client may render the server's `next_recommended_upgrade` and `upgrade_progr
 
 Remaining Phase 5 work is detailed block/history panels, pagination, event cards, and snapshot-to-live history continuity.
 
+### Phase 5 Visual Repair - 2026-08-18
+
+- Fixed authenticated session handoff so gameplay receives the registered player ID after onboarding scene replacement.
+- Prevented unauthenticated shell polling from requesting profile/history with an empty player ID.
+- Added plain-text response handling so server error bodies render as recoverable UI errors without JSON parse noise.
+- Added a minimum client window size and separated market/history rows to prevent panel overlap.
+
 ## 4. Roadmap Summary
 
 | Phase | Outcome | Priority | Gate |

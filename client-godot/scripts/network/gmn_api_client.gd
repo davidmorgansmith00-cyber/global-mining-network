@@ -261,7 +261,10 @@ func _request_json(method: HTTPClient.Method, url: String, payload: Dictionary =
 	var response_code: int = completed[1]
 	var response_body: PackedByteArray = completed[3]
 	var raw_text := response_body.get_string_from_utf8()
-	var parsed = JSON.parse_string(raw_text)
+	var parsed: Variant = null
+	var trimmed_text := raw_text.strip_edges()
+	if trimmed_text.begins_with("{") or trimmed_text.begins_with("["):
+		parsed = JSON.parse_string(trimmed_text)
 	var parsed_payload: Variant = parsed if parsed != null else raw_text
 
 	return {

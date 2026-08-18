@@ -140,21 +140,29 @@ func _submit_auth(register: bool) -> void:
 	await _open_gameplay_shell()
 
 func _open_gameplay_shell() -> void:
-	var change_error := get_tree().change_scene_to_file(GAMEPLAY_SCENE_PATH)
+	if not is_inside_tree():
+		return
+	var tree := get_tree()
+	var session_payload := {
+		"player_id": api_client.session.player_id,
+		"session_id": api_client.session.session_id,
+		"access_token": api_client.session.access_token,
+		"refresh_token": api_client.session.refresh_token,
+	}
+	var change_error := tree.change_scene_to_file(GAMEPLAY_SCENE_PATH)
 	if change_error != OK:
 		_busy = false
 		_set_controls_enabled(true)
 		_show_error("Gameplay shell could not be opened.")
 		return
-	await get_tree().process_frame
-	var gameplay_root := get_tree().current_scene
+	await tree.process_frame
+	var gameplay_root := tree.current_scene
 	if gameplay_root != null and gameplay_root.has_method("configure_session"):
-		var session := api_client.session
 		gameplay_root.configure_session(
-			session.player_id,
-			session.session_id,
-			session.access_token,
-			session.refresh_token,
+			str(session_payload.get("player_id", "")),
+			str(session_payload.get("session_id", "")),
+			str(session_payload.get("access_token", "")),
+			str(session_payload.get("refresh_token", "")),
 		)
 
 func _set_controls_enabled(enabled: bool) -> void:

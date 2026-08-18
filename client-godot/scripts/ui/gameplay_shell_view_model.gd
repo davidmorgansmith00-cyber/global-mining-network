@@ -46,7 +46,8 @@ func map_market(payload: Dictionary) -> Dictionary:
 		var item := item_variant as Dictionary
 		names.append("%s (%s)" % [str(item.get("item_id", "-")), str(item.get("price", "-"))])
 	return {
-		"items_text": " | ".join(names),
+		"items_text": "%d items available" % items.size(),
+		"item_names_text": " | ".join(names),
 		"item_count_text": str(items.size()),
 	}
 

@@ -218,7 +218,7 @@ offset_top = 370.0
 offset_right = 1160.0
 offset_bottom = 414.0
 text = "Market: loading"
-autowrap_mode = 2
+autowrap_mode = 0
 
 [node name="MarketItemInput" type="LineEdit" parent="GameplayShellPanel"]
 layout_mode = 0
@@ -256,23 +256,23 @@ text = "Market status: idle"
 [node name="BlocksHistoryLabel" type="Label" parent="GameplayShellPanel"]
 layout_mode = 0
 offset_left = 700.0
-offset_top = 370.0
+offset_top = 426.0
 offset_right = 1160.0
-offset_bottom = 394.0
+offset_bottom = 450.0
 text = "Blocks: 0"
 
 [node name="PlayerHistoryLabel" type="Label" parent="GameplayShellPanel"]
 layout_mode = 0
 offset_left = 700.0
-offset_top = 402.0
+offset_top = 458.0
 offset_right = 1160.0
-offset_bottom = 426.0
+offset_bottom = 482.0
 text = "Your records: 0"
 
 [node name="ActiveEventsLabel" type="Label" parent="GameplayShellPanel"]
 layout_mode = 0
 offset_left = 700.0
-offset_top = 434.0
+offset_top = 490.0
 offset_right = 1160.0
-offset_bottom = 458.0
+offset_bottom = 514.0
 text = "Active events: 0"
