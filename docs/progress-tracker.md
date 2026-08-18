@@ -26,12 +26,12 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 ---
 
 ## 3. Overall Program Status
-- Current Phase: M2 Constraint Systems & Economy Foundations
-- Current Slice: M2 Slice 1 - Economy Foundations
-- Overall Status: **M2 SLICE 1 IN PROGRESS** 🚧
+- Current Phase: M3 Social-Competitive Core
+- Current Slice: M3 Slice 1 - Social-Competitive Core
+- Overall Status: **M3 SLICE 1 IN PROGRESS** 🚧
 - Previous Phase: M1 COMPLETE ✅
 - Architecture Status: Ready
-- Implementation Status: M0 closed, M1 Slice 1 closed, M1 Slice 2 closed; M2 Slice 1 actively executing (GMN-EC-01 through GMN-EC-05 delivered)
+- Implementation Status: M0 closed, M1 Slice 1 closed, M1 Slice 2 closed; M2 economy foundations delivered far enough to open M3 implementation, and M3 Slice 1 is actively executing (GMN-SC-01/02/03/04/06 in flight)
 
 ---
 
@@ -41,7 +41,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | M0 Foundations | Done | Closed after persistence test baseline passed and exit review completed |
 | M1 Simulation Core Vertical Slice | **Done** | Both slices complete (Slice 1 blockchain core + Slice 2 client gameplay); 61/61 tests passing |
 | M2 Constraint Systems and Economy Foundations | **In Progress** | Slice 1 ready to start; 8 tickets planned (GMN-EC-01 through GMN-EC-08) |
-| M3 Social-Competitive Core | Planned | Locked behind M2 proof; entry gate inactive |
+| M3 Social-Competitive Core | **In Progress** | Slice 1 executing: pools, marketplace, leaderboards, and anti-cheat baseline |
 | M4 Productization and Launcher Beta | Planned | Launcher/update work begins after artifact pipeline exists |
 | M5 Content, Events, and Admin Operations | Planned | Depends on content and admin platform baselines |
 | M6 Closed Beta Hardening | Planned | Depends on product stability and ops tooling |
@@ -61,15 +61,15 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Blockchain and Difficulty | In Progress | Simulation Lead | Persistent active/finalized block state store proven; M2 ready |
 | Economy and Ledger | In Progress | Economy Lead | Block finalization ledger posting contract proven; offline cap audit trail added; M2 market/upgrade ledger ready |
 | Hardware, Power, Cooling, Facilities | **In Progress - M2 Slice 1** | Economy Lead | GMN-EC-01/02/03 delivered; GMN-EC-04 offline caps now complete |
-| Marketplace and Trading | **In Progress - M2 Slice 1** | Economy Lead | GMN-EC-05 delivered with atomic purchases, inventory state, and ledger audit trail |
+| Marketplace and Trading | **In Progress - M3 Slice 1** | Economy Lead | Player marketplace listing/settlement added on top of ledger-backed inventory and balance rules |
 | Research, Manufacturing, Automation | Planned | Economy Lead | Starts after content and economy baseline |
-| Pools, Social, Notifications | Planned | Gameplay Lead | Starts in M3 |
+| Pools, Social, Notifications | **In Progress - M3 Slice 1** | Gameplay Lead | Pool creation/membership and pool leaderboard surfaces are now part of active implementation |
 | Client Gameplay and UX | **Complete - M1 Slice 2** | Gameplay Lead | M1 Slice 2 complete; M2 will add constraint system UX (handled in backend tickets) |
 | WebSocket and Realtime Delivery | **In Progress - M2 Start** | Backend Lead | Event stream websocket service implemented in M1; M2 aggregated updates ticket (GMN-EC-07) queued |
 | Content Pipeline and Data Ops | In Progress | Content Lead | Initial content schema scaffold and validator created; M2 will add economy content |
 | Launcher, Installer, Patcher | Planned | Platform Lead | Starts in M3-M4 |
 | Admin, Analytics, Operations | **In Progress - M2 Start** | Operations Lead | Basic logging baseline started in M0; M2 telemetry ticket (GMN-EC-08) queued |
-| Security, Moderation, Support | In Progress | Security Lead | Request correlation baseline started; broader security work still pending |
+| Security, Moderation, Support | **In Progress - M3 Slice 1** | Security Lead | Anti-cheat v1 anomaly scoring and enforcement audit trail are in active implementation |
 | QA, Simulation, Load Validation | In Progress | QA Lead | Automated persistence integration tests added and passing; M2 race/load tests planned |
 
 ---
@@ -93,30 +93,26 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 
 ---
 
-## 7. Current Slice: M2 Slice 1 - Economy Foundations
+## 7. Current Slice: M3 Slice 1 - Social-Competitive Core
 
-**Phase:** M2 Constraint Systems & Economy Foundations  
+**Phase:** M3 Social-Competitive Core  
 **Status:** IN PROGRESS  
 **Planned Start:** 2026-08-18 (immediate)  
 **Estimated Duration:** 2-3 weeks  
-**Total Tickets:** 8 (P0: 4, P1: 3, P2: 1)
+**Total Tickets:** 4 active deliverables (GMN-SC-01/02, GMN-SC-03, GMN-SC-04, GMN-SC-06)
 
 | Item | Status | Priority | Reference | Dependencies |
 |---|---|---|---|---|
-| GMN-EC-01: Hardware Effective Hashrate Formula | Done | P0 | m2-economy-implementation-tickets.md line 11 | None |
-| GMN-EC-02: Power Constraints and Facility Limits | Done | P0 | m2-economy-implementation-tickets.md line 45 | GMN-EC-01 |
-| GMN-EC-03: Cooling Dynamics and Efficiency | Done | P0 | m2-economy-implementation-tickets.md line 81 | GMN-EC-02 |
-| GMN-EC-04: Offline Progression Caps | Done | P0 | m2-economy-implementation-tickets.md line 117 | GMN-EC-01, GMN-EC-03 |
-| GMN-EC-05: NPC Market Purchase Flow | Done | P1 | m2-economy-implementation-tickets.md line 149 | GMN-EC-01 (independent path) |
-| GMN-EC-06: Starter Upgrade Loop | Done | P1 | m2-economy-implementation-tickets.md line 187 | GMN-EC-03, GMN-EC-05 |
-| GMN-EC-07: WebSocket Aggregated Updates | Done | P1 | m2-economy-implementation-tickets.md line 221 | GMN-EC-01 through GMN-EC-06 |
-| GMN-EC-08: Progression Funnel Telemetry | Planned | P2 | m2-economy-implementation-tickets.md line 259 | GMN-EC-06 |
+| GMN-SC-01/02: Mining Pools + Reward Distribution | In Progress | P0 | M3 slice implementation brief | M2 reward settlement + ledger baseline |
+| GMN-SC-03: Player Marketplace | In Progress | P0 | M3 slice implementation brief | GMN-EC-05 inventory + ledger audit trail |
+| GMN-SC-04: Leaderboards | In Progress | P1 | M3 slice implementation brief | Effective hashrate cache + ledger read models |
+| GMN-SC-06: Anti-Cheat v1 | In Progress | P1 | M3 slice implementation brief | Ledger audit trail + marketplace activity signals |
 
-**Delivery Sequence:** GMN-EC-01 ✓ → GMN-EC-02 ✓ → GMN-EC-03 ✓ → GMN-EC-04 ✓ → GMN-EC-05 ✓ → GMN-EC-06 ✓ → GMN-EC-07 ✓ → GMN-EC-08
+**Delivery Sequence:** GMN-SC-01/02 → GMN-SC-03 → GMN-SC-04 → GMN-SC-06
 
 **Parallelization Allowed:**
-- GMN-EC-04 and GMN-EC-05 can start after GMN-EC-01 (no dependency on EC-02/03)
-- GMN-EC-08 can start after GMN-EC-06
+- Pool mechanics and player marketplace can advance in parallel on top of the M2 ledger/inventory foundation
+- Leaderboards and anti-cheat can validate against the same authoritative ledger state once new entry types land
 
 ---
 
@@ -156,18 +152,17 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 
 ## 12. Next Actions (Immediate)
 
-1. **Start GMN-EC-06 and stage GMN-EC-07**
-   - GMN-EC-06 (upgrades): now unblocked by GMN-EC-05 market purchase flow
-   - GMN-EC-07 remains downstream of the full economy baseline
+1. **Complete GMN-SC-01/02 pool workflows**
+   - Finish pool creation, membership, and deterministic reward-share policy coverage
+   - Keep reward distribution ledger-backed and replay-safe
 
-2. **Prepare M2 exit review plan**
-   - Timeline: After all 8 tickets complete (est. 3 weeks from start)
-   - Exit criteria: All tests passing, no regressions, architecture constraints enforced
+2. **Validate GMN-SC-03/04 social economy surfaces**
+   - Confirm marketplace settlement remains atomic and inventory-safe
+   - Refresh and verify leaderboard materialization queries against authoritative state
 
-3. **Prepare for M3 transition**
-   - Read M3 entry plan from `implementation-plan-v1.md` section 6 (Social-Competitive Core)
-   - M3 includes: Pools v1, Marketplace, Notifications, Leaderboards, Anti-cheat baseline
-   - M3 entry gate: M2 Slice 1 exit review must pass
+3. **Harden GMN-SC-06 anti-cheat baseline**
+   - Keep anomaly scoring server-side only
+   - Ensure enforcement and appeals remain auditable through immutable records
 
 ---
 
@@ -178,7 +173,7 @@ Whenever meaningful progress changes:
 3. Record blockers or risks.
 4. Update next actions.
 
-**Last update:** 2026-08-18T03:55:00Z (GMN-EC-05 delivered)
+**Last update:** 2026-08-18T05:05:16Z (M3 Slice 1 social-competitive core implementation started)
 
 ---
 
@@ -209,7 +204,7 @@ Whenever meaningful progress changes:
 
 ## 15. Documentation References
 
-**Current Phase (M2 Slice 1):**
+**Current Phase (M3 Slice 1):**
 - `docs/m2-economy-implementation-tickets.md` - All 8 tickets
 - `.github/copilot-instructions.md` v2.0 - Updated for M2
 - `docs/progress-tracker.md` - This file

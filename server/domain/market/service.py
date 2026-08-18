@@ -18,7 +18,13 @@ from shared.database import database_is_configured, open_connection
 
 CATALOG_PATH = Path(__file__).resolve().parents[3] / "content" / "market_catalog.json"
 ALLOWED_ITEM_TYPES = {"hardware_upgrade", "facility_upgrade", "consumable", "cosmetic"}
-CREDIT_LEDGER_ENTRY_TYPES = ("block.finalized.player_reward.v1", "market.purchase.v1", "hardware.upgrade.v1")
+CREDIT_LEDGER_ENTRY_TYPES = (
+    "block.finalized.player_reward.v1",
+    "market.purchase.v1",
+    "hardware.upgrade.v1",
+    "player.equipment_trade.v1",
+    "pool.reward_distribution.v1",
+)
 PURCHASE_ENTRY_TYPE = "market.purchase.v1"
 UPGRADE_ENTRY_TYPE = "hardware.upgrade.v1"
 TIER_UNLOCK_PATTERN = re.compile(r"^\s*tier\s*>=\s*(\d+)\s*$")
