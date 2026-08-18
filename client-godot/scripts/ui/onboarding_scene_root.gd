@@ -11,6 +11,7 @@ var register_button: Button
 var status_label: Label
 var error_label: Label
 var _busy := false
+var client_telemetry := GmnClientTelemetry.new()
 
 func _ready() -> void:
 	_build_ui()
@@ -123,12 +124,14 @@ func _submit_auth(register: bool) -> void:
 		auth_response = await api_client.login_session(email, password)
 
 	if not auth_response.get("ok", false):
+		client_telemetry.record("login_failed", {"mode": "register" if register else "login", "status_code": auth_response.get("status_code", 0)})
 		_busy = false
 		_set_controls_enabled(true)
 		_show_error(_format_response_error(auth_response, "Authentication failed. Check your details and try again."))
 		return
 
 	status_label.text = "Loading your starter operation..."
+	client_telemetry.record("login_succeeded", {"mode": "register" if register else "login"})
 	var player_id := api_client.session.player_id
 	var bootstrap_response := await api_client.fetch_player_bootstrap(player_id)
 	if not bootstrap_response.get("ok", false):

@@ -34,6 +34,7 @@ var _reauthenticate_button: Button
 var _settings_button: Button
 var _accessibility_status_label: Label
 var accessibility_settings := GmnAccessibilitySettings.new()
+var client_telemetry := GmnClientTelemetry.new()
 var _time_until_refresh: float = 0.0
 
 func _ready() -> void:
@@ -114,9 +115,11 @@ func _bind_action_signals() -> void:
 		_settings_button.pressed.connect(_on_settings_pressed)
 	_sync_reauthentication_action()
 	_render_accessibility_status()
+	client_telemetry.record("first_machine_viewed")
 
 func _on_settings_pressed() -> void:
 	accessibility_settings.toggle_reduce_motion()
+	client_telemetry.record("accessibility_setting_changed", {"setting": "reduce_motion", "enabled": accessibility_settings.reduce_motion})
 	_render_accessibility_status()
 
 func _render_accessibility_status() -> void:

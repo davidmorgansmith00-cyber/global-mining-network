@@ -54,6 +54,11 @@ Phase 7 accessibility foundation:
 - The gameplay shell includes launcher-aligned runtime settings semantics for UI scale, text scale, high contrast, color mode, and reduce motion.
 - The first visible control toggles reduce motion without changing server-owned gameplay state.
 
+Phase 8 release foundation:
+- `GmnClientTelemetry` records an allowlisted set of funnel and recovery events in runtime memory only.
+- Private identity and credential fields are scrubbed before events are retained.
+- A server telemetry-ingest contract is still required before events leave the client.
+
 Operation intent plumbing:
 - `GmnApiClient` now includes non-authoritative start/stop intent pass-through calls:
 	- `POST /api/v1/blockchain/operations/intents/start?session_id=<active_session_id>` with payload `{ "operation_id", "base_hashrate_hps" }`

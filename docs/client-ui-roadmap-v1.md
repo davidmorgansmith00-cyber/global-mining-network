@@ -201,6 +201,15 @@ Remaining Phase 6 work is pool membership UX, notification inbox/reconnect handl
 
 Remaining Phase 7 work is applying the palette and scale values across all controls, keyboard focus review, maintenance/recovery banners, and settings persistence policy.
 
+### Phase 8 Slice Started - 2026-08-18
+
+- Added an allowlisted runtime client telemetry collector for funnel and recovery events.
+- Scrubbed email, passwords, tokens, session IDs, and player IDs before retention.
+- Added telemetry smoke coverage and registered it in the aggregate client runner.
+- Kept events local-only because the current server exposes analytics queries but no client telemetry-ingest contract.
+
+Remaining Phase 8 work is a versioned server ingest endpoint, compatibility/version checks, release-build validation, and end-to-end telemetry delivery tests.
+
 ## 4. Roadmap Summary
 
 | Phase | Outcome | Priority | Gate |
