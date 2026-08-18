@@ -3,13 +3,13 @@
   "$id": "gmn/content/facility.schema.json",
   "title": "Facility Definition",
   "type": "object",
-  "required": ["id", "name", "tier"],
+  "required": ["id", "name", "tier", "power_capacity"],
   "properties": {
     "id": { "type": "string" },
     "name": { "type": "string" },
     "tier": { "type": "integer", "minimum": 0 },
     "space_capacity": { "type": "integer", "minimum": 0 },
-    "power_capacity": { "type": "integer", "minimum": 0 },
+    "power_capacity": { "type": "number", "exclusiveMinimum": 0 },
     "cooling_capacity": { "type": "integer", "minimum": 0 }
   },
   "additionalProperties": true

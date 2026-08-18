@@ -10,7 +10,7 @@
     "category": { "type": "string" },
     "tier": { "type": "integer", "minimum": 0 },
     "base_hashrate": { "type": "number", "minimum": 0 },
-    "base_power_consumption": { "type": "number", "minimum": 0 },
+    "base_power_consumption": { "type": "number", "exclusiveMinimum": 0 },
     "heat_generation": { "type": "number", "minimum": 0 },
     "hashrate_hps": { "type": "integer", "minimum": 0 },
     "power_watts": { "type": "integer", "minimum": 0 },
