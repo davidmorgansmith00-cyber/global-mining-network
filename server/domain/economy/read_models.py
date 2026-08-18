@@ -22,7 +22,13 @@ def project_player_reward_balances() -> list[PlayerRewardBalance]:
                 """
                 SELECT player_id, COALESCE(SUM(amount), 0) AS reward_balance
                 FROM economy_player_ledger_entries
-                WHERE entry_type IN ('block.finalized.player_reward.v1', 'market.purchase.v1')
+                WHERE entry_type IN (
+                    'block.finalized.player_reward.v1',
+                    'market.purchase.v1',
+                    'hardware.upgrade.v1',
+                    'player.equipment_trade.v1',
+                    'pool.reward_distribution.v1'
+                )
                   AND currency = 'credits'
                 GROUP BY player_id
                 ORDER BY player_id ASC
