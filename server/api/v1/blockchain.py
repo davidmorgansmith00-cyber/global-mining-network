@@ -27,6 +27,7 @@ from domain.blockchain.schemas import (
     PlayerRewardHistoryResponse,
 )
 from domain.blockchain.store import PostgresBlockchainStateStore
+from domain.difficulty.service import DifficultyAdjustmentService
 from domain.economy.ledger import PostgresLedgerPoster
 from domain.economy.read_models import project_player_reward_balances
 from domain.mining.service import MiningSimulationService
@@ -43,10 +44,14 @@ logger = get_logger("gmn.blockchain.realtime")
 
 
 def _build_runtime_mining_service() -> MiningSimulationService:
+    difficulty_adjuster = DifficultyAdjustmentService()
     if database_is_configured():
         return MiningSimulationService(
             required_work=Decimal("100"),
-            blockchain_state_store=PostgresBlockchainStateStore(required_work=Decimal("100")),
+            blockchain_state_store=PostgresBlockchainStateStore(
+                required_work=Decimal("100"),
+                difficulty_adjuster=difficulty_adjuster,
+            ),
             ledger_poster=PostgresLedgerPoster(),
         )
     return MiningSimulationService(required_work=Decimal("100"))
