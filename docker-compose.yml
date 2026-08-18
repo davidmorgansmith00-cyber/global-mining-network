@@ -23,6 +23,7 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-global_mining_network}
       REDIS_URL: redis://redis:6379/0
       MESSAGE_QUEUE_URL: ${MESSAGE_QUEUE_URL:-redis://redis:6379/0}
+      ADMIN_TOTP_SECRET: ${ADMIN_TOTP_SECRET:-}
       MAINTENANCE_AUTH_HEADER: ${MAINTENANCE_AUTH_HEADER:-X-Maintenance-Token}
       MAINTENANCE_AUTH_TOKEN: ${MAINTENANCE_AUTH_TOKEN:-local-maintenance-token}
       MAINTENANCE_AUTH_PREVIOUS_TOKEN: ${MAINTENANCE_AUTH_PREVIOUS_TOKEN:-}

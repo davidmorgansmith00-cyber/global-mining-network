@@ -248,7 +248,7 @@ Whenever meaningful progress changes:
 
 | Item | Status | Notes |
 |---|---|---|
-| M7-LAUNCH-01: Genesis Launch Process | **Done** ✅ | Genesis initialization, public metadata redaction, explorer/API coverage, and launch migration delivered |
+| M7-LAUNCH-01: Genesis Launch Process | **Done** ✅ | Genesis initialization, public metadata redaction, explorer/API coverage, launch migration, and local genesis announcement verified |
 | M7-LAUNCH-02: Economy Tuning & Balance Adjustments | **Done** ✅ | Economy analyzer, parameter versioning, A/B experimentation, migration service, and economy transparency API delivered |
 | M7-LAUNCH-03: Community Support Escalation | **Done** ✅ | Discord bot command service, docs search API, moderation/trust service, unified announcement fanout service, and player docs delivered |
 | M7-LAUNCH-04: Launch Day Operations | **Done** ✅ | Launch checklist, runbook, on-call schedule, incident commander protocol, launch-day monitoring, status page, and postmortem template delivered |
@@ -260,8 +260,15 @@ Whenever meaningful progress changes:
 - **Result:** 21 passed, 2 non-blocking FastAPI deprecation warnings
 - **Verification scope:** Economy tuning, migration safety, community support, Discord integration, and documentation API contracts
 
+### Local Genesis Launch Verification
+
+- **Status:** ✅ Announced on 2026-08-18
+- **Genesis block:** Block 1, signature valid, empty initial player snapshot
+- **Chain state:** Active block 2; `/api/v1/blockchain/status` returned HTTP 200
+- **Public announcement:** "Global Mining Network is now live. Welcome to the genesis era."
+
 ---
 
-**Version:** 2.2 (M7 Open Beta and Launch Readiness Verified)
+**Version:** 2.3 (M7 Genesis Launch Verified)
 **Status:** Done
-**Next Review Date:** Before launch readiness gate approval
+**Next Review Date:** After first local player onboarding
