@@ -11,6 +11,7 @@ from typing import Any
 from uuid import uuid4
 
 from domain.content.validator import ContentValidator
+from shared.settings import settings
 
 
 REQUIRED_REVIEW_ROLES = ("design", "backend", "liveops")
@@ -49,7 +50,7 @@ class ContentService:
         signing_secret: str | None = None,
     ) -> None:
         self._validator = validator or ContentValidator()
-        self._signing_secret = signing_secret or os.getenv("CONTENT_SIGNING_SECRET", "local-content-signing-secret")
+        self._signing_secret = signing_secret or self._resolve_signing_secret()
         self._versions: dict[str, ContentVersionRecord] = {}
         self._active_versions_by_stage: dict[str, str | None] = {stage: None for stage in ROLLOUT_STAGES}
 
@@ -207,6 +208,17 @@ class ContentService:
             separators=(",", ":"),
         ).encode("utf-8")
         return hmac.new(self._signing_secret.encode("utf-8"), payload, hashlib.sha256).hexdigest()
+
+    @staticmethod
+    def _resolve_signing_secret() -> str:
+        configured_secret = os.getenv("CONTENT_SIGNING_SECRET", "").strip()
+        if configured_secret:
+            return configured_secret
+
+        if settings.environment.lower() in {"local", "test", "testing"}:
+            return "local-content-signing-secret"
+
+        raise ValueError("CONTENT_SIGNING_SECRET must be configured outside local/test environments")
 
     @staticmethod
     def _has_required_approvals(version: ContentVersionRecord) -> bool:

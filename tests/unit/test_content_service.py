@@ -4,6 +4,7 @@ import copy
 import sys
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -43,6 +44,12 @@ class ContentServiceTests(unittest.TestCase):
     def test_stage_content_version_requires_impact_notes(self) -> None:
         with self.assertRaises(ValueError):
             self._stage_version(impact_notes="")
+
+    def test_service_requires_configured_signing_secret_outside_local_and_test(self) -> None:
+        with patch.dict("os.environ", {"ENVIRONMENT": "production", "CONTENT_SIGNING_SECRET": ""}, clear=False):
+            with patch("domain.content.service.settings.environment", "production"):
+                with self.assertRaises(ValueError):
+                    ContentService()
 
     def test_activate_content_requires_review_board_approval(self) -> None:
         version_id = self._stage_version()

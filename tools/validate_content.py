@@ -51,7 +51,12 @@ def main() -> None:
 
     if errors or warnings:
         details = "\n".join([*errors, *warnings])
-        raise SystemExit(f"content validation failed\n{details}")
+        issue_labels: list[str] = []
+        if errors:
+            issue_labels.append("errors")
+        if warnings:
+            issue_labels.append("warnings")
+        raise SystemExit(f"content validation failed with {' and '.join(issue_labels)}\n{details}")
     print("content validation passed")
 
 
