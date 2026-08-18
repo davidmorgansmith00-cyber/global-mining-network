@@ -685,13 +685,13 @@ Use this checklist before starting each slice to confirm prerequisites are met.
 - [ ] Art owner assigned
 - [ ] Godot 4.x project confirmed available and loadable in repo
 - [ ] `UIRoot.tscn` and `BackgroundLayer` node exist and are confirmed accessible (check `client-godot/scenes/gameplay_shell.tscn` and the V2 `UIRoot.tscn` once created)
-- [ ] Developer debug hotkey confirmed (the key/action name that triggers `DebugLayer` toggle — see `ui-v2-plan.md` §9.1; exact key **not yet defined** in input map; must be confirmed from the project input map before W1 merge)
+- [ ] Developer debug hotkey confirmed — add a `debug_toggle` action (or agreed name) to `client-godot/project.godot` and record the action name in §15.2 OQ-02 before W1 merge (see §15.2 for resolution path)
 - [x] **State binding source confirmed:** Current client state model is `GameplayShellController` (node) + `GameplayShellUiState` (class). `UIStateController` does not yet exist as a named autoload; world visuals bind to `GameplayShellController.latest_profile_payload` and `get_ui_state()`. See §7.2.
 - [x] **`OperationIntent.status` enum confirmed:** `running`, `idle`, `starting`, `stopping`, `rejected`, `stale`. Use this set; extend if server adds values.
 - [x] **World scene visibility scope confirmed:** In-game only. Not shown on `MainMenu`. Visible only after session bootstrap inside the in-game scene.
 - [x] **Camera2D confirmed not needed for V1:** Fixed-origin render only; no `Camera2D` in W1–W6.
 - [x] **Interaction zones:** Placeholder-only for V1; no click/inspect logic in W1–W6.
-- [ ] `HUDLayer` depth ordering confirmed — `BackgroundLayer` and `HUDLayer` are both `Control` children of `UIRoot (CanvasLayer)`; confirm node-order depth from `UIRoot.tscn` once it exists (world scene `Node2D` is a child of `BackgroundLayer` and must render below HUD by node order)
+- [ ] `HUDLayer` depth ordering verified — create `UIRoot.tscn` with `BackgroundLayer` before `HUDLayer` in node order, then confirm at runtime that the world scene `Node2D` (child of `BackgroundLayer`) renders behind the HUD (see §15.1 OQ-09)
 
 ### Before W2 (Tileset + Props)
 - [ ] W1 merged and passing
@@ -722,30 +722,30 @@ Use this checklist before starting each slice to confirm prerequisites are met.
 
 ---
 
-## 15) Open Questions and Assumptions
+## 15) Implementation Contract — Closed Items and Remaining Dependencies
 
-The following items are explicitly uncertain. They must be resolved before or during the relevant slice. **Do not silently decide these — capture the answer here when resolved.**
+This section is the final implementation contract for the world scene. §15.1 lists every contract point confirmed from repository evidence; these are settled and require no further decision. §15.2 lists the minimal set of items that cannot be resolved from the repository alone, each with an explicit problem statement, why it is still open, a resolution path, and its impact on W1–W6.
 
 ### 15.1 Resolved Contract Confirmations
 
-These were open questions; all confirmed from current repo code and planning docs.
+All items below are confirmed from current repository code and planning documents. No further discussion is needed on these points.
 
-| # | Question | Resolution | Source |
+| # | Contract point | Final resolution | Source |
 |---|---|---|---|
-| OQ-01 | Exact GDScript autoload/node name for `UIStateController`? | **Not yet implemented.** Current binding is `GameplayShellController` (Node) + `GameplayShellUiState` (RefCounted class). V2 `UIStateController` is planned but not present yet. World visuals bind to `GameplayShellController.latest_profile_payload` and `get_ui_state()` until the migration lands. | `client-godot/scripts/ui/gameplay_shell_controller.gd`, `client-godot/scripts/ui/gameplay_shell_panel.gd` |
-| OQ-03 | Are `power_throttle_multiplier` / `cooling_efficiency_multiplier` available at W4? | **Yes.** Both are live fields in `PlayerProfileResponse` (schema `player.profile.v1.6`). No stub needed. | `server/domain/players/schemas.py:PlayerProfileResponse` |
-| OQ-04 | Full `OperationIntent.status` enum set? | **Confirmed:** `running`, `idle`, `starting`, `stopping`, `rejected`, `stale`. Extend only if server adds new values. | `docs/client-ui-roadmap-v2.md`, `docs/operation-intents-api-reference.md` |
-| OQ-05 | Does the world scene need a `Camera2D`? | **No.** Fixed-origin render for W1–W6. Do not add `Camera2D` unless explicitly re-scoped. | Architecture decision; see `docs/ui-v2-plan.md` §9.1 and this plan §6.4 |
-| OQ-07 | World scene visible on `MainMenu`? | **In-game only.** Not shown during `MainMenu`. Visible only after session bootstrap in the in-game scene. | Architecture decision |
-| OQ-08 | Interaction zones (click-to-inspect) in V1? | **Placeholder-only.** No interaction logic in W1–W6. | Scope decision |
-| OQ-10 | Is `heat_warning` a boolean on `CoolingState` or derived? | **Derived.** `PlayerProfileResponse` exposes `cooling_efficiency_multiplier: float`; derive `heat_warning = cooling_efficiency_multiplier < 1.0`. Do not threshold from raw heat/capacity fields. `throttle_active = power_throttle_multiplier < 1.0` follows the same pattern. | `server/domain/players/schemas.py:PlayerProfileResponse` |
+| OQ-01 | Authoritative GDScript state binding for world scene visuals | **`GameplayShellController` (Node) + `GameplayShellUiState` (RefCounted class).** `UIStateController` does not exist as a named autoload in the current codebase and is out of scope for W1–W6. World visuals bind to `GameplayShellController.latest_profile_payload` and `get_ui_state()`. Do not wait for a `UIStateController` migration before implementing. | `client-godot/scripts/ui/gameplay_shell_controller.gd`, `client-godot/scripts/ui/gameplay_shell_panel.gd` |
+| OQ-03 | `power_throttle_multiplier` and `cooling_efficiency_multiplier` availability at W4 | **Both are live fields** in `PlayerProfileResponse` (schema `player.profile.v1.6`). No server stub is needed; the fields are present now. | `server/domain/players/schemas.py:PlayerProfileResponse` |
+| OQ-04 | Complete `OperationIntent.status` enum set | **`running`, `idle`, `starting`, `stopping`, `rejected`, `stale`.** This is the full confirmed set. Add a value only when the server explicitly introduces one. | `docs/client-ui-roadmap-v2.md`, `docs/operation-intents-api-reference.md` |
+| OQ-05 | `Camera2D` in world scene | **Not used.** Fixed-origin render for W1–W6. Do not add a `Camera2D` node unless the scope is explicitly changed. | `docs/ui-v2-plan.md` §9.1; §6.4 of this document |
+| OQ-07 | World scene visibility scope | **In-game only.** The world scene is never shown on `MainMenu`. It is visible only after session bootstrap inside the in-game scene. | Architecture decision confirmed in §6.4 |
+| OQ-08 | Interaction zones (click-to-inspect) in V1 | **Placeholder-only for all of W1–W6.** No interaction logic is implemented in this scope. Interaction zones exist as named nodes only; no input handling is wired. | Scope decision confirmed in §5.1 |
+| OQ-09 | `BackgroundLayer` vs `HUDLayer` node-order depth inside `UIRoot.tscn` | **`BackgroundLayer` must appear before `HUDLayer` in node order** within the `UIRoot` `CanvasLayer`. Both are `Control` children of the same `CanvasLayer`; node order determines draw order. The world scene `Node2D` is a child of `BackgroundLayer` and renders behind HUD by this ordering. When creating `UIRoot.tscn` in W1, place `BackgroundLayer` first and verify in the editor and at runtime that the world scene renders behind the HUD before closing W1. No additional `CanvasLayer` is needed. | §6.2 of this document; Godot node-order rendering rules; runtime verification required in W1 |
+| OQ-10 | `heat_warning` and `throttle_active` — boolean fields or derived values | **Derived client-side from server multipliers.** `throttle_active = power_throttle_multiplier < 1.0`; `heat_warning = cooling_efficiency_multiplier < 1.0`. Neither is a boolean server field. Do not threshold from raw heat or capacity numbers. | `server/domain/players/schemas.py:PlayerProfileResponse` |
 
-### 15.2 Pending — Must Resolve Before Implementation
+### 15.2 Remaining Dependencies
 
-The items below were intentionally left pending because the repository does not contain the missing source of truth, so they cannot be resolved safely without inventing details.
+The two items below cannot be resolved from repository evidence alone. Each is described with a concise problem statement, why it remains open, an explicit resolution path, and its impact on the W-slices.
 
-| # | Question | Relevant slice | Resolution path |
-|---|---|---|---|
-| OQ-02 | What developer hotkey exposes `DebugLayer`? (Key/action name in the Godot input map.) | W1 | Bind the existing project debug toggle action in the Godot input map; once the action name is added/confirmed in the project, update this row and wire `DebugWorldOverlay` to that action. |
-| OQ-06 | Who is the art reviewer for sign-off on W2+ assets? | W2 | Assign a named art reviewer in the repository/project management layer, then add their name here before W2 merge. |
-| OQ-09 | What is the Godot node-order / depth relationship between `BackgroundLayer` and `HUDLayer` inside `UIRoot.tscn`? (They are `Control` children of a single `CanvasLayer`; confirm node order from the scene once it exists.) | W1 | Create/inspect `UIRoot.tscn`, place `BackgroundLayer` before `HUDLayer` in node order, and verify in the editor/runtime that the world scene renders behind HUD without adding a new `CanvasLayer`. |
+| # | Problem | Why it remains open | Resolution path | Blocks |
+|---|---|---|---|---|
+| OQ-02 | **Debug hotkey for `DebugWorldOverlay`.** There is no `DebugLayer` toggle action in `client-godot/project.godot` and no `DebugWorldOverlay` script exists yet. The W1 acceptance criteria require the overlay to be hidden in normal play and visible after a developer hotkey, but the input-map action name has not been defined. | The Godot project input map does not yet contain a debug toggle action. This cannot be invented without risking a conflict with a future project-wide input map. | Engineering owner adds a `debug_toggle` action (or equivalent agreed name) to `project.godot` before W1 merge, then wires `DebugWorldOverlay` to that action. Update this row with the final action name once confirmed. | **Blocks W1 merge.** `DebugWorldOverlay` can be scaffolded without it, but the action must be confirmed before the W1 checklist is closed. |
+| OQ-06 | **Named art reviewer for W2+ asset sign-off.** The W2–W6 merge criteria require a named art reviewer to approve each new sprite sheet before merge. No reviewer is currently assigned. | Art reviewer assignment is a project-management decision that the repository cannot resolve. | Assign a named art reviewer in the project tracker or team channel before W2 kickoff, then record the name in the §14 "Before W2" checklist. | **Blocks W2 merge** (and W3–W6 by extension for art assets). Does not block W1 (no new art assets in W1). |
