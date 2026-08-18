@@ -3,7 +3,7 @@
 **Last Updated:** 2026-08-18  
 **Current Phase:** M1 Simulation Core Vertical Slice  
 **Current Slice:** M1 Slice 2 - Client Gameplay Shell Integration  
-**Status:** In Progress (GMN-CL-01 ✅ GMN-CL-02 ✅ GMN-CL-05 ✅ GMN-CL-03 ✅)
+**Status:** In Progress (GMN-CL-01 ✅ GMN-CL-02 ✅ GMN-CL-05 ✅ GMN-CL-03 ✅ GMN-CL-06 ✅)
 
 ---
 
@@ -140,17 +140,18 @@ The tickets for M1 Slice 2 (Client Gameplay Shell Integration) are:
   - Acceptance: Reconnect resumes from saved cursor, duplicates avoided, cursor persistent
   - Reference: `m1-client-gameplay-implementation-tickets.md` line 38
   - Completed: 2026-08-18T00:57:18Z
-  - Files: `client-godot/scripts/network/gmn_network_snapshot_service.gd`, `client-godot/scripts/network/gmn_network_event_stream_service.gd`
 
-- [ ] **GMN-CL-06: Operation Intent Session-Bound Contract** (P0)
+- [x] **GMN-CL-06: Operation Intent Session-Bound Contract** (P0) ✅ DONE
   - Acceptance: Start/stop calls succeed/fail with session binding, no player_id in payload
   - Reference: `m1-client-gameplay-implementation-tickets.md` line 81
+  - Completed: 2026-08-18T01:02:09Z
+  - Files: `client-godot/scripts/network/gmn_operation_intent_service.gd`
 
 - [ ] **GMN-CL-04: Player Reward Timeline Panel** (P1)
   - Acceptance: Timeline renders server entries without mutation, empty states handled
   - Reference: `m1-client-gameplay-implementation-tickets.md` line 52
 
-**Delivery order:** GMN-CL-01 ✅ → GMN-CL-02 ✅ → GMN-CL-05 ✅ → GMN-CL-03 ✅ → GMN-CL-06 → GMN-CL-04
+**Delivery order:** GMN-CL-01 ✅ → GMN-CL-02 ✅ → GMN-CL-05 ✅ → GMN-CL-03 ✅ → GMN-CL-06 ✅ → GMN-CL-04
 
 ---
 
@@ -247,7 +248,7 @@ Every PR should:
 - [x] Verify no non-negotiables were violated (read "Always-On Non-Negotiables" section above)
 - [x] Include a test case for the acceptance criterion
 - [x] Update `docs/progress-tracker.md` section "## 6. Current Slice Checklist" to mark the ticket "Done"
-- [x] Ensure commit message includes the ticket ID (e.g., "GMN-CL-03: Snapshot + Reconnect Event Stream")
+- [x] Ensure commit message includes the ticket ID (e.g., "GMN-CL-06: Operation Intent Session-Bound Contract")
 
 ---
 
@@ -263,7 +264,7 @@ If you encounter:
 
 ---
 
-**Version:** 1.5 (GMN-CL-03 Complete)  
+**Version:** 1.6 (GMN-CL-06 Complete)  
 **Last Reviewed:** 2026-08-18  
 **Maintained By:** Program Lead  
 **Status:** Active & In Use for M1 Slice 2 Execution
