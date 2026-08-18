@@ -149,6 +149,9 @@ func _open_gameplay_shell() -> void:
 		"access_token": api_client.session.access_token,
 		"refresh_token": api_client.session.refresh_token,
 	}
+	var runtime_session := get_node_or_null("/root/GmnRuntimeSession")
+	if runtime_session != null:
+		runtime_session.set_session(session_payload)
 	var change_error := tree.change_scene_to_file(GAMEPLAY_SCENE_PATH)
 	if change_error != OK:
 		_busy = false

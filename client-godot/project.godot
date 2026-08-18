@@ -14,6 +14,10 @@ config/name="Global Mining Network"
 run/main_scene="res://scenes/onboarding.tscn"
 config/features=PackedStringArray("4.7")
 
+[autoload]
+
+GmnRuntimeSession="*res://scripts/network/gmn_runtime_session.gd"
+
 [display]
 
 window/size/viewport_width=1280

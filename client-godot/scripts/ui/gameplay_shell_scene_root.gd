@@ -47,6 +47,15 @@ func _ready() -> void:
 	if _controller == null or _panel == null:
 		push_warning("Gameplay shell scene is missing controller or panel binding")
 		return
+	var runtime_session := get_node_or_null("/root/GmnRuntimeSession")
+	if runtime_session != null and runtime_session.has_session():
+		var session_payload: Dictionary = runtime_session.get_session()
+		await configure_session(
+			str(session_payload.get("player_id", "")),
+			str(session_payload.get("session_id", "")),
+			str(session_payload.get("access_token", "")),
+			str(session_payload.get("refresh_token", "")),
+		)
 
 	_bind_action_signals()
 
@@ -106,6 +115,9 @@ func _on_reauthenticate_pressed() -> void:
 		return
 	_controller.stream_client.disconnect_stream()
 	_controller.api_client.session.clear()
+	var runtime_session := get_node_or_null("/root/GmnRuntimeSession")
+	if runtime_session != null:
+		runtime_session.clear()
 	await get_tree().change_scene_to_file("res://scenes/onboarding.tscn")
 
 func _on_purchase_pressed() -> void:
