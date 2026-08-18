@@ -223,6 +223,7 @@ Whenever meaningful progress changes:
 
 **Current Phase (M3 Slice 1):**
 - `docs/m2-economy-implementation-tickets.md` - All 8 tickets
+- `docs/client-ui-roadmap-v1.md` - Godot client UI phases, contracts, and delivery gates
 - `.github/copilot-instructions.md` v2.0 - Updated for M2
 - `docs/progress-tracker.md` - This file
 
