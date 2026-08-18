@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 from decimal import Decimal
-import hashlib
 import hmac
 import json
 import os
@@ -37,10 +36,31 @@ class AdminService:
     def verify_password(self, password: str) -> bool:
         required_password_hash = os.getenv("ADMIN_DASHBOARD_PASSWORD_HASH", "").strip()
         if required_password_hash:
-            candidate_hash = hashlib.sha256(password.encode("utf-8")).hexdigest()
-            return hmac.compare_digest(candidate_hash, required_password_hash)
+            if required_password_hash.startswith("pbkdf2_sha256$"):
+                return self._verify_pbkdf2_hash(password, required_password_hash)
+            return False
         required_password = os.getenv("ADMIN_DASHBOARD_PASSWORD", "local-admin-password")
         return hmac.compare_digest(password, required_password)
+
+    @staticmethod
+    def _verify_pbkdf2_hash(password: str, encoded_hash: str) -> bool:
+        try:
+            algorithm, iterations_raw, salt, expected_hex = encoded_hash.split("$", 3)
+            if algorithm != "pbkdf2_sha256":
+                return False
+            iterations = int(iterations_raw)
+        except ValueError:
+            return False
+
+        import hashlib
+
+        derived = hashlib.pbkdf2_hmac(
+            "sha256",
+            password.encode("utf-8"),
+            salt.encode("utf-8"),
+            iterations,
+        ).hex()
+        return hmac.compare_digest(derived, expected_hex)
 
     def get_dashboard_metrics(self) -> dict[str, object]:
         if not database_is_configured():
