@@ -742,10 +742,10 @@ These were open questions; all confirmed from current repo code and planning doc
 
 ### 15.2 Pending — Must Resolve Before Implementation
 
-These items remain open and **must** be captured here once confirmed.
+The items below were intentionally left pending because the repository does not contain the missing source of truth, so they cannot be resolved safely without inventing details.
 
-| # | Question | Relevant slice | Assumption if not resolved before slice starts |
+| # | Question | Relevant slice | Resolution path |
 |---|---|---|---|
-| OQ-02 | What developer hotkey exposes `DebugLayer`? (Key/action name in the Godot input map.) | W1 | Use the existing debug hotkey once confirmed; do not hard-code a key without checking the input map |
-| OQ-06 | Who is the art reviewer for sign-off on W2+ assets? | W2 | Must be named before W2 kickoff; W2 cannot merge without a named reviewer |
-| OQ-09 | What is the Godot node-order / depth relationship between `BackgroundLayer` and `HUDLayer` inside `UIRoot.tscn`? (They are `Control` children of a single `CanvasLayer`; confirm node order from the scene once it exists.) | W1 | `BackgroundLayer` must appear before `HUDLayer` in node order inside `UIRoot` so it renders behind the HUD; verify and do not add a new `CanvasLayer` for the world scene |
+| OQ-02 | What developer hotkey exposes `DebugLayer`? (Key/action name in the Godot input map.) | W1 | Bind the existing project debug toggle action in the Godot input map; once the action name is added/confirmed in the project, update this row and wire `DebugWorldOverlay` to that action. |
+| OQ-06 | Who is the art reviewer for sign-off on W2+ assets? | W2 | Assign a named art reviewer in the repository/project management layer, then add their name here before W2 merge. |
+| OQ-09 | What is the Godot node-order / depth relationship between `BackgroundLayer` and `HUDLayer` inside `UIRoot.tscn`? (They are `Control` children of a single `CanvasLayer`; confirm node order from the scene once it exists.) | W1 | Create/inspect `UIRoot.tscn`, place `BackgroundLayer` before `HUDLayer` in node order, and verify in the editor/runtime that the world scene renders behind HUD without adding a new `CanvasLayer`. |
