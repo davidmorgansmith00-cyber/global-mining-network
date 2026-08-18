@@ -57,7 +57,7 @@ Phase 7 accessibility foundation:
 Phase 8 release foundation:
 - `GmnClientTelemetry` records an allowlisted set of funnel and recovery events in runtime memory only.
 - Private identity and credential fields are scrubbed before events are retained.
-- A server telemetry-ingest contract is still required before events leave the client.
+- The session-bound server ingest route is `POST /api/v1/telemetry/client?session_id=<active_session_id>`.
 
 Operation intent plumbing:
 - `GmnApiClient` now includes non-authoritative start/stop intent pass-through calls:

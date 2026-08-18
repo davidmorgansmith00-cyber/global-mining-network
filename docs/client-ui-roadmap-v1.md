@@ -206,9 +206,10 @@ Remaining Phase 7 work is applying the palette and scale values across all contr
 - Added an allowlisted runtime client telemetry collector for funnel and recovery events.
 - Scrubbed email, passwords, tokens, session IDs, and player IDs before retention.
 - Added telemetry smoke coverage and registered it in the aggregate client runner.
-- Kept events local-only because the current server exposes analytics queries but no client telemetry-ingest contract.
+- Added the session-bound `POST /api/v1/telemetry/client` server ingest contract backed by the existing immutable telemetry event store.
+- Server derives player identity, applies the event allowlist, strips private fields, and queues events through the existing telemetry worker.
 
-Remaining Phase 8 work is a versioned server ingest endpoint, compatibility/version checks, release-build validation, and end-to-end telemetry delivery tests.
+Remaining Phase 8 work is wiring the runtime collector flush to the client API method, compatibility/version checks, release-build validation, and end-to-end telemetry delivery tests.
 
 ## 4. Roadmap Summary
 

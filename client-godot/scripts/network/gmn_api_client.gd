@@ -14,6 +14,7 @@ const CHECKPOINT_PATH_TEMPLATE := "/api/v1/blockchain/checkpoints/%s"
 const OPERATION_START_INTENT_PATH := "/api/v1/blockchain/operations/intents/start"
 const OPERATION_STOP_INTENT_PATH := "/api/v1/blockchain/operations/intents/stop"
 const MARKET_PURCHASE_PATH := "/api/v1/market/purchase"
+const CLIENT_TELEMETRY_PATH := "/api/v1/telemetry/client"
 const EXPLORER_BLOCKS_PATH := "/api/v1/explorer/blocks"
 const EXPLORER_PLAYER_HISTORY_PATH := "/api/v1/explorer/players/%s/history"
 const ACTIVE_EVENTS_PATH := "/api/v1/events/active"
@@ -210,6 +211,14 @@ func send_market_purchase(item_id: String, quantity: int) -> Dictionary:
 		HTTPClient.METHOD_POST,
 		build_market_purchase_url(),
 		{"item_id": item_id, "quantity": quantity},
+	)
+
+func send_client_telemetry(event_type: String, client_version: String, properties: Dictionary = {}) -> Dictionary:
+	var url := "%s%s?session_id=%s" % [base_url, CLIENT_TELEMETRY_PATH, session.session_id]
+	return await _request_json(
+		HTTPClient.METHOD_POST,
+		url,
+		{"event_type": event_type, "client_version": client_version, "properties": properties},
 	)
 
 func build_explorer_blocks_url(limit: int = 10, offset: int = 0) -> String:

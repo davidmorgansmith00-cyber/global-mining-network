@@ -41,6 +41,18 @@ EVENT_OFFLINE_PROGRESS = "offline_progress"
 EVENT_SESSION_START = "session_start"
 EVENT_SESSION_END = "session_end"
 EVENT_BALANCE_MILESTONE = "balance_milestone"
+CLIENT_EVENT_TYPES = {
+    "launcher_handoff_completed",
+    "login_succeeded",
+    "login_failed",
+    "first_machine_viewed",
+    "operation_intent_succeeded",
+    "operation_intent_failed",
+    "reconnect_succeeded",
+    "reconnect_failed",
+    "accessibility_setting_changed",
+}
+PRIVATE_PROPERTY_KEYS = {"email", "password", "access_token", "refresh_token", "session_id", "player_id"}
 
 # Milestone thresholds at which a balance_milestone event is emitted (AC-6)
 BALANCE_MILESTONES: list[Decimal] = [
@@ -426,6 +438,29 @@ class PlayerTelemetryService:
                 "balance_after": float(balance_after),
             },
         )
+
+    def emit_client_event(
+        self,
+        *,
+        event_type: str,
+        player_id: str,
+        session_id: str,
+        properties: dict[str, Any],
+    ) -> bool:
+        if event_type not in CLIENT_EVENT_TYPES:
+            return False
+        safe_properties = {
+            str(key): value
+            for key, value in properties.items()
+            if str(key) not in PRIVATE_PROPERTY_KEYS
+        }
+        self._enqueue(
+            event_type=f"client.{event_type}",
+            player_id=player_id,
+            session_id=session_id,
+            properties=safe_properties,
+        )
+        return True
 
     # -- internal helpers --
 
