@@ -10,3 +10,14 @@ class StarterMachine(BaseModel):
 class BootstrapResponse(BaseModel):
     player_id: str
     starter_machine: StarterMachine
+
+
+class PlayerProfileResponse(BaseModel):
+    schema_version: str = "player.profile.v1.1"
+    player_id: str
+    hardware_id: str
+    base_hashrate: float
+    power_available: float
+    power_capacity: float
+    cooling_efficiency: float
+    effective_hashrate: float

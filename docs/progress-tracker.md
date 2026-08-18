@@ -28,7 +28,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 ## 3. Overall Program Status
 - Current Phase: M2 Constraint Systems & Economy Foundations
 - Current Slice: M2 Slice 1 - Economy Foundations
-- Overall Status: **M2 SLICE 1 READY FOR EXECUTION** ✅
+- Overall Status: **M2 SLICE 1 IN PROGRESS** 🚧
 - Previous Phase: M1 COMPLETE ✅
 - Architecture Status: Ready
 - Implementation Status: M0 closed, M1 Slice 1 closed, M1 Slice 2 closed; M2 Slice 1 ready to start
@@ -103,7 +103,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 
 | Item | Status | Priority | Reference | Dependencies |
 |---|---|---|---|---|
-| GMN-EC-01: Hardware Effective Hashrate Formula | Planned | P0 | m2-economy-implementation-tickets.md line 11 | None |
+| GMN-EC-01: Hardware Effective Hashrate Formula | Done | P0 | m2-economy-implementation-tickets.md line 11 | None |
 | GMN-EC-02: Power Constraints and Facility Limits | Planned | P0 | m2-economy-implementation-tickets.md line 45 | GMN-EC-01 |
 | GMN-EC-03: Cooling Dynamics and Efficiency | Planned | P0 | m2-economy-implementation-tickets.md line 81 | GMN-EC-02 |
 | GMN-EC-04: Offline Progression Caps | Planned | P0 | m2-economy-implementation-tickets.md line 117 | GMN-EC-01, GMN-EC-03 |
@@ -156,26 +156,16 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 
 ## 12. Next Actions (Immediate)
 
-1. **Select GMN-EC-01 for immediate execution** (Recommended: now)
-   - Reason: First critical path ticket; unblocks GMN-EC-02, 03, 04, 05
-   - Dependency: None; ready to start immediately
-   - Estimated effort: 2-3 days (backend formula + 4 test suites)
-
-2. **Execute GMN-EC-01 using the 8-step cycle**
-   - Use `.github/agents/slice-executor.agent.md` workflow
-   - Reference: `m2-economy-implementation-tickets.md` GMN-EC-01 section
-   - Expected completion: 2026-08-21
-
-3. **After GMN-EC-01 closes:** Start GMN-EC-02 and GMN-EC-05 in parallel
+1. **Start GMN-EC-02 and GMN-EC-05 in parallel**
    - GMN-EC-02 (power): Blocks GMN-EC-03, which blocks GMN-EC-04, which blocks GMN-EC-06, which blocks GMN-EC-07
    - GMN-EC-05 (market): Blocks GMN-EC-06 (upgrades)
-   - Both can start independently after GMN-EC-01
+   - Both are now unblocked by GMN-EC-01
 
-4. **Prepare M2 exit review plan**
+2. **Prepare M2 exit review plan**
    - Timeline: After all 8 tickets complete (est. 3 weeks from start)
    - Exit criteria: All tests passing, no regressions, architecture constraints enforced
 
-5. **Prepare for M3 transition**
+3. **Prepare for M3 transition**
    - Read M3 entry plan from `implementation-plan-v1.md` section 6 (Social-Competitive Core)
    - M3 includes: Pools v1, Marketplace, Notifications, Leaderboards, Anti-cheat baseline
    - M3 entry gate: M2 Slice 1 exit review must pass
@@ -189,7 +179,7 @@ Whenever meaningful progress changes:
 3. Record blockers or risks.
 4. Update next actions.
 
-**Last update:** 2026-08-18T01:33:11Z (M2 Slice 1 Ready for Execution)
+**Last update:** 2026-08-18T01:44:39Z (GMN-EC-01 delivered)
 
 ---
 

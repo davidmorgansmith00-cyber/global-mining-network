@@ -54,6 +54,7 @@ class PersistenceFlowTests(unittest.TestCase):
             "auth_sessions",
             "domain_events",
             "player_profiles",
+            "hardware_definitions",
             "blockchain_active_block",
             "blockchain_finalized_blocks",
             "economy_ledger_entries",
@@ -80,6 +81,21 @@ class PersistenceFlowTests(unittest.TestCase):
                 )
                 contribution_column = cursor.fetchone()
                 self.assertIsNotNone(contribution_column)
+
+                cursor.execute(
+                    """
+                    SELECT column_name
+                    FROM information_schema.columns
+                    WHERE table_name = 'players'
+                      AND column_name IN ('hardware_id', 'effective_hashrate_cached', 'effective_hashrate_updated_at')
+                    ORDER BY column_name
+                    """
+                )
+                player_columns = [row[0] for row in cursor.fetchall()]
+                self.assertEqual(
+                    player_columns,
+                    ["effective_hashrate_cached", "effective_hashrate_updated_at", "hardware_id"],
+                )
 
     def test_db_backed_register_login_bootstrap(self) -> None:
         unique_email = f"persist_{uuid4().hex[:10]}@example.com"
