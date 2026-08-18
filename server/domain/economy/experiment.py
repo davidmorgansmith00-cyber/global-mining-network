@@ -72,12 +72,13 @@ class EconomyExperimentService:
 
     def assign_player_to_cohort(self, player_id: str, experiment_id: str) -> str:
         key = (player_id, experiment_id)
-        if key in self._assignments:
-            return self._assignments[key]
+        with self._lock:
+            if key in self._assignments:
+                return self._assignments[key]
 
-        digest = hashlib.sha256(f"{player_id}:{experiment_id}".encode("utf-8")).digest()
-        cohort = "a" if digest[0] % 2 == 0 else "b"
-        self._assignments[key] = cohort
+            digest = hashlib.sha256(f"{player_id}:{experiment_id}".encode("utf-8")).digest()
+            cohort = "a" if digest[0] % 2 == 0 else "b"
+            self._assignments[key] = cohort
         if database_is_configured():
             self._insert_assignment_db(player_id, experiment_id, cohort)
         return cohort
@@ -99,7 +100,9 @@ class EconomyExperimentService:
             raise ValueError("experiment_not_found")
 
         cohort_players: dict[str, list[str]] = {"a": [], "b": []}
-        for (player_id, exp_id), cohort in self._assignments.items():
+        with self._lock:
+            assignment_snapshot = dict(self._assignments)
+        for (player_id, exp_id), cohort in assignment_snapshot.items():
             if exp_id == experiment_id:
                 cohort_players[cohort].append(player_id)
 
@@ -123,10 +126,10 @@ class EconomyExperimentService:
             "statistically_significant": significant,
             "winner": self._pick_winner(cohort_stats["a"], cohort_stats["b"], significant),
         }
-
-        experiment.results = result
-        if self._now_provider() > experiment.end_at and experiment.status == "active":
-            experiment.status = "completed"
+        with self._lock:
+            experiment.results = result
+            if self._now_provider() > experiment.end_at and experiment.status == "active":
+                experiment.status = "completed"
 
         if database_is_configured():
             self._update_experiment_results_db(experiment)
@@ -157,7 +160,8 @@ class EconomyExperimentService:
             reason=f"experiment_promotion:{experiment_id}:{cohort}",
             admin_id=admin_id,
         )
-        experiment.status = "completed"
+        with self._lock:
+            experiment.status = "completed"
         return updated.to_public_dict()
 
     def list_active_experiments(self) -> list[dict[str, Any]]:

@@ -58,11 +58,10 @@ class BetaMigrationService:
         return {"valid": len(errors) == 0, "errors": errors}
 
     def migrate_beta_player(self, beta_player_id: str, production_player_id: str) -> dict[str, object]:
-        verification = self.verify_migration_data(beta_player_id, production_player_id)
-        if not verification["valid"]:
-            return {"success": False, "errors": verification["errors"]}
-
         with self._lock:
+            verification = self.verify_migration_data(beta_player_id, production_player_id)
+            if not verification["valid"]:
+                return {"success": False, "errors": verification["errors"]}
             beta_profile = self._beta_profiles[beta_player_id]
             production_profile = self._production_profiles.setdefault(
                 production_player_id,

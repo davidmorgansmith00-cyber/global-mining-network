@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from decimal import Decimal
 import json
-from threading import Lock
+from threading import Lock, RLock
 from typing import Any
 
 from shared.database import database_is_configured, open_connection
@@ -48,7 +48,7 @@ class EconomyParameterHistoryEntry:
 
 class EconomyParameterService:
     def __init__(self) -> None:
-        self._lock = Lock()
+        self._lock = RLock()
         now = datetime.now(UTC)
         self._current = EconomyParameters(
             version=1,
@@ -132,34 +132,35 @@ class EconomyParameterService:
             return updated
 
     def rollback_to_version(self, *, target_version: int, admin_id: str, reason: str) -> EconomyParameters:
-        target = self._get_version(target_version)
-        if target is None:
-            raise ValueError("target_version_not_found")
+        with self._lock:
+            target = self._get_version(target_version)
+            if target is None:
+                raise ValueError("target_version_not_found")
 
-        updated = self.set_parameters(
-            difficulty_base=target.difficulty_base,
-            reward_per_work_unit=target.reward_per_work_unit,
-            tier_unlock_times=target.tier_unlock_times,
-            cosmetic_prices=target.cosmetic_prices,
-            battle_pass_price=target.battle_pass_price,
-            event_frequency=target.event_frequency,
-            reason=reason,
-            admin_id=admin_id,
-        )
-
-        if self._history:
-            latest = self._history[-1]
-            self._history[-1] = EconomyParameterHistoryEntry(
-                parameter_version=latest.parameter_version,
-                previous_version=latest.previous_version,
-                change_log=latest.change_log,
-                reverted_at=datetime.now(UTC),
-                reverted_by_admin_id=admin_id,
+            updated = self.set_parameters(
+                difficulty_base=target.difficulty_base,
+                reward_per_work_unit=target.reward_per_work_unit,
+                tier_unlock_times=target.tier_unlock_times,
+                cosmetic_prices=target.cosmetic_prices,
+                battle_pass_price=target.battle_pass_price,
+                event_frequency=target.event_frequency,
+                reason=reason,
+                admin_id=admin_id,
             )
-            if database_is_configured():
-                self._mark_history_reverted(updated.version, admin_id)
 
-        return updated
+            if self._history:
+                latest = self._history[-1]
+                self._history[-1] = EconomyParameterHistoryEntry(
+                    parameter_version=latest.parameter_version,
+                    previous_version=latest.previous_version,
+                    change_log=latest.change_log,
+                    reverted_at=datetime.now(UTC),
+                    reverted_by_admin_id=admin_id,
+                )
+                if database_is_configured():
+                    self._mark_history_reverted(updated.version, admin_id)
+
+            return updated
 
     def _get_version(self, version: int) -> EconomyParameters | None:
         return self._versions.get(version)

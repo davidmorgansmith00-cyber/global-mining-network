@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from statistics import median
-from typing import Any
+from typing import Any, Callable
 
 from shared.database import database_is_configured, open_connection
 
@@ -25,7 +25,7 @@ class EconomyAnalyzer:
         self,
         *,
         parameter_service: EconomyParameterService | None = None,
-        now_provider: callable | None = None,
+        now_provider: Callable[[], datetime] | None = None,
         player_tiers: dict[str, int] | None = None,
         player_last_active: dict[str, datetime] | None = None,
         ledger_entries: list[dict[str, Any]] | None = None,
