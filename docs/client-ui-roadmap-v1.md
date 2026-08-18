@@ -1,6 +1,6 @@
 # Global Mining Network Client UI Roadmap v1
 
-**Status:** Proposed
+**Status:** Phase 1 in progress
 **Version:** 1.0
 **Date:** 2026-08-18
 **Owner:** Gameplay and UX
@@ -63,6 +63,16 @@ The repository already contains a useful M1 foundation:
 Phase 1 must select one supported scene composition and one controller/view-model path. New screens must use that path. The legacy path may remain temporarily for regression coverage, but it must not receive new features after the consolidation decision.
 
 The Phase 1 contract audit must also resolve any mismatch between operation-intent URL construction, session binding, and the current server contract before the operation screen is treated as production-ready.
+
+### Phase 1 Slice Started - 2026-08-18
+
+- Selected `scenes/gameplay_shell.tscn` and `scripts/ui/*` as the supported shell composition.
+- Added `GameplayShellUiState` for explicit loading, ready, stale, error, unauthorized, and maintenance states.
+- Added a visible state line to the shell without introducing client-owned gameplay calculations.
+- Preserved `session_id` through auth responses and corrected operation-intent URLs to bind to the active session.
+- Added UI-state smoke coverage to the existing client smoke runner.
+
+Remaining Phase 1 work is shared route/error primitives, scene migration tests for the legacy path, and the first-run route foundation from Phase 2.
 
 ## 4. Roadmap Summary
 

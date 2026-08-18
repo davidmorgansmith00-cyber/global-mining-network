@@ -15,6 +15,7 @@ var player_id: String = ""
 var latest_status_payload: Dictionary = {}
 var latest_snapshot_payload: Dictionary = {}
 var latest_rewards_payload: Dictionary = {}
+var ui_state := GameplayShellUiState.new()
 
 func _ready() -> void:
 	api_client = GmnApiClient.new()
@@ -68,24 +69,45 @@ func login_and_store_session(email: String, password: String) -> Dictionary:
 	return response
 
 func refresh_authoritative_views() -> Dictionary:
+	ui_state.set_loading()
 	var status_response: Dictionary = await api_client.fetch_status(status_recent_limit)
 	var snapshot_response: Dictionary = await api_client.fetch_snapshot(status_recent_limit)
 	var rewards_response: Dictionary = await api_client.fetch_rewards(player_id, rewards_recent_limit)
+	var successful_response_count := 0
 
 	if status_response.get("ok", false):
+		successful_response_count += 1
 		latest_status_payload = status_response.get("payload", {})
 	if snapshot_response.get("ok", false):
+		successful_response_count += 1
 		latest_snapshot_payload = snapshot_response.get("payload", {})
 		var snapshot_cursor := int(latest_snapshot_payload.get("reconnect_cursor", 0))
 		stream_client.set_cursor(max(stream_client.reconnect_cursor, snapshot_cursor))
 	if rewards_response.get("ok", false):
+		successful_response_count += 1
 		latest_rewards_payload = rewards_response.get("payload", {})
+
+	if successful_response_count == 3:
+		ui_state.set_ready()
+	elif successful_response_count > 0:
+		ui_state.set_stale("Some authoritative views could not be refreshed")
+	else:
+		var status_code := int(status_response.get("status_code", 0))
+		if status_code == 401 or status_code == 403:
+			ui_state.set_unauthorized()
+		elif status_code == 503:
+			ui_state.set_maintenance()
+		else:
+			ui_state.set_error()
 
 	return {
 		"status": status_response,
 		"snapshot": snapshot_response,
 		"rewards": rewards_response,
 	}
+
+func get_ui_state() -> Dictionary:
+	return ui_state.to_display()
 
 func restore_stream_cursor_from_checkpoint() -> Dictionary:
 	if player_id == "" or session_id == "":

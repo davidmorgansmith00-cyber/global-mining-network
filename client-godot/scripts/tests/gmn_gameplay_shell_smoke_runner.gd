@@ -6,6 +6,7 @@ func run_all() -> Dictionary:
 		"contracts": GmnContractValidationSmoke.new().run(),
 		"operation_intents": GmnOperationIntentContractSmoke.new().run(),
 		"reconnect": GmnReconnectSmoke.new().run(),
+		"ui_state": GmnUiStateSmoke.new().run(),
 	}
 	var failures: Array[String] = []
 	for suite_name in suites.keys():

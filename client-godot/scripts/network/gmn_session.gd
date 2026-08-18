@@ -7,6 +7,7 @@ extends RefCounted
 
 ## Session state (runtime only, never persisted to disk)
 var player_id: String = ""
+var session_id: String = ""
 var access_token: String = ""
 var refresh_token: String = ""
 var token_expires_at: float = 0.0
@@ -23,6 +24,7 @@ func should_refresh() -> bool:
 ## Clear session (logout or expired)
 func clear() -> void:
 	player_id = ""
+	session_id = ""
 	access_token = ""
 	refresh_token = ""
 	token_expires_at = 0.0
@@ -30,6 +32,7 @@ func clear() -> void:
 ## Set from auth response
 func set_from_response(response: Dictionary) -> void:
 	player_id = response.get("player_id", "")
+	session_id = response.get("session_id", "")
 	access_token = response.get("access_token", "")
 	refresh_token = response.get("refresh_token", "")
 	var expires_in = response.get("expires_in", 3600)

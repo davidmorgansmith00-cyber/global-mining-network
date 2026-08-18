@@ -1,6 +1,6 @@
 # Client Godot
 
-This folder contains the M1 client gameplay shell scaffolding for the Godot 4 client.
+This folder contains the supported M1 gameplay shell and the Phase 1 UI foundation for the Godot 4 client.
 
 Current scaffold:
 - `scripts/network/gmn_contracts.gd`: central contract key definitions.
@@ -10,11 +10,21 @@ Current scaffold:
 - `scripts/ui/gameplay_shell_view_model.gd`: maps authoritative payloads to render-ready UI fields.
 - `scripts/ui/gameplay_shell_panel.gd`: simple panel binder for label-based status/snapshot/reward rendering.
 - `scripts/ui/gameplay_shell_scene_root.gd`: scene-level coordinator that binds controller + panel and drives periodic refresh/render.
+- `scripts/ui/gameplay_shell_ui_state.gd`: shared loading, ready, stale, error, unauthorized, and maintenance state model.
 - `scenes/gameplay_shell.tscn`: concrete gameplay shell scene with controller/panel nodes and label bindings.
 - `scripts/tests/gmn_contract_validation_smoke.gd`: client-side contract key validation smoke suite.
 - `scripts/tests/gmn_operation_intent_contract_smoke.gd`: validates operation-intent request shape (`session_id` query requirement and no `player_id` payload field).
 - `scripts/tests/gmn_reconnect_smoke.gd`: reconnect cursor monotonicity smoke suite.
 - `scripts/tests/gmn_gameplay_shell_smoke_runner.gd`: aggregate smoke runner for client shell checks.
+
+Supported shell path:
+- `scenes/gameplay_shell.tscn` uses `scripts/ui/*` as the supported controller, panel, view-model, and scene-root composition.
+- The parallel `scripts/gameplay/*` path is legacy compatibility surface only; new UI work must use `scripts/ui/*` until an explicit migration slice removes it.
+
+Phase 1 foundation:
+- UI state is explicit and presentational only: `loading`, `ready`, `stale`, `error`, `unauthorized`, and `maintenance`.
+- Session responses retain `session_id`; operation intents bind to that session ID and never include `player_id` in the payload.
+- The shell renders a visible authoritative-state status line and preserves the existing reconnect/polling behavior.
 
 Operation intent plumbing:
 - `GmnApiClient` now includes non-authoritative start/stop intent pass-through calls:

@@ -8,6 +8,7 @@ class_name GameplayShellSceneRoot
 @export var start_operation_button_path: NodePath = NodePath("GameplayShellPanel/StartOperationButton")
 @export var stop_operation_button_path: NodePath = NodePath("GameplayShellPanel/StopOperationButton")
 @export var action_status_label_path: NodePath = NodePath("GameplayShellPanel/ActionStatusLabel")
+@export var ui_state_label_path: NodePath = NodePath("GameplayShellPanel/UiStateLabel")
 @export var refresh_interval_seconds: float = 3.0
 @export var auto_render: bool = true
 

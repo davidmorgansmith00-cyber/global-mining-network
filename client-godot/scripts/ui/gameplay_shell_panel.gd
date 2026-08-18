@@ -7,6 +7,7 @@ class_name GameplayShellPanel
 @export var progress_ratio_label_path: NodePath
 @export var snapshot_cursor_label_path: NodePath
 @export var rewards_total_label_path: NodePath
+@export var ui_state_label_path: NodePath
 
 var _view_model := GameplayShellViewModel.new()
 
@@ -21,6 +22,11 @@ func render_from_controller(controller: GameplayShellController) -> void:
 	_set_label_text(progress_ratio_label_path, "Progress: %s" % status_ui.get("progress_ratio_text", "0"))
 	_set_label_text(snapshot_cursor_label_path, "Cursor: %s" % snapshot_ui.get("reconnect_cursor_text", "0"))
 	_set_label_text(rewards_total_label_path, "Total Rewards: %s" % rewards_ui.get("total_rewards_text", "0"))
+	var state_ui := controller.get_ui_state()
+	_set_label_text(ui_state_label_path, "State: %s - %s" % [
+		str(state_ui.get("state_code", "loading")),
+		str(state_ui.get("message", "Connecting to the network...")),
+	])
 
 func _set_label_text(path: NodePath, value: String) -> void:
 	if path.is_empty():

@@ -34,6 +34,7 @@ func register_session(email: String, password: String) -> Dictionary:
 		var payload_data = response.get("payload")
 		session.set_from_response({
 			"player_id": payload_data.get("player_id", ""),
+			"session_id": payload_data.get("session_id", ""),
 			"access_token": payload_data.get("access_token", ""),
 			"refresh_token": payload_data.get("refresh_token", ""),
 			"expires_in": payload_data.get("expires_in", 3600)
@@ -51,6 +52,7 @@ func login_session(email: String, password: String) -> Dictionary:
 		var payload_data = response.get("payload")
 		session.set_from_response({
 			"player_id": payload_data.get("player_id", ""),
+			"session_id": payload_data.get("session_id", ""),
 			"access_token": payload_data.get("access_token", ""),
 			"refresh_token": payload_data.get("refresh_token", ""),
 			"expires_in": payload_data.get("expires_in", 3600)
@@ -75,6 +77,7 @@ func refresh_access_token() -> Dictionary:
 		var payload_data = response.get("payload")
 		session.set_from_response({
 			"player_id": session.player_id,  # Keep existing player_id
+			"session_id": payload_data.get("session_id", session.session_id),
 			"access_token": payload_data.get("access_token", ""),
 			"refresh_token": payload_data.get("refresh_token", ""),
 			"expires_in": payload_data.get("expires_in", 3600)
@@ -151,10 +154,10 @@ func upsert_checkpoint(channel: String, target_player_id: String, target_session
 	return await _request_json(HTTPClient.METHOD_PUT, url, payload)
 
 func build_operation_start_intent_url() -> String:
-	return "%s%s?session_id=%s" % [base_url, OPERATION_START_INTENT_PATH, session.player_id]
+	return "%s%s?session_id=%s" % [base_url, OPERATION_START_INTENT_PATH, session.session_id]
 
 func build_operation_stop_intent_url() -> String:
-	return "%s%s?session_id=%s" % [base_url, OPERATION_STOP_INTENT_PATH, session.player_id]
+	return "%s%s?session_id=%s" % [base_url, OPERATION_STOP_INTENT_PATH, session.session_id]
 
 func build_operation_start_intent_payload(operation_id: String, base_hashrate_hps: float) -> Dictionary:
 	return {
@@ -184,6 +187,9 @@ func send_operation_stop_intent(operation_id: String) -> Dictionary:
 		url,
 		payload,
 	)
+
+func set_session(payload: Dictionary) -> void:
+	session.set_from_response(payload)
 
 ## Get current session (read-only)
 func get_session() -> GmnSession:
