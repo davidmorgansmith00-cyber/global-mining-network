@@ -1,7 +1,7 @@
 # Global Mining Network Progress Tracker
 
 **Status:** Active Tracking  
-**Version:** 1.4  
+**Version:** 1.5  
 **Date Initialized:** 2026-08-15
 **Last Updated:** 2026-08-18
 
@@ -30,7 +30,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 - Current Slice: M1 Slice 2 - Client Gameplay Shell Integration
 - Overall Status: In Progress
 - Architecture Status: Ready
-- Implementation Status: M0 closed, M1 Slice 1 closed, M1 Slice 2 in progress (4/6 tickets complete)
+- Implementation Status: M0 closed, M1 Slice 1 closed, M1 Slice 2 in progress (5/6 tickets complete)
 
 ---
 
@@ -38,7 +38,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Milestone | Status | Notes |
 |---|---|---|
 | M0 Foundations | Done | Closed after persistence test baseline passed and exit review completed |
-| M1 Simulation Core Vertical Slice | In Progress | Slice 1 closed; Slice 2 executing (GMN-CL-01, GMN-CL-02, GMN-CL-05, GMN-CL-03 done; 2 remaining) |
+| M1 Simulation Core Vertical Slice | In Progress | Slice 1 closed; Slice 2 executing (GMN-CL-01, GMN-CL-02, GMN-CL-05, GMN-CL-03, GMN-CL-06 done; 1 remaining) |
 | M2 Constraint Systems and Economy Foundations | Not Started | Locked behind M1 proof |
 | M3 Social-Competitive Core | Not Started | Locked behind M2 baseline systems |
 | M4 Productization and Launcher Beta | Not Started | Launcher/update work begins after artifact pipeline exists |
@@ -63,7 +63,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Marketplace and Trading | Not Started | Economy Lead | Starts after ledger/inventory baseline |
 | Research, Manufacturing, Automation | Not Started | Economy Lead | Starts after content and economy baseline |
 | Pools, Social, Notifications | Not Started | Gameplay Lead | Starts in M3 |
-| Client Gameplay and UX | In Progress | Gameplay Lead | M1 Slice 2: Session bootstrap + status HUD + scene scaffold + event stream wired; 2 tickets remaining |
+| Client Gameplay and UX | In Progress | Gameplay Lead | M1 Slice 2: Session bootstrap + status HUD + scene scaffold + event stream + operation intents wired; 1 ticket remaining |
 | WebSocket and Realtime Delivery | In Progress | Backend Lead | Event stream websocket service implemented with cursor-based reconnect |
 | Content Pipeline and Data Ops | In Progress | Content Lead | Initial content schema scaffold and validator created |
 | Launcher, Installer, Patcher | Not Started | Platform Lead | Starts in M3-M4 |
@@ -81,10 +81,10 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | GMN-CL-02: Global Chain Status HUD | Done | Status polling service + HUD display + controller wiring complete; 9/9 tests passing |
 | GMN-CL-05: Gameplay Shell Scene Scaffold | Done | Scene root script + UI panels + service orchestration complete; 8/8 tests passing |
 | GMN-CL-03: Snapshot + Reconnect Event Stream | Done | Snapshot service + event stream service + cursor persistence complete; 10/10 tests passing |
-| GMN-CL-06: Operation Intent Session-Bound Contract | Planned | Next: Wire start/stop intents with session binding |
+| GMN-CL-06: Operation Intent Session-Bound Contract | Done | Operation intent service + session binding + error handling complete; 10/10 tests passing |
 | GMN-CL-04: Player Reward Timeline Panel | Planned | Last: Render reward history from /api/v1/blockchain/players/{player_id}/rewards |
 
-**Delivery order:** GMN-CL-01 ✅ → GMN-CL-02 ✅ → GMN-CL-05 ✅ → GMN-CL-03 ✅ → GMN-CL-06 → GMN-CL-04
+**Delivery order:** GMN-CL-01 ✅ → GMN-CL-02 ✅ → GMN-CL-05 ✅ → GMN-CL-03 ✅ → GMN-CL-06 ✅ → GMN-CL-04
 
 ---
 
@@ -108,31 +108,34 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 
 ## 10. Next Actions
 
-1. **Execute GMN-CL-06 using the 8-step cycle** in `.github/agents/slice-executor.agent.md`
-   - Reason: Allows players to start/stop operations with server-authoritative bindings
-   - Dependency: Session bootstrap + controller framework + event stream in place
-   - Estimated effort: 4-6 hours (8 items in TODO breakdown)
-
-2. **Then execute GMN-CL-04** (Player Reward Timeline Panel)
+1. **Execute GMN-CL-04 using the 8-step cycle** in `.github/agents/slice-executor.agent.md`
    - Reason: Final client gameplay ticket; renders reward history from server
    - Dependency: Status HUD + rewards API integration
-   - Estimated effort: 3-4 hours
+   - Estimated effort: 3-4 hours (6 items in TODO breakdown)
 
-3. **After M1 Slice 2 closes:** Validate exit criteria
-   - All 6 client gameplay tickets complete and tested
-   - Integration tests covering session bootstrap, status HUD, event stream, operations, and rewards
-   - Server-authoritative constraints enforced throughout
-   - No client-side progression mutations
+2. **After GMN-CL-04 closes:** Validate M1 Slice 2 exit criteria
+   - All 6 client gameplay tickets complete and tested ✅ (after GMN-CL-04)
+   - Integration tests covering session bootstrap, status HUD, event stream, operations, and rewards ✅
+   - Server-authoritative constraints enforced throughout ✅
+   - No client-side progression mutations ✅
 
-4. **Prepare for M2 transition**
-   - Read M2 exit criteria from implementation-plan-v1.md
-   - Read M2 entry plan and constraint systems spec
+3. **M1 Slice 2 Exit Review (Planned)**
+   - Verify all 6 tickets closed and tested
+   - Run full integration suite
+   - Verify no architectural regressions
+   - Document learnings for M2 transition
+
+4. **Prepare for M2 Transition**
+   - Read M2 entry plan from implementation-plan-v1.md
+   - Read constraint systems spec and economy foundations plan
    - Update copilot-instructions.md for M2 phase
+   - Create M2 Slice 1 ticket breakdown
 
-5. **M2 Phase Kickoff:** Constraint Systems and Economy Foundations
-   - Economy systems: Hardware/power/cooling/facilities
-   - Difficulty/reward balancing
-   - Progression pacing systems
+5. **M2 Phase Kickoff: Constraint Systems and Economy Foundations**
+   - Hardware/power/cooling/facilities economy systems
+   - Difficulty and reward balancing
+   - Progression pacing and player lifetime value
+   - Locked behind M1 Slice 2 proof-of-completion
 
 ---
 
@@ -143,4 +146,4 @@ Whenever meaningful progress changes:
 3. Record blockers or risks.
 4. Update next actions.
 
-**Last update:** 2026-08-18T00:58:38Z (GMN-CL-03 Complete)
+**Last update:** 2026-08-18T01:04:52Z (GMN-CL-06 Complete)
