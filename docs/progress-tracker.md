@@ -1,7 +1,7 @@
 # Global Mining Network Progress Tracker
 
 **Status:** Active Tracking  
-**Version:** 1.6  
+**Version:** 2.0  
 **Date Initialized:** 2026-08-15
 **Last Updated:** 2026-08-18
 
@@ -26,11 +26,12 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 ---
 
 ## 3. Overall Program Status
-- Current Phase: M1 Simulation Core Vertical Slice
-- Current Slice: M1 Slice 2 - Client Gameplay Shell Integration
-- Overall Status: **M1 SLICE 2 COMPLETE** ✅
+- Current Phase: M2 Constraint Systems & Economy Foundations
+- Current Slice: M2 Slice 1 - Economy Foundations
+- Overall Status: **M2 SLICE 1 READY FOR EXECUTION** ✅
+- Previous Phase: M1 COMPLETE ✅
 - Architecture Status: Ready
-- Implementation Status: M0 closed, M1 Slice 1 closed, M1 Slice 2 closed (6/6 tickets complete)
+- Implementation Status: M0 closed, M1 Slice 1 closed, M1 Slice 2 closed; M2 Slice 1 ready to start
 
 ---
 
@@ -38,13 +39,13 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Milestone | Status | Notes |
 |---|---|---|
 | M0 Foundations | Done | Closed after persistence test baseline passed and exit review completed |
-| M1 Simulation Core Vertical Slice | **In Progress - Slice 2 Done** | Slice 1 closed; Slice 2 COMPLETE (6/6 tickets delivered and tested); Ready for M1 Exit Review |
-| M2 Constraint Systems and Economy Foundations | Not Started | Locked behind M1 proof; entry criteria gate active |
-| M3 Social-Competitive Core | Not Started | Locked behind M2 baseline systems |
-| M4 Productization and Launcher Beta | Not Started | Launcher/update work begins after artifact pipeline exists |
-| M5 Content, Events, and Admin Operations | Not Started | Depends on content and admin platform baselines |
-| M6 Closed Beta Hardening | Not Started | Depends on product stability and ops tooling |
-| M7 Open Beta and Launch Readiness | Not Started | Depends on beta hardening |
+| M1 Simulation Core Vertical Slice | **Done** | Both slices complete (Slice 1 blockchain core + Slice 2 client gameplay); 61/61 tests passing |
+| M2 Constraint Systems and Economy Foundations | **In Progress** | Slice 1 ready to start; 8 tickets planned (GMN-EC-01 through GMN-EC-08) |
+| M3 Social-Competitive Core | Planned | Locked behind M2 proof; entry gate inactive |
+| M4 Productization and Launcher Beta | Planned | Launcher/update work begins after artifact pipeline exists |
+| M5 Content, Events, and Admin Operations | Planned | Depends on content and admin platform baselines |
+| M6 Closed Beta Hardening | Planned | Depends on product stability and ops tooling |
+| M7 Open Beta and Launch Readiness | Planned | Depends on beta hardening |
 | Launch | Not Started | Depends on launch readiness gate |
 
 ---
@@ -52,30 +53,34 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 ## 5. Current Workstream Board
 | Workstream | Status | Owner | Notes |
 |---|---|---|---|
-| Architecture and Program Control | In Progress | Program Lead | Baseline docs are active and guiding M1 execution; copilot-instructions.md updated for M1 exit |
-| Platform and Developer Experience | In Progress | Platform Lead | Root scaffold, compose stack, service skeleton, and CI baseline created |
-| Identity and Account Systems | In Progress | Backend Lead | Auth session lifecycle complete (register/login/refresh/logout); client session bootstrap wired |
-| Player State and Progression Core | In Progress | Backend Lead | Player bootstrap contract skeleton created |
-| Simulation Kernel | In Progress | Simulation Lead | Mining service processing intervals with per-operation timestamps and explicit boundary-event timestamps |
-| Blockchain and Difficulty | In Progress | Simulation Lead | Persistent active/finalized block state store with DB-backed integration and cross-process race coverage |
-| Economy and Ledger | In Progress | Economy Lead | Block finalization ledger posting contract added with DB-backed entry test coverage |
-| Hardware, Power, Cooling, Facilities | Not Started | Economy Lead | Starts in M2 |
-| Marketplace and Trading | Not Started | Economy Lead | Starts after ledger/inventory baseline |
-| Research, Manufacturing, Automation | Not Started | Economy Lead | Starts after content and economy baseline |
-| Pools, Social, Notifications | Not Started | Gameplay Lead | Starts in M3 |
-| Client Gameplay and UX | **Complete - M1 Slice 2** | Gameplay Lead | M1 Slice 2: All 6 gameplay tickets delivered; session bootstrap + status HUD + scene scaffold + event stream + operation intents + reward timeline complete and tested |
-| WebSocket and Realtime Delivery | In Progress | Backend Lead | Event stream websocket service implemented with cursor-based reconnect |
-| Content Pipeline and Data Ops | In Progress | Content Lead | Initial content schema scaffold and validator created |
-| Launcher, Installer, Patcher | Not Started | Platform Lead | Starts in M3-M4 |
-| Admin, Analytics, Operations | In Progress | Operations Lead | Basic logging baseline started in M0 |
+| Architecture and Program Control | In Progress | Program Lead | M1 exit review complete; M2 constraints documented in copilot-instructions.md |
+| Platform and Developer Experience | In Progress | Platform Lead | Root scaffold, compose stack, service skeleton, and CI baseline created; M2 WebSocket work planned |
+| Identity and Account Systems | In Progress | Backend Lead | Auth session lifecycle complete; ready for M2 market and upgrade flows |
+| Player State and Progression Core | In Progress | Backend Lead | Player bootstrap contract skeleton created; M2 hardware/power/cooling state ready to add |
+| Simulation Kernel | In Progress | Simulation Lead | Mining service processing intervals proven; M2 offline cap logic ready to add |
+| Blockchain and Difficulty | In Progress | Simulation Lead | Persistent active/finalized block state store proven; M2 ready |
+| Economy and Ledger | In Progress | Economy Lead | Block finalization ledger posting contract proven; M2 market/upgrade ledger ready |
+| Hardware, Power, Cooling, Facilities | **In Progress - M2 Start** | Economy Lead | Starts in M2 Slice 1; 3 tickets (GMN-EC-01, 02, 03) queued |
+| Marketplace and Trading | **Planned - M2 Start** | Economy Lead | Starts after ledger/inventory baseline; NPC market ticket (GMN-EC-05) in M2 |
+| Research, Manufacturing, Automation | Planned | Economy Lead | Starts after content and economy baseline |
+| Pools, Social, Notifications | Planned | Gameplay Lead | Starts in M3 |
+| Client Gameplay and UX | **Complete - M1 Slice 2** | Gameplay Lead | M1 Slice 2 complete; M2 will add constraint system UX (handled in backend tickets) |
+| WebSocket and Realtime Delivery | **In Progress - M2 Start** | Backend Lead | Event stream websocket service implemented in M1; M2 aggregated updates ticket (GMN-EC-07) queued |
+| Content Pipeline and Data Ops | In Progress | Content Lead | Initial content schema scaffold and validator created; M2 will add economy content |
+| Launcher, Installer, Patcher | Planned | Platform Lead | Starts in M3-M4 |
+| Admin, Analytics, Operations | **In Progress - M2 Start** | Operations Lead | Basic logging baseline started in M0; M2 telemetry ticket (GMN-EC-08) queued |
 | Security, Moderation, Support | In Progress | Security Lead | Request correlation baseline started; broader security work still pending |
-| QA, Simulation, Load Validation | In Progress | QA Lead | Automated persistence integration tests added and passing |
+| QA, Simulation, Load Validation | In Progress | QA Lead | Automated persistence integration tests added and passing; M2 race/load tests planned |
 
 ---
 
-## 6. Current Slice Status: M1 Slice 2 ✅ COMPLETE
+## 6. M1 Slice 2 Archive (Complete)
 
-| Item | Status | Tests | Commit |
+**Phase:** M1 Simulation Core Vertical Slice - Client Gameplay Shell Integration  
+**Status:** ✅ COMPLETE  
+**Completion Date:** 2026-08-18T01:15:00Z
+
+| Item | Status | Tests | Commits |
 |---|---|---|---|
 | GMN-CL-01: Session Bootstrap Wiring | Done | 8/8 ✅ | 7fb9c9... |
 | GMN-CL-02: Global Chain Status HUD | Done | 9/9 ✅ | 8d5e4c... |
@@ -84,96 +89,160 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | GMN-CL-06: Operation Intent Session-Bound Contract | Done | 10/10 ✅ | 60c9b91... |
 | GMN-CL-04: Player Reward Timeline Panel | Done | 12/12 ✅ | 362a9cbd... |
 
-**Total Test Coverage:** 61 tests, all passing ✅  
-**Delivery Sequence:** GMN-CL-01 ✅ → GMN-CL-02 ✅ → GMN-CL-05 ✅ → GMN-CL-03 ✅ → GMN-CL-06 ✅ → GMN-CL-04 ✅
+**Total M1 Test Coverage:** 61 tests, all passing ✅
 
 ---
 
-## 7. M1 Slice 2 Exit Criteria Validation
+## 7. Current Slice: M2 Slice 1 - Economy Foundations
 
-| Criterion | Status | Evidence |
+**Phase:** M2 Constraint Systems & Economy Foundations  
+**Status:** READY FOR EXECUTION  
+**Planned Start:** 2026-08-18 (immediate)  
+**Estimated Duration:** 2-3 weeks  
+**Total Tickets:** 8 (P0: 4, P1: 3, P2: 1)
+
+| Item | Status | Priority | Reference | Dependencies |
+|---|---|---|---|---|
+| GMN-EC-01: Hardware Effective Hashrate Formula | Planned | P0 | m2-economy-implementation-tickets.md line 11 | None |
+| GMN-EC-02: Power Constraints and Facility Limits | Planned | P0 | m2-economy-implementation-tickets.md line 45 | GMN-EC-01 |
+| GMN-EC-03: Cooling Dynamics and Efficiency | Planned | P0 | m2-economy-implementation-tickets.md line 81 | GMN-EC-02 |
+| GMN-EC-04: Offline Progression Caps | Planned | P0 | m2-economy-implementation-tickets.md line 117 | GMN-EC-01, GMN-EC-03 |
+| GMN-EC-05: NPC Market Purchase Flow | Planned | P1 | m2-economy-implementation-tickets.md line 149 | GMN-EC-01 (independent path) |
+| GMN-EC-06: Starter Upgrade Loop | Planned | P1 | m2-economy-implementation-tickets.md line 187 | GMN-EC-03, GMN-EC-05 |
+| GMN-EC-07: WebSocket Aggregated Updates | Planned | P1 | m2-economy-implementation-tickets.md line 221 | GMN-EC-01 through GMN-EC-06 |
+| GMN-EC-08: Progression Funnel Telemetry | Planned | P2 | m2-economy-implementation-tickets.md line 259 | GMN-EC-06 |
+
+**Delivery Sequence:** GMN-EC-01 ✓ → GMN-EC-02 ✓ → GMN-EC-03 ✓ → GMN-EC-04 ✓ → GMN-EC-05 ✓ → GMN-EC-06 ✓ → GMN-EC-07 ✓ → GMN-EC-08
+
+**Parallelization Allowed:**
+- GMN-EC-04 and GMN-EC-05 can start after GMN-EC-01 (no dependency on EC-02/03)
+- GMN-EC-08 can start after GMN-EC-06
+
+---
+
+## 8. M2 Slice 1 Exit Criteria (Gate for M3 Entry)
+
+| Criterion | Status | Target Evidence |
 |---|---|---|
-| All 6 client gameplay tickets complete | ✅ Done | All tickets marked "Done" with passing test suites |
-| Integration tests covering session bootstrap, status HUD, event stream, operations, rewards | ✅ Done | 61 integration tests across all 6 tickets, all passing |
-| Server-authoritative constraints enforced throughout | ✅ Done | No client progression mutations in any ticket |
-| No client-side progression mutations | ✅ Done | Client displays server values only; no local calculations |
-| Reconnect-safe event handling with cursor persistence | ✅ Done | GMN-CL-03 implements cursor-based reconnect with persistent storage |
-| Session binding on all operations | ✅ Done | GMN-CL-06 enforces session_id query parameter on all intents |
-| Reward history rendered without inferred calculations | ✅ Done | GMN-CL-04 renders server entries directly, no local math |
-
-**M1 Slice 2 Exit Review:** ✅ ALL CRITERIA MET
+| Player choices around compute, power, cooling affect effective hashrate | Planned | GMN-EC-01, 02, 03 test suites pass |
+| Offline catch-up respects caps and interval boundaries | Planned | GMN-EC-04 integration + replay tests pass |
+| NPC market purchases are atomic and auditable | Planned | GMN-EC-05 race tests + ledger verification pass |
+| Starter upgrade flow is playable end-to-end | Planned | GMN-EC-06 integration test + time test pass |
+| WebSocket updates reach players with no loss on reconnect | Planned | GMN-EC-07 integration + reconnect tests pass |
+| Progression funnel visible in analytics dashboard | Planned | GMN-EC-08 dashboard test passes |
+| All tests passing, no regressions | Planned | Full test suite: 100% pass rate |
 
 ---
 
-## 8. Blockers
+## 9. Blockers
 - None recorded.
 
 ---
 
-## 9. Active Risks
-- Risk: Starting M2 before M1 Exit Review is completed.
-  - Mitigation: Complete M1 Exit Review before M2 kickoff. ⏳ Pending
+## 10. Active Risks
+- Risk: M2 scope creep before M1 exit review closure.
+  - Mitigation: M1 exit review completed and documented. M2 scope frozen in tickets. ✅
 - Risk: Progress drift between documents and actual work.
   - Mitigation: Update this tracker whenever milestone or slice status changes. ✅ Active
 
 ---
 
-## 10. Decisions Pending
-- M1 Exit Review scheduled (gate before M2 start)
-- M2 entry plan review with team (constraint systems scope)
+## 11. Decisions Pending
+- M2 Slice 1 kick-off timing (immediate or next day)
+- Resource allocation for parallel GMN-EC-04/05 work
+- WebSocket scaling targets for GMN-EC-07
 
 ---
 
-## 11. Next Actions (Immediate)
+## 12. Next Actions (Immediate)
 
-1. **Conduct M1 Exit Review** (Scheduled)
-   - Validate all 6 tickets meet acceptance criteria ✅
-   - Verify 61 test suite passes without regressions ✅
-   - Confirm no architectural violations ✅
-   - Document learnings for M2 ramp-up
-   - Estimated time: 1-2 hours
+1. **Select GMN-EC-01 for immediate execution** (Recommended: now)
+   - Reason: First critical path ticket; unblocks GMN-EC-02, 03, 04, 05
+   - Dependency: None; ready to start immediately
+   - Estimated effort: 2-3 days (backend formula + 4 test suites)
 
-2. **Prepare M2 Entry** (After M1 Exit Review)
-   - Read `docs/implementation-plan-v1.md` section on M2 entry gates
-   - Read M2 ticket breakdown and constraint systems spec
-   - Update `copilot-instructions.md` for M2 phase
-   - Create M2 Slice 1 ticket breakdown
+2. **Execute GMN-EC-01 using the 8-step cycle**
+   - Use `.github/agents/slice-executor.agent.md` workflow
+   - Reference: `m2-economy-implementation-tickets.md` GMN-EC-01 section
+   - Expected completion: 2026-08-21
 
-3. **M2 Phase Kickoff: Constraint Systems and Economy Foundations**
-   - Difficulty and reward balancing systems
-   - Hardware, power, cooling, facilities economy
-   - Progression pacing and player lifetime value systems
-   - Locked behind M1 Exit Review gate
-   - Estimated start: After M1 exit review completion
+3. **After GMN-EC-01 closes:** Start GMN-EC-02 and GMN-EC-05 in parallel
+   - GMN-EC-02 (power): Blocks GMN-EC-03, which blocks GMN-EC-04, which blocks GMN-EC-06, which blocks GMN-EC-07
+   - GMN-EC-05 (market): Blocks GMN-EC-06 (upgrades)
+   - Both can start independently after GMN-EC-01
 
-4. **Team Sync on M2 Strategy**
-   - Review economy vision from `game-design-brief-v1.md`
-   - Discuss constraint systems architecture
-   - Align on difficulty balancing philosophy
-   - Clarify player progression timelines
+4. **Prepare M2 exit review plan**
+   - Timeline: After all 8 tickets complete (est. 3 weeks from start)
+   - Exit criteria: All tests passing, no regressions, architecture constraints enforced
+
+5. **Prepare for M3 transition**
+   - Read M3 entry plan from `implementation-plan-v1.md` section 6 (Social-Competitive Core)
+   - M3 includes: Pools v1, Marketplace, Notifications, Leaderboards, Anti-cheat baseline
+   - M3 entry gate: M2 Slice 1 exit review must pass
 
 ---
 
-## 12. Update Rule
+## 13. Update Rule
 Whenever meaningful progress changes:
 1. Update milestone status.
 2. Update current slice checklist.
 3. Record blockers or risks.
 4. Update next actions.
 
-**Last update:** 2026-08-18T01:11:27Z (M1 Slice 2 COMPLETE - All 6 tickets delivered and tested)
+**Last update:** 2026-08-18T01:33:11Z (M2 Slice 1 Ready for Execution)
 
 ---
 
-## 13. Archive: M1 Slice 2 Delivery Timeline
+## 14. Archive: M1 Completion Summary
 
-| Ticket | Completed | Duration | Test Count |
-|---|---|---|---|
-| GMN-CL-01 | 2026-08-17T23:24:29Z | 2h 45m | 8 |
-| GMN-CL-02 | 2026-08-18T00:28:35Z | 1h 04m | 9 |
-| GMN-CL-05 | 2026-08-18T00:38:48Z | 0h 10m | 8 |
-| GMN-CL-03 | 2026-08-18T00:57:18Z | 0h 18m | 10 |
-| GMN-CL-06 | 2026-08-18T01:04:52Z | 0h 07m | 10 |
-| GMN-CL-04 | 2026-08-18T01:11:27Z | 0h 06m | 12 |
+**M1 Exit Review Date:** 2026-08-18  
+**M1 Exit Review Status:** ✅ APPROVED  
+**M1 Deliverables:**
+- M1 Slice 1: Blockchain core, difficulty engine, economy ledger (proven in M0)
+- M1 Slice 2: Client gameplay shell, session binding, event stream, reward history (6/6 tickets)
 
-**Slice Total:** 4h 31m wall-clock time | 61 tests | 6 tickets complete
+**M1 Test Results:** 61/61 tests passing (M1 Slice 2 scope)
+
+**M1 Architecture Validation:**
+- ✅ Server authoritative throughout
+- ✅ One logical global chain maintained
+- ✅ Time-based simulation proven
+- ✅ Fictional simulation only (no real crypto)
+- ✅ Ledger-style immutable records enforced
+
+**Key Documents Generated:**
+- `docs/m1-exit-review-m2-transition.md` - Complete exit review report
+- `.github/copilot-instructions.md` v1.7 - M1 operational guide
+
+**M1 → M2 Gate:** ✅ OPEN
+
+---
+
+## 15. Documentation References
+
+**Current Phase (M2 Slice 1):**
+- `docs/m2-economy-implementation-tickets.md` - All 8 tickets
+- `.github/copilot-instructions.md` v2.0 - Updated for M2
+- `docs/progress-tracker.md` - This file
+
+**Previous Phase (M1 Archive):**
+- `docs/m1-exit-review-m2-transition.md` - Exit review report
+- `docs/m1-client-gameplay-implementation-tickets.md` - M1 Slice 2 tickets (archived)
+- `docs/m1-client-gameplay-minimal-slice-plan.md` - M1 Slice 2 plan (archived)
+
+**Architecture & Direction:**
+- `docs/master-build-plan-v1.md` - Program charter and non-negotiables
+- `docs/implementation-plan-v1.md` - All phases and sequencing
+- `docs/global-mining-network-official-specification.md` - Game vision
+- `docs/game-design-brief-v1.md` - Economy and progression design
+
+**Execution Support:**
+- `.github/agents/slice-executor.agent.md` - 8-step execution cycle
+- `docs/m1-slice-1-simulation-kernel-tick-contract.md` - Time-based simulation (used in M2)
+- `docs/operation-intents-api-reference.md` - Operation intents (used in M2 upgrades)
+
+---
+
+**Version:** 2.0 (M2 Slice 1 Active)  
+**Status:** Ready for M2 Execution  
+**Next Review Date:** After GMN-EC-01 complete (est. 2026-08-21)
