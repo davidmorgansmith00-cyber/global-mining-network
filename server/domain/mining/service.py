@@ -10,6 +10,7 @@ from domain.blockchain.store import InMemoryBlockchainStateStore
 from domain.blockchain.network_stream import get_network_event_stream
 from domain.economy.ledger import NoOpLedgerPoster
 from domain.economy.reward_settlement import RewardSettlementService
+from domain.events.service import EventService
 from domain.mining.contracts import (
     EVENT_COOLING_STATE_CHANGED,
     EVENT_HARDWARE_CHANGED,
@@ -89,12 +90,14 @@ class MiningSimulationService:
         ledger_poster: object | None = None,
         reward_settlement_service: RewardSettlementService | None = None,
         network_event_stream: NetworkEventPublisher | None = None,
+        event_service: EventService | None = None,
     ) -> None:
         self.clock = clock or SystemUtcClock()
         self.blockchain_state_store = blockchain_state_store or InMemoryBlockchainStateStore(required_work=required_work)
         self.ledger_poster = ledger_poster or NoOpLedgerPoster()
         self.reward_settlement_service = reward_settlement_service or RewardSettlementService()
         self.network_event_stream = network_event_stream or get_network_event_stream()
+        self.event_service = event_service or EventService()
         self.operations: dict[str, MiningOperationState] = {}
         self.finalized_block_numbers: list[int] = []
         self._block_contributions: dict[int, dict[str, Decimal]] = {}
@@ -276,6 +279,7 @@ class MiningSimulationService:
                     required_work=outcome.required_work,
                     total_work=outcome.total_work,
                 )
+                reward_amount = self.event_service.apply_reward_multiplier(base_reward=reward_amount)
                 rewards_by_player = self.reward_settlement_service.allocate_player_rewards(
                     total_reward=reward_amount,
                     contributions_by_player=finalized_contributions,

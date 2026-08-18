@@ -5,6 +5,7 @@ from datetime import UTC
 from decimal import Decimal, ROUND_HALF_UP
 
 from domain.blockchain.store import FinalizedBlockRecord
+from domain.events.service import EventService
 
 
 WORK_QUANTIZE = Decimal("0.000001")
@@ -20,8 +21,9 @@ class DifficultyConfig:
 
 
 class DifficultyAdjustmentService:
-    def __init__(self, config: DifficultyConfig | None = None) -> None:
+    def __init__(self, config: DifficultyConfig | None = None, *, event_service: EventService | None = None) -> None:
         self.config = config or DifficultyConfig()
+        self.event_service = event_service or EventService()
 
     def compute_next_required_work(
         self,
@@ -58,6 +60,7 @@ class DifficultyAdjustmentService:
             )
 
         next_required_work = current_required_work * proposed_multiplier
+        next_required_work = self.event_service.apply_difficulty_modifier(base_required_work=next_required_work)
         return self._quantize(max(next_required_work, self.config.minimum_required_work))
 
     @staticmethod
