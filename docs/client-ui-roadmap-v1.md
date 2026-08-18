@@ -1,9 +1,17 @@
 # Global Mining Network Client UI Roadmap v1
 
-**Status:** Phase 1 in progress
-**Version:** 1.0
-**Date:** 2026-08-18
-**Owner:** Gameplay and UX
+> ⚠️ **HISTORICAL CONTEXT ONLY**
+>
+> This document describes the V1 data-flow proof phase. The active UI roadmap has moved to:
+> - **`docs/client-ui-roadmap-v2.md`** — V2 GMN network-first roadmap (active)
+> - **`docs/ui-v2-plan.md`** — V2 detailed layout and component spec (active)
+>
+> Do not use this document to drive new implementation. Preserve it as a record of what V1 proved.
+
+**Status:** ✅ Historical — superseded by V2  
+**Version:** 1.0  
+**Date:** 2026-08-18  
+**Owner:** Gameplay and UX  
 **Client:** Godot 4.x / GDScript
 
 ## 1. Purpose

@@ -270,6 +270,48 @@ Whenever meaningful progress changes:
 
 ---
 
-**Version:** 2.3 (M7 Genesis Launch Verified)
-**Status:** Done
-**Next Review Date:** After first local player onboarding
+---
+
+## 17. UI Roadmap Transition to V2 (2026-08-18)
+
+**Date:** 2026-08-18  
+**Type:** Documentation / Design Phase Transition  
+**Status:** ✅ Complete
+
+### Summary
+
+UI V1 proved that server-authoritative data can reach the Godot client (phase complete). V2 begins the player-facing UI build — the interface must now communicate the actual identity and fantasy of Global Mining Network rather than displaying debug panels.
+
+**Core design principle adopted:** THE NETWORK IS THE HEARTBEAT OF THE SCREEN.
+
+### Files Created / Updated
+
+| File | Change |
+|---|---|
+| `docs/client-ui-roadmap-v2.md` | New — full V2 GMN network-first roadmap (slices, identity, surfaces, definition of success) |
+| `docs/ui-v2-plan.md` | New — detailed layout spec, component library, visual tokens, composition, implementation order |
+| `docs/client-ui-roadmap-v1.md` | Updated — marked as historical context; redirects to V2 docs |
+| `docs/progress-tracker.md` | Updated — this entry |
+
+### Immediate Next Execution Focus
+
+Work vertically via these ordered slices:
+
+1. **Slice 1:** Freeze V1 server bindings → V2 `UIRoot`, `UITheme.tres`, `ui_tokens.gd`, `UIStateController` → `GlobalBlockHeader` (block #, difficulty, global hashrate, progress bar from `BlockStatus`)
+2. **Slice 2:** `PlayerOperationPanel` (hardware, tier, hashrate, power, heat, cooling, throttle, status, upgrade state) → `PlayerVsNetworkPanel` (with explicit server-only contribution placeholder)
+3. **Slice 3:** `ResourceStrip` (credits, resources) → `NotificationFeed` (rewards, purchases, upgrades, market events)
+4. **Slice 4:** `GMNNavBar` (`MINE | HARDWARE | POWER | STORAGE | MARKET | RESEARCH | NETWORK`) + surface switching
+5. **Slice 5:** Incremental read-model surface integrations (Market → EC-05, Hardware/Upgrade → EC-06, Power → EC-02, Network → block explorer)
+6. **Slice 6:** Main Menu (GMN network identity), Pause, Settings (GMN component language)
+7. **Slice 7:** Migrate V1 debug surfaces behind developer toggle
+8. **Slice 8:** Visual hierarchy, responsive, and accessibility pass
+
+### V1 → V2 Transition Principle
+
+V2 is built on top of V1. All working server bindings, event buses, and read models are preserved. The server remains authoritative for all values displayed. No client-authoritative calculations are introduced.
+
+---
+
+**Version:** 2.4 (UI V2 Roadmap Transition)
+**Status:** Active — UI V2 Slice 1 ready for execution
+**Next Review Date:** After Slice 1 (Global Block Header) delivered
