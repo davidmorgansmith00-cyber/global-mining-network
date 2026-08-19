@@ -5,6 +5,7 @@ from uuid import UUID, uuid4
 from domain.auth.repository import AuthRepository
 from domain.auth.schemas import LoginRequest, LogoutRequest, RefreshRequest, RegisterRequest, SessionRevocationResponse, SessionResponse
 from domain.players.repository import PlayerRepository
+from domain.telemetry.service import get_telemetry_service
 from shared.database import database_is_configured
 from shared.security import hash_secret, verify_secret
 
@@ -27,6 +28,14 @@ class AuthService:
             self.player_repository.create_profile(player_id)
             refresh_token = f"refresh_{uuid4()}"
             session_id = self.auth_repository.create_session(player_id, hash_secret(refresh_token))
+            try:
+                get_telemetry_service().emit_player_login(
+                    player_id=str(player_id),
+                    session_id=str(session_id),
+                    client_version="unknown",
+                )
+            except Exception:
+                pass
             return SessionResponse(
                 player_id=str(player_id),
                 session_id=str(session_id),
@@ -55,6 +64,14 @@ class AuthService:
 
             refresh_token = f"refresh_{uuid4()}"
             session_id = self.auth_repository.create_session(player_id, hash_secret(refresh_token))
+            try:
+                get_telemetry_service().emit_player_login(
+                    player_id=str(player_id),
+                    session_id=str(session_id),
+                    client_version="unknown",
+                )
+            except Exception:
+                pass
             return SessionResponse(
                 player_id=str(player_id),
                 session_id=str(session_id),

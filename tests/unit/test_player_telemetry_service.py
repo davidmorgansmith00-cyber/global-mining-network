@@ -30,8 +30,13 @@ if str(SERVER_ROOT) not in sys.path:
 from domain.telemetry.service import (
     BALANCE_MILESTONES,
     EVENT_BALANCE_MILESTONE,
+    EVENT_FIRST_MARKET_PURCHASE,
+    EVENT_FIRST_OPERATION_STARTED,
+    EVENT_FIRST_UPGRADE_COMPLETED,
+    EVENT_FIRST_UPGRADE_STARTED,
     EVENT_HARDWARE_PURCHASED,
     EVENT_OFFLINE_PROGRESS,
+    EVENT_PLAYER_LOGIN,
     EVENT_SESSION_END,
     EVENT_SESSION_START,
     EVENT_TIER_UPGRADED,
@@ -39,6 +44,7 @@ from domain.telemetry.service import (
     PlayerTelemetryService,
     TelemetryEvent,
     _TelemetryWorker,
+    query_progression_funnel,
 )
 
 
@@ -129,6 +135,78 @@ class PlayerTelemetryServiceEmissionTests(unittest.TestCase):
         self.assertAlmostEqual(event.properties["milestone_amount"], 1000.0)
         self.assertAlmostEqual(event.properties["balance_before"], 900.0)
         self.assertAlmostEqual(event.properties["balance_after"], 1050.0)
+
+    @patch.object(PlayerTelemetryService, "_has_prior_event", return_value=False)
+    def test_emit_player_login_includes_client_version(self, _mock_has_prior_event: MagicMock) -> None:
+        svc, buf = self._make_service()
+        svc.emit_player_login(
+            player_id="p-login",
+            session_id="session-login",
+            client_version="1.2.3",
+        )
+        event = buf.get(timeout=1)
+        self.assertEqual(event.event_type, EVENT_PLAYER_LOGIN)
+        self.assertEqual(event.session_id, "session-login")
+        self.assertEqual(event.properties["client_version"], "1.2.3")
+
+    @patch.object(PlayerTelemetryService, "_has_prior_event", return_value=False)
+    def test_emit_first_operation_started_includes_client_version(self, _mock_has_prior_event: MagicMock) -> None:
+        svc, buf = self._make_service()
+        svc.emit_first_operation_started(
+            player_id="p-op",
+            session_id="session-op",
+            client_version="2.0.0",
+        )
+        event = buf.get(timeout=1)
+        self.assertEqual(event.event_type, EVENT_FIRST_OPERATION_STARTED)
+        self.assertEqual(event.properties["client_version"], "2.0.0")
+
+    @patch.object(PlayerTelemetryService, "_has_prior_event", return_value=False)
+    def test_emit_first_upgrade_started_includes_client_version(self, _mock_has_prior_event: MagicMock) -> None:
+        svc, buf = self._make_service()
+        svc.emit_first_upgrade_started(
+            player_id="p-up-start",
+            session_id=None,
+            client_version="2.0.1",
+        )
+        event = buf.get(timeout=1)
+        self.assertEqual(event.event_type, EVENT_FIRST_UPGRADE_STARTED)
+        self.assertEqual(event.properties["client_version"], "2.0.1")
+
+    @patch.object(PlayerTelemetryService, "_has_prior_event", return_value=False)
+    def test_emit_first_upgrade_completed_includes_client_version(self, _mock_has_prior_event: MagicMock) -> None:
+        svc, buf = self._make_service()
+        svc.emit_first_upgrade_completed(
+            player_id="p-up-complete",
+            session_id=None,
+            client_version="2.0.2",
+        )
+        event = buf.get(timeout=1)
+        self.assertEqual(event.event_type, EVENT_FIRST_UPGRADE_COMPLETED)
+        self.assertEqual(event.properties["client_version"], "2.0.2")
+
+    @patch.object(PlayerTelemetryService, "_has_prior_event", return_value=False)
+    def test_emit_first_market_purchase_includes_client_version(self, _mock_has_prior_event: MagicMock) -> None:
+        svc, buf = self._make_service()
+        svc.emit_first_market_purchase(
+            player_id="p-market",
+            session_id=None,
+            client_version="2.0.3",
+        )
+        event = buf.get(timeout=1)
+        self.assertEqual(event.event_type, EVENT_FIRST_MARKET_PURCHASE)
+        self.assertEqual(event.properties["client_version"], "2.0.3")
+
+    @patch.object(PlayerTelemetryService, "_has_prior_event", return_value=True)
+    def test_emit_first_market_purchase_is_suppressed_when_event_exists(self, _mock_has_prior_event: MagicMock) -> None:
+        svc, buf = self._make_service()
+        svc.emit_first_market_purchase(
+            player_id="p-market",
+            session_id=None,
+            client_version="2.0.3",
+        )
+        with self.assertRaises(queue.Empty):
+            buf.get_nowait()
 
     def test_each_event_has_unique_event_id(self) -> None:
         svc, buf = self._make_service()
@@ -288,6 +366,35 @@ class AnalyticsBackendServiceTests(unittest.TestCase):
             ]
             # Should not raise (no URL configured → silent noop)
             backend.send_batch(events)
+
+
+class ProgressionFunnelQueryTests(unittest.TestCase):
+    def test_query_progression_funnel_returns_error_without_database(self) -> None:
+        with patch("domain.telemetry.service.database_is_configured", return_value=False):
+            result = query_progression_funnel()
+        self.assertEqual(result, {"error": "database_unavailable"})
+
+    def test_query_progression_funnel_maps_stage_counts_dropoff_and_medians(self) -> None:
+        mock_cursor = MagicMock()
+        mock_cursor.fetchone.return_value = (10, 8, 5, 3, 2, 60.0, 120.0, 1800.0, 300.0)
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value.__enter__.return_value = mock_cursor
+        mock_open_connection = MagicMock()
+        mock_open_connection.return_value.__enter__.return_value = mock_conn
+
+        with patch("domain.telemetry.service.database_is_configured", return_value=True), patch(
+            "domain.telemetry.service.open_connection",
+            mock_open_connection,
+        ):
+            result = query_progression_funnel(cohort_date="2026-08-19")
+
+        self.assertEqual(result["cohort_date"], "2026-08-19")
+        counts = {stage["event_type"]: stage["player_count"] for stage in result["stages"]}
+        self.assertEqual(counts["player_login"], 10)
+        self.assertEqual(counts["first_market_purchase"], 2)
+        self.assertEqual(result["drop_off"]["first_operation_started"], 0.2)
+        self.assertEqual(result["median_stage_durations_seconds"]["login_to_operation"], 60.0)
+        self.assertEqual(result["median_stage_durations_seconds"]["upgrade_start_to_complete"], 1800.0)
 
 
 if __name__ == "__main__":

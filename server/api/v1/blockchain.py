@@ -35,6 +35,7 @@ from domain.economy.read_models import project_player_reward_balances
 from domain.genesis.service import get_genesis_service
 from domain.mining.service import MiningSimulationService
 from domain.mining.contracts import SimulationBoundaryEvent
+from domain.telemetry.service import get_telemetry_service
 from psycopg.types.json import Jsonb
 from shared.database import database_is_configured, open_connection
 from shared.logging import get_logger
@@ -544,6 +545,14 @@ def start_operation_intent(
         base_hashrate_hps=payload.base_hashrate_hps,
         started_at=started_at,
     )
+    try:
+        get_telemetry_service().emit_first_operation_started(
+            player_id=player_id,
+            session_id=resolved_session_id,
+            client_version="unknown",
+        )
+    except Exception:
+        pass
     return OperationIntentResponse(
         operation_id=payload.operation_id,
         player_id=player_id,
