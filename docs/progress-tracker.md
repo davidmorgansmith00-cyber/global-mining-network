@@ -105,7 +105,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 |---|---|---|---|---|
 | GMN-SC-01/02: Mining Pools + Reward Distribution | In Progress | P0 | M3 slice implementation brief | M2 reward settlement + ledger baseline |
 | GMN-SC-03: Player Marketplace | In Progress | P0 | M3 slice implementation brief | GMN-EC-05 inventory + ledger audit trail |
-| GMN-SC-04: Leaderboards | In Progress | P1 | M3 slice implementation brief | Effective hashrate cache + ledger read models |
+| GMN-SC-04: Leaderboards | Done | P1 | M3 slice implementation brief | Effective hashrate cache + ledger read models |
 | GMN-SC-06: Anti-Cheat v1 | In Progress | P1 | M3 slice implementation brief | Ledger audit trail + marketplace activity signals |
 
 **Delivery Sequence:** GMN-SC-01/02 → GMN-SC-03 → GMN-SC-04 → GMN-SC-06
@@ -173,9 +173,9 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
    - Finish pool creation, membership, and deterministic reward-share policy coverage
    - Keep reward distribution ledger-backed and replay-safe
 
-2. **Validate GMN-SC-03/04 social economy surfaces**
+2. **Continue GMN-SC-03 social economy hardening**
    - Marketplace settlement atomicity and inventory-safety validated via player marketplace integration coverage (`tests/integration/test_player_marketplace_api.py`)
-   - Refresh and verify leaderboard materialization queries against authoritative state
+   - Leaderboard materialization refresh and authoritative-state validation added via `tests/integration/test_leaderboards_api.py`
 
 3. **Harden GMN-SC-06 anti-cheat baseline**
    - Keep anomaly scoring server-side only
@@ -190,7 +190,7 @@ Whenever meaningful progress changes:
 3. Record blockers or risks.
 4. Update next actions.
 
-**Last update:** 2026-08-19T01:00:00Z (GMN-SC-03 marketplace validation coverage added)
+**Last update:** 2026-08-19T01:46:00Z (GMN-SC-04 leaderboard refresh + integration validation added)
 
 ---
 
