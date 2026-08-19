@@ -276,7 +276,7 @@ Whenever meaningful progress changes:
 
 **Delivery Date:** 2026-08-19  
 **PR:** #23 — `feat(ui): implement UI V2 HUD, shared design tokens, UIRoot layer hierarchy, and debug toggle`  
-**Status:** ✅ Slices 1–7 Complete and Merged
+**Status:** ✅ Slices 1–8 Complete and Merged
 
 ### Summary
 
@@ -291,7 +291,7 @@ PR #23 delivered the full V2 HUD foundation and control layer on top of the V1 s
 | Slice 5 | Surface stubs (Mine, Hardware, Power, Storage, Market, Network) | ✅ Done |
 | Slice 6 | Menu stubs (MainMenu, PauseMenu, SettingsMenu) | ✅ Done |
 | Slice 7 | DebugLayer migration; all V1 debug surfaces behind developer toggle | ✅ Done |
-| Slice 8 | Visual hierarchy, responsive, accessibility pass | ⏳ Pending (world UI phase) |
+| Slice 8 | Visual hierarchy, responsive, accessibility pass | ✅ Done |
 
 ### Architecture Validation
 
@@ -314,7 +314,7 @@ PR #23 delivered the full V2 HUD foundation and control layer on top of the V1 s
 
 ### Next Step
 
-Slice 8 (visual hierarchy, responsive, accessibility pass) is the final V2 step before the world UI build phase begins. See `docs/client-ui-roadmap-v2.md §13 Slice 8` and `docs/world-scene-v1-asset-pack-and-implementation-plan.md` for the world UI dependency chain.
+UI V2 is now closed. Proceed to world UI build phase using the completed V2 hierarchy as baseline. See `docs/world-scene-v1-asset-pack-and-implementation-plan.md` and `docs/ui-v2-slice-8-signoff.md`.
 
 ---
 
@@ -357,5 +357,5 @@ V2 is built on top of V1. All working server bindings, event buses, and read mod
 ---
 
 **Version:** 2.4 (UI V2 Roadmap Transition)
-**Status:** ✅ Complete — V2 Slices 1–7 delivered (PR #23); see Section 18 for archive details
-**Next Review Date:** After Slice 8 (visual hierarchy/responsive/accessibility pass)
+**Status:** ✅ Complete — V2 Slices 1–8 delivered (PR #23 + Slice 8 closure); see Section 18 for archive details
+**Next Review Date:** At world UI phase kickoff

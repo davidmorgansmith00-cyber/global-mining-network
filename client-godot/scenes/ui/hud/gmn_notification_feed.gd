@@ -33,6 +33,7 @@ func _ready() -> void:
 		lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		lbl.custom_minimum_size = Vector2(304.0, 24.0)
 		lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		lbl.focus_mode = Control.FOCUS_ALL
 		if _container:
 			_container.add_child(lbl)
 		_labels.append(lbl)
@@ -84,3 +85,8 @@ func _priority_colour(priority: int) -> Color:
 			return GmnUiTokens.ACCENT_SUCCESS
 		_:
 			return GmnUiTokens.TEXT_SECONDARY
+
+func get_primary_focus_target() -> Control:
+	if not _labels.is_empty():
+		return _labels[0]
+	return null

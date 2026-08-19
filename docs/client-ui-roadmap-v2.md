@@ -463,7 +463,7 @@ Work vertically. Each slice is shippable.
 2. Confirm developer toggle works; V1 and V2 values comparable during dev.
 3. Verify player-facing screens contain no debug artifacts.
 
-### Slice 8 — Visual Hierarchy and Responsive Pass
+### Slice 8 — Visual Hierarchy and Responsive Pass ✅
 1. Apply final token pass across all surfaces so HUD, overlays, and world scene read as one world UI system.
 2. Verify at 1080p, 1440p, and UI scale options.
 3. Accessibility pass: focus graph, WCAG AA contrast, font scale.
