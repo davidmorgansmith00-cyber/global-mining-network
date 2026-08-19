@@ -33,6 +33,10 @@ class_name GmnHUDRoot
 @onready var _surface_details: Label                    = $SurfacePanel/SurfaceDetails
 @onready var _connection_state: Label                   = $ConnectionState
 @onready var _sync_meta: Label                          = $SyncMeta
+@onready var _header_surface: Panel                     = $HeaderSurface
+@onready var _operation_surface: Panel                  = $OperationSurface
+@onready var _network_surface: Panel                    = $NetworkSurface
+@onready var _surface_panel: Panel                      = $SurfacePanel
 
 var _controller: GameplayShellController
 var _action_in_progress := false
@@ -40,6 +44,8 @@ var _last_rendered_block_number := -1
 var _last_rendered_reward_balance := -1.0
 
 func _ready() -> void:
+	_apply_visual_tokens()
+	_configure_focus_graph()
 	_controller = get_node_or_null(controller_path)
 	_nav_bar.surface_selected.connect(_on_surface_selected)
 	_start_operation_button.pressed.connect(_on_start_operation_pressed)
@@ -52,6 +58,66 @@ func _ready() -> void:
 	if _controller != null and _controller.player_id != "" and _operation_id_input.text == "op_client_1":
 		_operation_id_input.text = "op_%s" % _controller.player_id.left(8)
 	_render_sync_meta()
+
+func _apply_visual_tokens() -> void:
+	_apply_panel_style(_header_surface, GmnUiTokens.BG_PANEL_ALT, GmnUiTokens.ACCENT_PRIMARY)
+	_apply_panel_style(_operation_surface, GmnUiTokens.BG_PANEL, GmnUiTokens.LINE_SUBTLE)
+	_apply_panel_style(_network_surface, GmnUiTokens.BG_PANEL, GmnUiTokens.LINE_SUBTLE)
+	_apply_panel_style(_surface_panel, GmnUiTokens.BG_PANEL, GmnUiTokens.LINE_SUBTLE)
+	_apply_label_style(_surface_title, GmnUiTokens.ACCENT_PRIMARY, GmnUiTokens.SIZE_H3)
+	_apply_label_style(_surface_status, GmnUiTokens.TEXT_PRIMARY, GmnUiTokens.SIZE_BODY)
+	_apply_label_style(_surface_hint, GmnUiTokens.TEXT_SECONDARY, GmnUiTokens.SIZE_SMALL)
+	_apply_label_style(_surface_readout, GmnUiTokens.TEXT_PRIMARY, GmnUiTokens.SIZE_BODY)
+	_apply_label_style(_surface_details, GmnUiTokens.TEXT_SECONDARY, GmnUiTokens.SIZE_SMALL)
+	_apply_label_style(_connection_state, GmnUiTokens.ACCENT_WARNING, GmnUiTokens.SIZE_MICRO)
+	_apply_label_style(_sync_meta, GmnUiTokens.TEXT_SECONDARY, GmnUiTokens.SIZE_MICRO)
+
+func _apply_panel_style(panel: Panel, background: Color, border: Color) -> void:
+	if panel == null:
+		return
+	var style := StyleBoxFlat.new()
+	style.bg_color = background
+	style.border_width_left = 1
+	style.border_width_top = 1
+	style.border_width_right = 1
+	style.border_width_bottom = 1
+	style.border_color = border
+	style.corner_radius_top_left = 6
+	style.corner_radius_top_right = 6
+	style.corner_radius_bottom_left = 6
+	style.corner_radius_bottom_right = 6
+	panel.add_theme_stylebox_override("panel", style)
+
+func _apply_label_style(label: Label, colour: Color, size: int) -> void:
+	if label == null:
+		return
+	label.add_theme_color_override("font_color", colour)
+	label.add_theme_font_size_override("font_size", size)
+
+func _configure_focus_graph() -> void:
+	var nav_first := _nav_bar.get_first_focusable() if _nav_bar != null else null
+	if nav_first and _operation_id_input:
+		nav_first.focus_neighbor_bottom = nav_first.get_path_to(_operation_id_input)
+		_operation_id_input.focus_neighbor_top = _operation_id_input.get_path_to(nav_first)
+	var focus_chain: Array[Control] = [
+		_operation_id_input,
+		_start_operation_button,
+		_stop_operation_button,
+		_market_item_input,
+		_market_quantity_input,
+		_purchase_button,
+	]
+	var valid_chain: Array[Control] = []
+	for node in focus_chain:
+		if node != null:
+			node.focus_mode = Control.FOCUS_ALL
+			valid_chain.append(node)
+	for i in range(valid_chain.size() - 1):
+		valid_chain[i].focus_neighbor_bottom = valid_chain[i].get_path_to(valid_chain[i + 1])
+		valid_chain[i + 1].focus_neighbor_top = valid_chain[i + 1].get_path_to(valid_chain[i])
+	var notification_target := _notifications.get_primary_focus_target() if _notifications != null else null
+	if notification_target and valid_chain.size() > 0:
+		valid_chain[valid_chain.size() - 1].focus_neighbor_bottom = valid_chain[valid_chain.size() - 1].get_path_to(notification_target)
 
 ## Call after GameplayShellController.refresh_authoritative_views() completes.
 func refresh_from_controller() -> void:

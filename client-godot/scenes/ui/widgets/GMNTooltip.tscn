@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes/ui/widgets/gmn_tooltip.gd" id="1"]
+
+[node name="GMNTooltip" type="PanelContainer"]
+visible = false
+script = ExtResource("1")

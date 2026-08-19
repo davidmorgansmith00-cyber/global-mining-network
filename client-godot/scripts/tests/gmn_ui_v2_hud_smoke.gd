@@ -21,6 +21,8 @@ func run() -> Dictionary:
 	failures.append_array(_test_resource_strip())
 	failures.append_array(_test_notification_feed())
 	failures.append_array(_test_nav_bar())
+	failures.append_array(_test_widget_library())
+	failures.append_array(_test_accessibility_contrast_and_scale())
 
 	return {"ok": failures.is_empty(), "failures": failures}
 
@@ -172,3 +174,83 @@ func _test_nav_bar() -> Array[String]:
 
 	nav.free()
 	return f
+
+# ─── Widget Library ─────────────────────────────────────────────────────────────
+
+func _test_widget_library() -> Array[String]:
+	var f: Array[String] = []
+	var button := GmnButton.new()
+	if "primary" not in button.VARIANTS or "ghost" not in button.VARIANTS:
+		f.append("gmn_button: missing required variants")
+	if "focus" not in button.STATES:
+		f.append("gmn_button: missing focus state")
+
+	var panel := GmnPanel.new()
+	panel._ready()
+	if panel.header_slot == null or panel.body_slot == null or panel.footer_slot == null:
+		f.append("gmn_panel: missing header/body/footer slots")
+
+	var progress := GmnProgressBar.new()
+	progress.max_value = 100.0
+	progress.value = 90.0
+	if progress._threshold_colour() != GmnUiTokens.ACCENT_SUCCESS:
+		f.append("gmn_progress_bar: high values should be green")
+	progress.value = 50.0
+	if progress._threshold_colour() != GmnUiTokens.ACCENT_WARNING:
+		f.append("gmn_progress_bar: mid values should be amber")
+	progress.value = 10.0
+	if progress._threshold_colour() != GmnUiTokens.ACCENT_DANGER:
+		f.append("gmn_progress_bar: low values should be red")
+
+	var tooltip := GmnTooltip.new()
+	if abs(tooltip.hover_delay_seconds - 0.25) > 0.001:
+		f.append("gmn_tooltip: hover delay must default to 0.25s")
+	if int(tooltip.max_tooltip_width) != 320:
+		f.append("gmn_tooltip: max width must default to 320px")
+
+	var tab_bar := GmnTabBar.new()
+	tab_bar.tabs = PackedStringArray(["VIDEO", "AUDIO", "INPUT", "GAMEPLAY"])
+	tab_bar.select_tab("AUDIO")
+	if tab_bar.active_tab != "AUDIO":
+		f.append("gmn_tab_bar: tab selection failed")
+
+	button.free()
+	panel.free()
+	progress.free()
+	tooltip.free()
+	tab_bar.free()
+	return f
+
+# ─── Slice 8 accessibility and responsive contract checks ──────────────────────
+
+func _test_accessibility_contrast_and_scale() -> Array[String]:
+	var f: Array[String] = []
+	var settings := GmnAccessibilitySettings.new()
+	for scale in [0.75, 1.0, 1.25, 1.5]:
+		settings.set_ui_scale(scale)
+		if abs(settings.ui_scale - scale) > 0.001:
+			f.append("accessibility: ui scale %s not preserved" % str(scale))
+	var body_contrast := _contrast_ratio(GmnUiTokens.TEXT_PRIMARY, GmnUiTokens.BG_PANEL)
+	var secondary_contrast := _contrast_ratio(GmnUiTokens.TEXT_SECONDARY, GmnUiTokens.BG_PANEL)
+	if body_contrast < 4.5:
+		f.append("wcag: body text contrast below 4.5:1")
+	if secondary_contrast < 3.0:
+		f.append("wcag: large/secondary text contrast below 3:1")
+	return f
+
+func _contrast_ratio(a: Color, b: Color) -> float:
+	var la := _relative_luminance(a)
+	var lb := _relative_luminance(b)
+	var hi := max(la, lb)
+	var lo := min(la, lb)
+	return (hi + 0.05) / (lo + 0.05)
+
+func _relative_luminance(colour: Color) -> float:
+	var channels := [colour.r, colour.g, colour.b]
+	var linear: Array[float] = []
+	for value in channels:
+		if value <= 0.03928:
+			linear.append(value / 12.92)
+		else:
+			linear.append(pow((value + 0.055) / 1.055, 2.4))
+	return (0.2126 * linear[0]) + (0.7152 * linear[1]) + (0.0722 * linear[2])

@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes/ui/widgets/gmn_progress_bar.gd" id="1"]
+
+[node name="GMNProgressBar" type="Control"]
+custom_minimum_size = Vector2(320, 20)
+script = ExtResource("1")

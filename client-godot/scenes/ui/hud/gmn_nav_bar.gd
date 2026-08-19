@@ -59,6 +59,7 @@ func _build_nav() -> void:
 		btn.pressed.connect(func() -> void: _on_section_pressed(section_captured))
 
 	_update_button_states()
+	_enforce_focus_ring()
 
 func _on_section_pressed(section_id: String) -> void:
 	if section_id in _locked_sections:
@@ -80,3 +81,24 @@ func _update_button_states() -> void:
 			btn.add_theme_color_override("font_color", GmnUiTokens.ACCENT_PRIMARY)
 		else:
 			btn.remove_theme_color_override("font_color")
+
+func get_first_focusable() -> Control:
+	return _buttons.get(NAV_SECTIONS[0])
+
+func get_last_focusable() -> Control:
+	return _buttons.get(NAV_SECTIONS[NAV_SECTIONS.size() - 1])
+
+func _enforce_focus_ring() -> void:
+	for i in range(NAV_SECTIONS.size()):
+		var section := NAV_SECTIONS[i]
+		var btn: Button = _buttons.get(section)
+		if btn == null:
+			continue
+		var left_section := NAV_SECTIONS[(i - 1 + NAV_SECTIONS.size()) % NAV_SECTIONS.size()]
+		var right_section := NAV_SECTIONS[(i + 1) % NAV_SECTIONS.size()]
+		var left_btn: Button = _buttons.get(left_section)
+		var right_btn: Button = _buttons.get(right_section)
+		if left_btn:
+			btn.focus_neighbor_left = btn.get_path_to(left_btn)
+		if right_btn:
+			btn.focus_neighbor_right = btn.get_path_to(right_btn)
