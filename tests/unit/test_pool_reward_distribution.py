@@ -67,6 +67,30 @@ class PoolRewardDistributionTests(unittest.TestCase):
         self.assertEqual(owner_fee, Decimal("7.500000"))
         self.assertEqual(sum((share.final_share for share in shares), Decimal("0")), Decimal("92.500000"))
 
+    def test_rejects_fee_percentage_outside_allowed_range(self) -> None:
+        with self.assertRaisesRegex(ValueError, "fee_percentage_out_of_range"):
+            self.service.calculate_reward_shares(
+                Decimal("100.000000"),
+                Decimal("10.1"),
+                {"alpha": Decimal("1")},
+            )
+
+    def test_rejects_negative_pool_reward(self) -> None:
+        with self.assertRaisesRegex(ValueError, "pool_reward_must_be_non_negative"):
+            self.service.calculate_reward_shares(
+                Decimal("-0.000001"),
+                Decimal("5"),
+                {"alpha": Decimal("1")},
+            )
+
+    def test_rejects_negative_member_hashrate(self) -> None:
+        with self.assertRaisesRegex(ValueError, "member_hashrate_must_be_non_negative"):
+            self.service.calculate_reward_shares(
+                Decimal("1.000000"),
+                Decimal("5"),
+                {"alpha": Decimal("-1")},
+            )
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

@@ -1,0 +1,38 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes/ui/hud/gmn_resource_strip.gd" id="1"]
+
+[node name="ResourceStrip" type="Control"]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 1280.0
+offset_bottom = 36.0
+script = ExtResource("1")
+credits_label_path = NodePath("CreditsLabel")
+resource_a_label_path = NodePath("ResourceALabel")
+resource_b_label_path = NodePath("ResourceBLabel")
+
+[node name="CreditsLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 6.0
+offset_right = 340.0
+offset_bottom = 30.0
+text = "CREDITS: 0 Ƀ"
+
+[node name="ResourceALabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 360.0
+offset_top = 6.0
+offset_right = 640.0
+offset_bottom = 30.0
+text = ""
+
+[node name="ResourceBLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 660.0
+offset_top = 6.0
+offset_right = 940.0
+offset_bottom = 30.0
+text = ""

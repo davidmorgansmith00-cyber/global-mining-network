@@ -14,8 +14,16 @@ class ToggleVisibilityRequest(BaseModel):
     player_id: str
 
 
+def _refresh_leaderboards() -> None:
+    leaderboard_service.refresh_hashrate_leaderboard()
+    leaderboard_service.refresh_pool_leaderboard()
+    leaderboard_service.refresh_weekly_earnings_leaderboard()
+    leaderboard_service.refresh_wealth_leaderboard()
+
+
 @router.get("/leaderboards/hashrate")
 def get_hashrate_leaderboard(limit: int = 100, offset: int = 0) -> dict:
+    _refresh_leaderboards()
     ranks = leaderboard_service.get_hashrate_leaderboard(limit=limit, offset=offset)
     return {
         "leaderboard": [
@@ -32,6 +40,7 @@ def get_hashrate_leaderboard(limit: int = 100, offset: int = 0) -> dict:
 
 @router.get("/leaderboards/pools")
 def get_pool_leaderboard(limit: int = 50, offset: int = 0) -> dict:
+    _refresh_leaderboards()
     ranks = leaderboard_service.get_pool_leaderboard(limit=limit, offset=offset)
     return {
         "leaderboard": [
@@ -49,6 +58,7 @@ def get_pool_leaderboard(limit: int = 50, offset: int = 0) -> dict:
 
 @router.get("/leaderboards/weekly-earnings")
 def get_weekly_earnings_leaderboard(limit: int = 50, offset: int = 0) -> dict:
+    _refresh_leaderboards()
     ranks = leaderboard_service.get_weekly_earnings_leaderboard(limit=limit, offset=offset)
     return {
         "leaderboard": [
@@ -65,6 +75,7 @@ def get_weekly_earnings_leaderboard(limit: int = 50, offset: int = 0) -> dict:
 
 @router.get("/leaderboards/wealth")
 def get_wealth_leaderboard(limit: int = 50, offset: int = 0) -> dict:
+    _refresh_leaderboards()
     ranks = leaderboard_service.get_wealth_leaderboard(limit=limit, offset=offset)
     return {
         "leaderboard": [
@@ -81,6 +92,7 @@ def get_wealth_leaderboard(limit: int = 50, offset: int = 0) -> dict:
 
 @router.get("/players/{player_id}/leaderboard-position")
 def get_player_leaderboard_position(player_id: str) -> dict:
+    _refresh_leaderboards()
     position = leaderboard_service.get_player_leaderboard_position(player_id)
     return {
         "player_id": position.player_id,
@@ -96,6 +108,7 @@ def get_player_leaderboard_position(player_id: str) -> dict:
 def toggle_leaderboard_visibility(req: ToggleVisibilityRequest) -> dict:
     try:
         new_hidden = leaderboard_service.toggle_leaderboard_visibility(req.player_id)
+        _refresh_leaderboards()
     except RuntimeError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     return {"player_id": req.player_id, "is_hidden": new_hidden}

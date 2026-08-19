@@ -1,0 +1,46 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes/ui/hud/gmn_player_vs_network_panel.gd" id="1"]
+
+[node name="PlayerVsNetworkPanel" type="Control"]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 640.0
+offset_bottom = 100.0
+script = ExtResource("1")
+player_hashrate_label_path = NodePath("PlayerHashrateLabel")
+global_hashrate_label_path = NodePath("GlobalHashrateLabel")
+contribution_label_path = NodePath("ContributionLabel")
+
+[node name="PlayerHashrateLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 8.0
+offset_right = 280.0
+offset_bottom = 72.0
+text = "YOUR HASHRATE\n—"
+
+[node name="VsLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 295.0
+offset_top = 28.0
+offset_right = 335.0
+offset_bottom = 52.0
+text = "vs"
+
+[node name="GlobalHashrateLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 350.0
+offset_top = 8.0
+offset_right = 628.0
+offset_bottom = 72.0
+text = "GLOBAL HASHRATE\n—"
+
+[node name="ContributionLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 76.0
+offset_right = 628.0
+offset_bottom = 96.0
+text = "SHARE  Awaiting network sync"

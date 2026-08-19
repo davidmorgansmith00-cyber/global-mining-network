@@ -64,7 +64,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Marketplace and Trading | **In Progress - M3 Slice 1** | Economy Lead | Player marketplace listing/settlement added on top of ledger-backed inventory and balance rules |
 | Research, Manufacturing, Automation | Planned | Economy Lead | Starts after content and economy baseline |
 | Pools, Social, Notifications | **In Progress - M3 Slice 1** | Gameplay Lead | Pool creation/membership and pool leaderboard surfaces are now part of active implementation |
-| Client Gameplay and UX | **In Progress - UI Phase 8** | Gameplay Lead | Phase 7 accessibility foundation complete; allowlisted local client telemetry collector now added |
+| Client Gameplay and UX | **In Progress - UI V2 (Slices 1–7 in flight)** | Gameplay Lead | UI V1 foundation complete; V2 Slices 1–7 delivered: UIRoot with layer hierarchy, canonical token palette, GlobalBlockHeader, PlayerOperationPanel, PlayerVsNetworkPanel, ResourceStrip, NotificationFeed, GMNNavBar, shared widgets (GMNStatusBadge, GMNStatChip), surface and menu stubs, DebugLayer behind debug_toggle, UIStateController stub autoload, smoke test suite updated |
 | WebSocket and Realtime Delivery | **In Progress - M2 Start** | Backend Lead | Event stream websocket service implemented in M1; M2 aggregated updates ticket (GMN-EC-07) queued |
 | Content Pipeline and Data Ops | **In Progress - M5 Slice 1** | Content Lead | M5-CONTENT-01 draft-7 schemas, content-pack validation, review/rollout scaffolding, and rollback coverage added |
 | Launcher, Installer, Patcher | **In Progress - M4 Slice 1** | Platform Lead | Windows launcher WPF skeleton, patcher service, account UX flows and accessibility baseline created |
@@ -105,7 +105,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 |---|---|---|---|---|
 | GMN-SC-01/02: Mining Pools + Reward Distribution | In Progress | P0 | M3 slice implementation brief | M2 reward settlement + ledger baseline |
 | GMN-SC-03: Player Marketplace | In Progress | P0 | M3 slice implementation brief | GMN-EC-05 inventory + ledger audit trail |
-| GMN-SC-04: Leaderboards | In Progress | P1 | M3 slice implementation brief | Effective hashrate cache + ledger read models |
+| GMN-SC-04: Leaderboards | Done | P1 | M3 slice implementation brief | Effective hashrate cache + ledger read models |
 | GMN-SC-06: Anti-Cheat v1 | In Progress | P1 | M3 slice implementation brief | Ledger audit trail + marketplace activity signals |
 
 **Delivery Sequence:** GMN-SC-01/02 → GMN-SC-03 → GMN-SC-04 → GMN-SC-06
@@ -173,9 +173,9 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
    - Finish pool creation, membership, and deterministic reward-share policy coverage
    - Keep reward distribution ledger-backed and replay-safe
 
-2. **Validate GMN-SC-03/04 social economy surfaces**
-   - Confirm marketplace settlement remains atomic and inventory-safe
-   - Refresh and verify leaderboard materialization queries against authoritative state
+2. **Continue GMN-SC-03 social economy hardening**
+   - Marketplace settlement atomicity and inventory-safety validated via player marketplace integration coverage (`tests/integration/test_player_marketplace_api.py`)
+   - Leaderboard materialization refresh and authoritative-state validation added via `tests/integration/test_leaderboards_api.py`
 
 3. **Harden GMN-SC-06 anti-cheat baseline**
    - Keep anomaly scoring server-side only
@@ -190,7 +190,7 @@ Whenever meaningful progress changes:
 3. Record blockers or risks.
 4. Update next actions.
 
-**Last update:** 2026-08-18T05:05:16Z (M3 Slice 1 social-competitive core implementation started)
+**Last update:** 2026-08-19T01:46:00Z (GMN-SC-04 leaderboard refresh + integration validation added)
 
 ---
 

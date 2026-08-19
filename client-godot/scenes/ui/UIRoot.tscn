@@ -1,0 +1,22 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes/ui/gmn_ui_root.gd" id="1"]
+
+[node name="UIRoot" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+
+[node name="BackgroundLayer" type="CanvasLayer" parent="."]
+
+[node name="HUDLayer" type="CanvasLayer" parent="."]
+
+[node name="ModalLayer" type="CanvasLayer" parent="."]
+
+[node name="NotificationLayer" type="CanvasLayer" parent="."]
+
+[node name="DebugLayer" type="CanvasLayer" parent="."]
