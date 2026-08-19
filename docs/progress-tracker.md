@@ -174,7 +174,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
    - Keep reward distribution ledger-backed and replay-safe
 
 2. **Validate GMN-SC-03/04 social economy surfaces**
-   - Confirm marketplace settlement remains atomic and inventory-safe
+   - Marketplace settlement atomicity and inventory-safety validated via player marketplace integration coverage (`tests/integration/test_player_marketplace_api.py`)
    - Refresh and verify leaderboard materialization queries against authoritative state
 
 3. **Harden GMN-SC-06 anti-cheat baseline**
@@ -190,7 +190,7 @@ Whenever meaningful progress changes:
 3. Record blockers or risks.
 4. Update next actions.
 
-**Last update:** 2026-08-18T05:05:16Z (M3 Slice 1 social-competitive core implementation started)
+**Last update:** 2026-08-19T01:00:00Z (GMN-SC-03 marketplace validation coverage added)
 
 ---
 
