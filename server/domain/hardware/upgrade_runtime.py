@@ -9,6 +9,7 @@ from psycopg.errors import UniqueViolation
 
 from domain.hardware.upgrade_service import HardwareUpgradeService
 from domain.market.service import NpcMarketService
+from domain.telemetry.service import get_telemetry_service
 from shared.database import database_is_configured, open_connection
 
 UPGRADE_DURATION_SECONDS = 86400
@@ -73,6 +74,14 @@ class HardwareUpgradeRuntimeService:
                 connection.commit()
         except UniqueViolation:
             return {"status": "rejected", "reason": "upgrade_conflict"}
+        try:
+            get_telemetry_service().emit_first_upgrade_started(
+                player_id=player_id,
+                session_id=None,
+                client_version="unknown",
+            )
+        except Exception:
+            pass
         return {"status": "running", "upgrade_id": str(upgrade_id), "hardware_id": hardware_id, "started_at": now, "completes_at": completes_at, "completion_confirmed": False}
 
     def current(self, *, player_id: str) -> dict[str, object]:
@@ -91,6 +100,14 @@ class HardwareUpgradeRuntimeService:
                     result["status"] = "completed"
                     result["completed_at"] = datetime.now(UTC)
                     result["completion_confirmed"] = True
+                    try:
+                        get_telemetry_service().emit_first_upgrade_completed(
+                            player_id=player_id,
+                            session_id=None,
+                            client_version="unknown",
+                        )
+                    except Exception:
+                        pass
                 return result
 
     @staticmethod

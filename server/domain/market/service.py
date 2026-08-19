@@ -265,6 +265,14 @@ class NpcMarketService:
                     )
                 except Exception:
                     pass  # telemetry must never affect player experience
+            try:
+                get_telemetry_service().emit_first_market_purchase(
+                    player_id=player_id,
+                    session_id=None,
+                    client_version="unknown",
+                )
+            except Exception:
+                pass  # telemetry must never affect player experience
             return PurchaseResult(success=True, receipt=receipt)
         return PurchaseResult(success=False, error="transaction_conflict")
 

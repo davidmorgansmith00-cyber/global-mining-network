@@ -41,6 +41,11 @@ EVENT_OFFLINE_PROGRESS = "offline_progress"
 EVENT_SESSION_START = "session_start"
 EVENT_SESSION_END = "session_end"
 EVENT_BALANCE_MILESTONE = "balance_milestone"
+EVENT_PLAYER_LOGIN = "player_login"
+EVENT_FIRST_OPERATION_STARTED = "first_operation_started"
+EVENT_FIRST_UPGRADE_STARTED = "first_upgrade_started"
+EVENT_FIRST_UPGRADE_COMPLETED = "first_upgrade_completed"
+EVENT_FIRST_MARKET_PURCHASE = "first_market_purchase"
 CLIENT_EVENT_TYPES = {
     "launcher_handoff_completed",
     "login_succeeded",
@@ -439,6 +444,76 @@ class PlayerTelemetryService:
             },
         )
 
+    def emit_player_login(
+        self,
+        *,
+        player_id: str,
+        session_id: str,
+        client_version: str,
+    ) -> None:
+        self._emit_once(
+            event_type=EVENT_PLAYER_LOGIN,
+            player_id=player_id,
+            session_id=session_id,
+            client_version=client_version,
+        )
+
+    def emit_first_operation_started(
+        self,
+        *,
+        player_id: str,
+        session_id: str | None,
+        client_version: str,
+    ) -> None:
+        self._emit_once(
+            event_type=EVENT_FIRST_OPERATION_STARTED,
+            player_id=player_id,
+            session_id=session_id,
+            client_version=client_version,
+        )
+
+    def emit_first_upgrade_started(
+        self,
+        *,
+        player_id: str,
+        session_id: str | None,
+        client_version: str,
+    ) -> None:
+        self._emit_once(
+            event_type=EVENT_FIRST_UPGRADE_STARTED,
+            player_id=player_id,
+            session_id=session_id,
+            client_version=client_version,
+        )
+
+    def emit_first_upgrade_completed(
+        self,
+        *,
+        player_id: str,
+        session_id: str | None,
+        client_version: str,
+    ) -> None:
+        self._emit_once(
+            event_type=EVENT_FIRST_UPGRADE_COMPLETED,
+            player_id=player_id,
+            session_id=session_id,
+            client_version=client_version,
+        )
+
+    def emit_first_market_purchase(
+        self,
+        *,
+        player_id: str,
+        session_id: str | None,
+        client_version: str,
+    ) -> None:
+        self._emit_once(
+            event_type=EVENT_FIRST_MARKET_PURCHASE,
+            player_id=player_id,
+            session_id=session_id,
+            client_version=client_version,
+        )
+
     def emit_client_event(
         self,
         *,
@@ -463,6 +538,44 @@ class PlayerTelemetryService:
         return True
 
     # -- internal helpers --
+
+    def _emit_once(
+        self,
+        *,
+        event_type: str,
+        player_id: str,
+        session_id: str | None,
+        client_version: str,
+    ) -> None:
+        if self._has_prior_event(event_type=event_type, player_id=player_id):
+            return
+        self._enqueue(
+            event_type=event_type,
+            player_id=player_id,
+            session_id=session_id,
+            properties={"client_version": client_version},
+        )
+
+    @staticmethod
+    def _has_prior_event(*, event_type: str, player_id: str) -> bool:
+        if not database_is_configured():
+            return False
+        try:
+            with open_connection() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        """
+                        SELECT 1
+                        FROM telemetry_events
+                        WHERE event_type = %s
+                          AND player_id = %s
+                        LIMIT 1
+                        """,
+                        (event_type, player_id),
+                    )
+                    return cur.fetchone() is not None
+        except Exception:
+            return False
 
     def _enqueue(
         self,
@@ -551,6 +664,114 @@ def query_funnel_cohort_conversion(cohort_date: str) -> dict[str, Any]:
         "tier3_count": tier3_count,
         "tier2_conversion": round(tier2_count / cohort_size, 4),
         "tier3_conversion": round(tier3_count / cohort_size, 4),
+    }
+
+
+def query_progression_funnel(cohort_date: str | None = None) -> dict[str, Any]:
+    """Return progression funnel stage totals, drop-off rates, and median stage delays."""
+    if not database_is_configured():
+        return {"error": "database_unavailable"}
+
+    params: list[Any] = []
+    cohort_where = ""
+    if cohort_date is not None:
+        cohort_where = "WHERE date(player_login_at) = %s::date"
+        params.append(cohort_date)
+
+    with open_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                f"""
+                WITH per_player AS (
+                    SELECT
+                        player_id,
+                        MIN(CASE WHEN event_type = %s THEN timestamp END) AS player_login_at,
+                        MIN(CASE WHEN event_type = %s THEN timestamp END) AS first_operation_started_at,
+                        MIN(CASE WHEN event_type = %s THEN timestamp END) AS first_upgrade_started_at,
+                        MIN(CASE WHEN event_type = %s THEN timestamp END) AS first_upgrade_completed_at,
+                        MIN(CASE WHEN event_type = %s THEN timestamp END) AS first_market_purchase_at
+                    FROM telemetry_events
+                    GROUP BY player_id
+                ),
+                scoped AS (
+                    SELECT *
+                    FROM per_player
+                    {cohort_where}
+                )
+                SELECT
+                    COUNT(*) FILTER (WHERE player_login_at IS NOT NULL) AS player_login_count,
+                    COUNT(*) FILTER (WHERE first_operation_started_at IS NOT NULL) AS first_operation_started_count,
+                    COUNT(*) FILTER (WHERE first_upgrade_started_at IS NOT NULL) AS first_upgrade_started_count,
+                    COUNT(*) FILTER (WHERE first_upgrade_completed_at IS NOT NULL) AS first_upgrade_completed_count,
+                    COUNT(*) FILTER (WHERE first_market_purchase_at IS NOT NULL) AS first_market_purchase_count,
+                    PERCENTILE_CONT(0.5) WITHIN GROUP (
+                        ORDER BY EXTRACT(EPOCH FROM (first_operation_started_at - player_login_at))
+                    ) FILTER (
+                        WHERE player_login_at IS NOT NULL AND first_operation_started_at IS NOT NULL
+                    ) AS median_login_to_operation_seconds,
+                    PERCENTILE_CONT(0.5) WITHIN GROUP (
+                        ORDER BY EXTRACT(EPOCH FROM (first_upgrade_started_at - first_operation_started_at))
+                    ) FILTER (
+                        WHERE first_operation_started_at IS NOT NULL AND first_upgrade_started_at IS NOT NULL
+                    ) AS median_operation_to_upgrade_start_seconds,
+                    PERCENTILE_CONT(0.5) WITHIN GROUP (
+                        ORDER BY EXTRACT(EPOCH FROM (first_upgrade_completed_at - first_upgrade_started_at))
+                    ) FILTER (
+                        WHERE first_upgrade_started_at IS NOT NULL AND first_upgrade_completed_at IS NOT NULL
+                    ) AS median_upgrade_start_to_complete_seconds,
+                    PERCENTILE_CONT(0.5) WITHIN GROUP (
+                        ORDER BY EXTRACT(EPOCH FROM (first_market_purchase_at - first_upgrade_completed_at))
+                    ) FILTER (
+                        WHERE first_upgrade_completed_at IS NOT NULL AND first_market_purchase_at IS NOT NULL
+                    ) AS median_upgrade_complete_to_market_purchase_seconds
+                FROM scoped
+                """,
+                [
+                    EVENT_PLAYER_LOGIN,
+                    EVENT_FIRST_OPERATION_STARTED,
+                    EVENT_FIRST_UPGRADE_STARTED,
+                    EVENT_FIRST_UPGRADE_COMPLETED,
+                    EVENT_FIRST_MARKET_PURCHASE,
+                    *params,
+                ],
+            )
+            row = cur.fetchone()
+
+    if row is None:
+        return {
+            "cohort_date": cohort_date,
+            "stages": [],
+            "drop_off": {},
+            "median_stage_durations_seconds": {},
+        }
+
+    stage_counts = {
+        EVENT_PLAYER_LOGIN: int(row[0] or 0),
+        EVENT_FIRST_OPERATION_STARTED: int(row[1] or 0),
+        EVENT_FIRST_UPGRADE_STARTED: int(row[2] or 0),
+        EVENT_FIRST_UPGRADE_COMPLETED: int(row[3] or 0),
+        EVENT_FIRST_MARKET_PURCHASE: int(row[4] or 0),
+    }
+    login_count = stage_counts[EVENT_PLAYER_LOGIN]
+
+    def _drop_off(count: int) -> float:
+        if login_count <= 0:
+            return 0.0
+        return round(1.0 - (count / login_count), 4)
+
+    return {
+        "cohort_date": cohort_date,
+        "stages": [
+            {"event_type": event_type, "player_count": player_count}
+            for event_type, player_count in stage_counts.items()
+        ],
+        "drop_off": {event_type: _drop_off(player_count) for event_type, player_count in stage_counts.items()},
+        "median_stage_durations_seconds": {
+            "login_to_operation": float(row[5]) if row[5] is not None else None,
+            "operation_to_upgrade_start": float(row[6]) if row[6] is not None else None,
+            "upgrade_start_to_complete": float(row[7]) if row[7] is not None else None,
+            "upgrade_complete_to_market_purchase": float(row[8]) if row[8] is not None else None,
+        },
     }
 
 

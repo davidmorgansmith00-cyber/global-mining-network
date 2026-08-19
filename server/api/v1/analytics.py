@@ -18,6 +18,7 @@ from domain.telemetry.service import (
     query_churn_risk_players,
     query_funnel_cohort_conversion,
     query_funnel_time_to_tier,
+    query_progression_funnel,
     query_purchase_frequency,
     query_retention_funnel,
 )
@@ -56,6 +57,19 @@ def get_funnel_conversion(
     """Return Tier 1→2→3 conversion rates for players created on cohort_date."""
     _require_auth(request)
     result = query_funnel_cohort_conversion(cohort_date)
+    if "error" in result:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=result["error"])
+    return result
+
+
+@router.get("/progression-funnel", status_code=status.HTTP_200_OK)
+def get_progression_funnel(
+    request: Request,
+    cohort_date: str | None = Query(None, description="Optional cohort date in YYYY-MM-DD format"),
+) -> dict:
+    """Return progression funnel counts, drop-off rates, and median inter-stage durations."""
+    _require_auth(request)
+    result = query_progression_funnel(cohort_date=cohort_date)
     if "error" in result:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=result["error"])
     return result
@@ -105,4 +119,3 @@ def get_purchase_frequency(request: Request) -> dict:
     if "error" in result:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=result["error"])
     return result
-

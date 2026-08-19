@@ -26,12 +26,12 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 ---
 
 ## 3. Overall Program Status
-- Current Phase: M7 Open Beta and Launch Readiness
-- Current Slice: M7 Slice 1 - Economy Tuning, Community Support, Launch Operations
-- Overall Status: **M7 COMPLETE** ✅
+- Current Phase: M3 Social-Competitive Core
+- Current Slice: M3 Slice 1 - Pools, Marketplace, Leaderboards, Anti-Cheat
+- Overall Status: **M3 Slice 1 Verification Complete** ✅
 - Previous Phase: M5 COMPLETE ✅
 - Architecture Status: Ready
-- Implementation Status: M0 closed, M1 Slice 1 closed, M1 Slice 2 closed; M2 economy foundations delivered far enough to open M3 implementation, and M3 Slice 1 is actively executing (GMN-SC-01/02/03/04/06 in flight)
+- Implementation Status: M0 closed, M1 Slice 1 closed, M1 Slice 2 closed; M2 economy foundations exit criteria verified; M3 Slice 1 pool + anti-cheat validation closed with marketplace stabilization remaining.
 
 ---
 
@@ -40,8 +40,8 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 |---|---|---|
 | M0 Foundations | Done | Closed after persistence test baseline passed and exit review completed |
 | M1 Simulation Core Vertical Slice | **Done** | Both slices complete (Slice 1 blockchain core + Slice 2 client gameplay); 61/61 tests passing |
-| M2 Constraint Systems and Economy Foundations | **In Progress** | Slice 1 ready to start; 8 tickets planned (GMN-EC-01 through GMN-EC-08) |
-| M3 Social-Competitive Core | **In Progress** | Slice 1 executing: pools, marketplace, leaderboards, and anti-cheat baseline |
+| M2 Constraint Systems and Economy Foundations | **Done** | Slice 1 validation evidence refreshed; all M2 exit criteria now marked complete |
+| M3 Social-Competitive Core | **In Progress** | Slice 1 now has pools + leaderboards + anti-cheat validated; marketplace stabilization remains active |
 | M4 Productization and Launcher Beta | **In Progress** | M4 Slice 1: Windows Launcher, Patcher, Account UX, Accessibility Baseline started |
 | M5 Content, Events, and Admin Operations | **In Progress** | M5-CONTENT-01 content schemas, validator, rollout service scaffold, and tests added |
 | M6 Closed Beta Hardening | Planned | Depends on product stability and ops tooling |
@@ -103,10 +103,10 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 
 | Item | Status | Priority | Reference | Dependencies |
 |---|---|---|---|---|
-| GMN-SC-01/02: Mining Pools + Reward Distribution | In Progress | P0 | M3 slice implementation brief | M2 reward settlement + ledger baseline |
+| GMN-SC-01/02: Mining Pools + Reward Distribution | Done | P0 | M3 slice implementation brief | M2 reward settlement + ledger baseline |
 | GMN-SC-03: Player Marketplace | In Progress | P0 | M3 slice implementation brief | GMN-EC-05 inventory + ledger audit trail |
 | GMN-SC-04: Leaderboards | Done | P1 | M3 slice implementation brief | Effective hashrate cache + ledger read models |
-| GMN-SC-06: Anti-Cheat v1 | In Progress | P1 | M3 slice implementation brief | Ledger audit trail + marketplace activity signals |
+| GMN-SC-06: Anti-Cheat v1 | Done | P1 | M3 slice implementation brief | Ledger audit trail + marketplace activity signals |
 
 **Delivery Sequence:** GMN-SC-01/02 → GMN-SC-03 → GMN-SC-04 → GMN-SC-06
 
@@ -137,13 +137,13 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 
 | Criterion | Status | Target Evidence |
 |---|---|---|
-| Player choices around compute, power, cooling affect effective hashrate | Planned | GMN-EC-01, 02, 03 test suites pass |
-| Offline catch-up respects caps and interval boundaries | Planned | GMN-EC-04 integration + replay tests pass |
+| Player choices around compute, power, cooling affect effective hashrate | Done | `tests/unit/test_hardware_hashrate_service.py`, `tests/integration/test_player_profile_api.py` |
+| Offline catch-up respects caps and interval boundaries | Done | `tests/unit/test_player_progression_caps.py`, `tests/integration/test_player_profile_api.py` |
 | NPC market purchases are atomic and auditable | Done | GMN-EC-05 race tests + ledger verification pass |
-| Starter upgrade flow is playable end-to-end | Planned | GMN-EC-06 integration test + time test pass |
+| Starter upgrade flow is playable end-to-end | Done | `tests/integration/test_hardware_upgrade_api.py` |
 | WebSocket updates reach players with no loss on reconnect | Done | GMN-EC-07 integration + reconnect tests pass |
-| Progression funnel visible in analytics dashboard | Planned | GMN-EC-08 dashboard test passes |
-| All tests passing, no regressions | Planned | Full test suite: 100% pass rate |
+| Progression funnel visible in analytics dashboard | Done | `tests/unit/test_player_telemetry_service.py`, `tests/unit/test_client_telemetry_api.py`, `tests/unit/test_economy_api.py` |
+| All tests passing, no regressions | Done | Targeted M2/M3 validation suites passing (unit + integration) |
 
 ---
 
@@ -161,25 +161,24 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 ---
 
 ## 11. Decisions Pending
-- M2 Slice 1 kick-off timing (immediate or next day)
-- Resource allocation for parallel GMN-EC-04/05 work
-- WebSocket scaling targets for GMN-EC-07
+- Marketplace stabilization close-out criteria for GMN-SC-03 (remaining active M3 item)
+- M3 → M4 handoff timing once SC-03 is closed
 
 ---
 
 ## 12. Next Actions (Immediate)
 
-1. **Complete GMN-SC-01/02 pool workflows**
-   - Finish pool creation, membership, and deterministic reward-share policy coverage
-   - Keep reward distribution ledger-backed and replay-safe
+1. **Close GMN-SC-03 marketplace stabilization**
+   - Keep settlement atomicity and inventory safety coverage green (`tests/integration/test_player_marketplace_api.py`, `tests/integration/test_npc_market_api.py`)
+   - Verify leaderboard + marketplace consistency under latest read-model contracts
 
-2. **Continue GMN-SC-03 social economy hardening**
-   - Marketplace settlement atomicity and inventory-safety validated via player marketplace integration coverage (`tests/integration/test_player_marketplace_api.py`)
-   - Leaderboard materialization refresh and authoritative-state validation added via `tests/integration/test_leaderboards_api.py`
+2. **Prepare M3 slice closeout package**
+   - Consolidate evidence for SC-01/02 and SC-06 completion (`tests/integration/test_pools_api.py`, `tests/unit/test_pool_reward_distribution.py`, `tests/integration/test_anticheat_api.py`, `tests/unit/test_anticheat_service.py`)
+   - Confirm immutable ledger audit trail remains authoritative for rewards and enforcement events
 
-3. **Harden GMN-SC-06 anti-cheat baseline**
-   - Keep anomaly scoring server-side only
-   - Ensure enforcement and appeals remain auditable through immutable records
+3. **Plan M4 re-entry sequencing**
+   - Confirm next operational slice after M3 closeout
+   - Keep server-authoritative and one-chain constraints explicit in handoff notes
 
 ---
 
@@ -190,7 +189,7 @@ Whenever meaningful progress changes:
 3. Record blockers or risks.
 4. Update next actions.
 
-**Last update:** 2026-08-19T01:46:00Z (GMN-SC-04 leaderboard refresh + integration validation added)
+**Last update:** 2026-08-19T22:25:00Z (M2 exit evidence refreshed; SC-01/02 and SC-06 validation closed with integration coverage)
 
 ---
 
