@@ -86,6 +86,14 @@ class PoolService:
                     (owner_id.strip(), pool_name.strip(), description, str(fee_percentage), now),
                 )
                 row = cur.fetchone()
+                cur.execute(
+                    """
+                    INSERT INTO pool_members (pool_id, player_id, joined_at)
+                    VALUES (%s, %s, %s)
+                    ON CONFLICT (pool_id, player_id) DO NOTHING
+                    """,
+                    (row[0], owner_id.strip(), now),
+                )
             conn.commit()
         return str(row[0])
 
