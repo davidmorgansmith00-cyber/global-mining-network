@@ -292,6 +292,13 @@ class PoolService:
         fee_percentage: Decimal,
         member_hashrates: dict[str, Decimal],
     ) -> tuple[Decimal, list[RewardShare]]:
+        if pool_reward < Decimal("0"):
+            raise ValueError("pool_reward_must_be_non_negative")
+        if fee_percentage < MIN_FEE_PERCENTAGE or fee_percentage > MAX_FEE_PERCENTAGE:
+            raise ValueError("fee_percentage_out_of_range")
+        if any(hashrate < Decimal("0") for hashrate in member_hashrates.values()):
+            raise ValueError("member_hashrate_must_be_non_negative")
+
         if not member_hashrates:
             return pool_reward.quantize(_MIN_UNIT), []
 
