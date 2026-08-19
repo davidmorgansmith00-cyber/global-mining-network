@@ -5,4 +5,3 @@
 ## See: docs/client-ui-roadmap-v2.md §11 for the planned scene-architecture note.
 
 extends Node
-class_name GmnUIStateController

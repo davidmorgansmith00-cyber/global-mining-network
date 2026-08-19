@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://scripts/ui/gameplay_shell_scene_root.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/ui/gameplay_shell_controller.gd" id="2"]
 [ext_resource type="Script" path="res://scripts/ui/gameplay_shell_panel.gd" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/ui/UIRoot.tscn" id="4"]
 
 [node name="GameplayShellRoot" type="Control"]
 layout_mode = 3
@@ -17,6 +18,7 @@ script = ExtResource("1")
 script = ExtResource("2")
 
 [node name="GameplayShellPanel" type="Control" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -54,6 +56,8 @@ active_events_label_path = NodePath("ActiveEventsLabel")
 pools_label_path = NodePath("PoolsLabel")
 leaderboard_label_path = NodePath("LeaderboardLabel")
 player_rank_label_path = NodePath("PlayerRankLabel")
+
+[node name="UIRoot" parent="." instance=ExtResource("4")]
 
 [node name="BlockNumberLabel" type="Label" parent="GameplayShellPanel"]
 layout_mode = 0

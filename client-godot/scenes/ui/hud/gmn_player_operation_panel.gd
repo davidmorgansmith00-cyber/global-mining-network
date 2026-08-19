@@ -33,7 +33,7 @@ enum MachineStatus { MINING, IDLE, THROTTLED, OFFLINE, UPGRADING, UNKNOWN }
 ## Source: PlayerProfile (hardware, base_hashrate), EffectiveHashrateService,
 ##         PowerState, CoolingState, OperationIntent, UpgradeState
 func update_from_payloads(profile: Dictionary, machine: Dictionary) -> void:
-	var hw   := profile.get("hardware", profile)
+	var hw: Dictionary = profile.get("hardware", profile) as Dictionary
 	var name := str(hw.get("name", hw.get("hardware_name", "—")))
 	var tier := str(hw.get("tier", ""))
 	var base_hps   := float(hw.get("base_hashrate", 0.0))
@@ -44,7 +44,7 @@ func update_from_payloads(profile: Dictionary, machine: Dictionary) -> void:
 	var heat       := float(machine.get("heat", 0.0))
 	var cooling_eff := float(machine.get("cooling_efficiency", 1.0))
 	var op_status  := str(machine.get("operation_status", machine.get("status", "idle")))
-	var upgrade    := machine.get("upgrade_state", {})
+	var upgrade: Dictionary = machine.get("upgrade_state", {}) as Dictionary
 
 	if _machine_name:
 		var display_name := name

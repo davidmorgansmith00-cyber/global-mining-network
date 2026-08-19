@@ -24,11 +24,7 @@ const PLAYER_LEADERBOARD_POSITION_PATH := "/api/v1/players/%s/leaderboard-positi
 
 var base_url: String = "http://127.0.0.1:8000"
 var session: GmnSession = GmnSession.new()
-var _http: HTTPRequest
-
-func _ready() -> void:
-	_http = HTTPRequest.new()
-	add_child(_http)
+const REQUEST_TIMEOUT_SECONDS := 10.0
 
 func configure(url: String) -> void:
 	base_url = url.rstrip("/")
@@ -257,6 +253,9 @@ func is_authenticated() -> bool:
 	return session.is_valid()
 
 func _request_json(method: HTTPClient.Method, url: String, payload: Dictionary = {}) -> Dictionary:
+	var request := HTTPRequest.new()
+	request.timeout = REQUEST_TIMEOUT_SECONDS
+	add_child(request)
 	var body := ""
 	var headers: PackedStringArray = []
 	
@@ -268,8 +267,9 @@ func _request_json(method: HTTPClient.Method, url: String, payload: Dictionary =
 	if session.access_token != "":
 		headers.append("Authorization: Bearer %s" % session.access_token)
 	
-	var error := _http.request(url, headers, method, body)
+	var error := request.request(url, headers, method, body)
 	if error != OK:
+		request.queue_free()
 		return {
 			"ok": false,
 			"status_code": 0,
@@ -277,7 +277,8 @@ func _request_json(method: HTTPClient.Method, url: String, payload: Dictionary =
 			"error_code": error,
 		}
 
-	var completed: Array = await _http.request_completed
+	var completed: Array = await request.request_completed
+	request.queue_free()
 	var request_result: int = completed[0]
 	var response_code: int = completed[1]
 	var response_body: PackedByteArray = completed[3]

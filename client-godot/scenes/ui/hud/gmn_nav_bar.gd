@@ -55,7 +55,7 @@ func _build_nav() -> void:
 		btn.focus_mode = Control.FOCUS_ALL
 		_buttons[section] = btn
 		hbox.add_child(btn)
-		var section_captured := section
+		var section_captured: String = section
 		btn.pressed.connect(func() -> void: _on_section_pressed(section_captured))
 
 	_update_button_states()

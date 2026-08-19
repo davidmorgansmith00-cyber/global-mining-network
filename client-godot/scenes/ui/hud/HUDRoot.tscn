@@ -1,0 +1,234 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scenes/ui/hud/gmn_hud_root.gd" id="1_hud"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud/GlobalBlockHeader.tscn" id="2_header"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud/ResourceStrip.tscn" id="3_resources"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud/PlayerOperationPanel.tscn" id="4_operation"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud/PlayerVsNetworkPanel.tscn" id="5_network"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud/GMNNavBar.tscn" id="6_nav"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud/NotificationFeed.tscn" id="7_notifications"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.055, 0.09, 0.11, 0.94)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.16, 0.28, 0.31, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_header"]
+bg_color = Color(0.07, 0.13, 0.15, 0.98)
+border_width_bottom = 2
+border_color = Color(0.18, 0.72, 0.68, 0.9)
+
+[node name="HUDRoot" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_hud")
+controller_path = NodePath("../../../GameplayShellController")
+
+[node name="HeaderSurface" type="Panel" parent="."]
+layout_mode = 0
+offset_right = 1280.0
+offset_bottom = 76.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_header")
+
+[node name="HeaderTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 70.0
+offset_right = 360.0
+offset_bottom = 92.0
+text = "GLOBAL NETWORK / LIVE OPERATION"
+theme_override_colors/font_color = Color(0.48, 0.8, 0.78, 1)
+theme_override_font_sizes/font_size = 12
+
+[node name="ConnectionState" type="Label" parent="."]
+layout_mode = 0
+offset_left = 1030.0
+offset_top = 70.0
+offset_right = 1260.0
+offset_bottom = 92.0
+text = "NETWORK / CONNECTING"
+horizontal_alignment = 2
+theme_override_colors/font_color = Color(0.95, 0.74, 0.32, 1)
+theme_override_font_sizes/font_size = 12
+
+[node name="OperationSurface" type="Panel" parent="."]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 124.0
+offset_right = 592.0
+offset_bottom = 400.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="NetworkSurface" type="Panel" parent="."]
+layout_mode = 0
+offset_left = 604.0
+offset_top = 124.0
+offset_right = 1268.0
+offset_bottom = 300.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="OperationTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 36.0
+offset_top = 138.0
+offset_right = 320.0
+offset_bottom = 160.0
+text = "YOUR OPERATION"
+theme_override_colors/font_color = Color(0.48, 0.8, 0.78, 1)
+theme_override_font_sizes/font_size = 12
+
+[node name="NetworkTitle" type="Label" parent="."]
+layout_mode = 0
+offset_left = 628.0
+offset_top = 138.0
+offset_right = 980.0
+offset_bottom = 160.0
+text = "YOU VS THE NETWORK"
+theme_override_colors/font_color = Color(0.48, 0.8, 0.78, 1)
+theme_override_font_sizes/font_size = 12
+
+[node name="SurfacePanel" type="Panel" parent="."]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 416.0
+offset_right = 1268.0
+offset_bottom = 652.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="SurfaceTitle" type="Label" parent="SurfacePanel"]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 18.0
+offset_right = 500.0
+offset_bottom = 48.0
+text = "MINE"
+theme_override_colors/font_color = Color(0.48, 0.8, 0.78, 1)
+theme_override_font_sizes/font_size = 18
+
+[node name="SurfaceStatus" type="Label" parent="SurfacePanel"]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 62.0
+offset_right = 1180.0
+offset_bottom = 96.0
+text = "Operation control and network contribution"
+theme_override_colors/font_color = Color(0.78, 0.84, 0.84, 1)
+theme_override_font_sizes/font_size = 16
+
+[node name="SurfaceHint" type="Label" parent="SurfacePanel"]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 116.0
+offset_right = 1180.0
+offset_bottom = 150.0
+text = "Select a network surface to inspect its current authoritative state."
+theme_override_colors/font_color = Color(0.45, 0.56, 0.58, 1)
+theme_override_font_sizes/font_size = 13
+
+[node name="SurfaceReadout" type="Label" parent="SurfacePanel"]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 154.0
+offset_right = 1180.0
+offset_bottom = 190.0
+text = "AUTHORITATIVE READOUT  Awaiting session data"
+theme_override_colors/font_color = Color(0.64, 0.73, 0.73, 1)
+theme_override_font_sizes/font_size = 14
+
+[node name="OperationIdInput" type="LineEdit" parent="SurfacePanel"]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 184.0
+offset_right = 230.0
+offset_bottom = 212.0
+placeholder_text = "operation_id"
+text = "op_client_1"
+
+[node name="StartOperationButton" type="Button" parent="SurfacePanel"]
+layout_mode = 0
+offset_left = 242.0
+offset_top = 184.0
+offset_right = 382.0
+offset_bottom = 212.0
+text = "START OPERATION"
+
+[node name="StopOperationButton" type="Button" parent="SurfacePanel"]
+layout_mode = 0
+offset_left = 394.0
+offset_top = 184.0
+offset_right = 534.0
+offset_bottom = 212.0
+text = "STOP OPERATION"
+
+[node name="MarketItemInput" type="LineEdit" parent="SurfacePanel"]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 184.0
+offset_right = 230.0
+offset_bottom = 212.0
+placeholder_text = "market item_id"
+visible = false
+
+[node name="MarketQuantityInput" type="LineEdit" parent="SurfacePanel"]
+layout_mode = 0
+offset_left = 242.0
+offset_top = 184.0
+offset_right = 350.0
+offset_bottom = 212.0
+placeholder_text = "quantity"
+text = "1"
+visible = false
+
+[node name="PurchaseButton" type="Button" parent="SurfacePanel"]
+layout_mode = 0
+offset_left = 362.0
+offset_top = 184.0
+offset_right = 502.0
+offset_bottom = 212.0
+text = "PURCHASE"
+visible = false
+
+[node name="SurfaceDetails" type="Label" parent="SurfacePanel"]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 216.0
+offset_right = 1180.0
+offset_bottom = 244.0
+text = "ADDITIONAL READ MODELS  Awaiting network sync"
+theme_override_colors/font_color = Color(0.45, 0.56, 0.58, 1)
+theme_override_font_sizes/font_size = 13
+
+[node name="GlobalBlockHeader" parent="." instance=ExtResource("2_header")]
+layout_mode = 0
+anchors_preset = 0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_right = 1280.0
+offset_bottom = 72.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="ResourceStrip" parent="." instance=ExtResource("3_resources")]
+position = Vector2(0, 82)
+
+[node name="PlayerOperationPanel" parent="." instance=ExtResource("4_operation")]
+position = Vector2(24, 164)
+
+[node name="PlayerVsNetworkPanel" parent="." instance=ExtResource("5_network")]
+position = Vector2(616, 164)
+
+[node name="GMNNavBar" parent="." instance=ExtResource("6_nav")]
+position = Vector2(0, 660)
+
+[node name="NotificationFeed" parent="." instance=ExtResource("7_notifications")]

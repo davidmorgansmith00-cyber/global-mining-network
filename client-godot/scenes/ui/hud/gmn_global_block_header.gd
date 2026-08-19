@@ -26,7 +26,7 @@ class_name GmnGlobalBlockHeader
 ## Update all fields from server-provided BlockStatus payload.
 ## Never called with locally-computed values.
 func update_from_block_status(payload: Dictionary) -> void:
-	var active := payload.get("active_block", payload)
+	var active: Dictionary = payload.get("active_block", payload) as Dictionary
 	var block_number: int = int(active.get("block_number", 0))
 	var difficulty: float = float(active.get("difficulty", 0.0))
 	var global_hashrate: float = float(

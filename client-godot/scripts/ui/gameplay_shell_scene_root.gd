@@ -64,6 +64,9 @@ func _ready() -> void:
 			str(session_payload.get("access_token", "")),
 			str(session_payload.get("refresh_token", "")),
 		)
+	else:
+		call_deferred("_return_to_onboarding")
+		return
 
 	_bind_action_signals()
 
@@ -72,6 +75,10 @@ func _ready() -> void:
 		_panel.render_from_controller(_controller)
 	_sync_reauthentication_action()
 
+func _return_to_onboarding() -> void:
+	if is_inside_tree():
+		await get_tree().change_scene_to_file("res://scenes/onboarding.tscn")
+
 func configure_session(player: String, session: String, access_token: String, refresh_token: String) -> void:
 	if _controller == null:
 		return
@@ -79,14 +86,19 @@ func configure_session(player: String, session: String, access_token: String, re
 	await _controller.refresh_authoritative_views()
 	if _panel != null:
 		_panel.render_from_controller(_controller)
+	var hud_root := get_node_or_null("UIRoot/HUDLayer/HUDRoot")
+	if hud_root != null and hud_root.has_method("refresh_from_controller"):
+		hud_root.refresh_from_controller()
 	_sync_reauthentication_action()
 
 func _process(delta: float) -> void:
 	if _controller == null or _panel == null:
 		return
 
-	for _message in _controller.poll_stream_once():
-		pass
+	for message in _controller.poll_stream_once():
+		var hud_root := get_node_or_null("UIRoot/HUDLayer/HUDRoot")
+		if hud_root != null and hud_root.has_method("handle_stream_message"):
+			hud_root.handle_stream_message(message)
 
 	_time_until_refresh -= delta
 	if _time_until_refresh <= 0.0:
