@@ -24,6 +24,7 @@ class BlockchainStatusResponse(BaseModel):
     active_required_work: Decimal
     active_accumulated_work: Decimal
     active_progress_ratio: Decimal
+    global_hashrate: Decimal = Decimal("0")
     recent_outcomes: list[RecentBlockOutcome]
     market_catalog: list[MarketCatalogItemResponse]
 
@@ -117,6 +118,10 @@ class OperationIntentResponse(BaseModel):
     accepted: bool
     status: str
     detail: str
+
+
+class OperationRuntimeStatusResponse(OperationIntentResponse):
+    base_hashrate_hps: Decimal
 
 
 class CleanupResponse(BaseModel):

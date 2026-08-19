@@ -4,10 +4,10 @@
 
 [node name="NotificationFeed" type="Control"]
 layout_mode = 0
-offset_left = 960.0
-offset_top = 80.0
+offset_left = 900.0
+offset_top = 312.0
 offset_right = 1264.0
-offset_bottom = 220.0
+offset_bottom = 404.0
 script = ExtResource("1")
 container_path = NodePath("NotificationContainer")
 

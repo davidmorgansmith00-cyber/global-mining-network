@@ -13,10 +13,10 @@ WORK_QUANTIZE = Decimal("0.000001")
 
 @dataclass(frozen=True)
 class DifficultyConfig:
-    target_block_seconds: int = 10
-    history_window_size: int = 10
-    max_upward_adjustment_pct: Decimal = Decimal("0.20")
-    max_downward_adjustment_pct: Decimal = Decimal("0.20")
+    target_block_seconds: int = 60
+    history_window_size: int = 20
+    max_upward_adjustment_pct: Decimal = Decimal("0.10")
+    max_downward_adjustment_pct: Decimal = Decimal("0.10")
     minimum_required_work: Decimal = Decimal("1")
 
 

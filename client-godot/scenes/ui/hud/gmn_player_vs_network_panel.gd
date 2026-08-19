@@ -22,12 +22,12 @@ func update_from_payloads(effective_hps: float, global_hps: float, contribution_
 	if _player_hashrate:
 		_player_hashrate.text = "YOUR HASHRATE\n%s" % _fmt_hps(effective_hps)
 	if _global_hashrate:
-		_global_hashrate.text = "GLOBAL HASHRATE\n%s" % _fmt_hps(global_hps)
+		_global_hashrate.text = "GLOBAL HASHRATE\n%s" % (_fmt_hps(global_hps) if global_hps > 0.0 else "Server readout pending")
 	if _contribution:
 		if contribution_pct != null and str(contribution_pct) != "":
 			_contribution.text = "SHARE  %.6f%%" % float(contribution_pct)
 		else:
-			_contribution.text = "SHARE  Awaiting network sync"
+			_contribution.text = "SHARE  Server contribution readout pending"
 
 func _fmt_hps(hps: float) -> String:
 	if hps >= 1_000_000_000_000.0:

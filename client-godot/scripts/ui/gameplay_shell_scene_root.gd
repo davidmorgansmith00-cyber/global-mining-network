@@ -103,9 +103,12 @@ func _process(delta: float) -> void:
 	_time_until_refresh -= delta
 	if _time_until_refresh <= 0.0:
 		_time_until_refresh = refresh_interval_seconds
-		var _ignored = await _controller.refresh_authoritative_views()
+		var _ignored = await _controller.refresh_primary_authoritative_views()
 		if auto_render:
 			_panel.render_from_controller(_controller)
+		var hud_root := get_node_or_null("UIRoot/HUDLayer/HUDRoot")
+		if hud_root != null and hud_root.has_method("refresh_from_controller"):
+			hud_root.refresh_from_controller()
 		_sync_reauthentication_action()
 
 func refresh_now() -> void:
@@ -113,6 +116,9 @@ func refresh_now() -> void:
 		return
 	var _ignored = await _controller.refresh_authoritative_views()
 	_panel.render_from_controller(_controller)
+	var hud_root := get_node_or_null("UIRoot/HUDLayer/HUDRoot")
+	if hud_root != null and hud_root.has_method("refresh_from_controller"):
+		hud_root.refresh_from_controller()
 
 func _bind_action_signals() -> void:
 	if _start_operation_button != null and not _start_operation_button.pressed.is_connected(_on_start_operation_pressed):
@@ -217,7 +223,11 @@ func _set_action_status(text: String) -> void:
 func _format_action_response(action: String, response: Dictionary) -> String:
 	if not response.get("ok", false):
 		var status_code := int(response.get("status_code", 0))
-		return "%s intent failed (status=%d)" % [action, status_code]
+		var payload: Variant = response.get("payload", {})
+		var detail := str(response.get("error", "server rejected request"))
+		if payload is Dictionary:
+			detail = str((payload as Dictionary).get("detail", detail))
+		return "%s intent failed (status=%d): %s" % [action, status_code, detail]
 
 	var payload: Variant = response.get("payload", {})
 	if payload is Dictionary:

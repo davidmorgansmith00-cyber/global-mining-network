@@ -38,12 +38,15 @@ func update_from_payloads(profile: Dictionary, machine: Dictionary) -> void:
 	var tier := str(hw.get("tier", ""))
 	var base_hps   := float(hw.get("base_hashrate", 0.0))
 	var eff_hps    := float(machine.get("effective_hashrate", 0.0))
-	var power_cur  := float(machine.get("power_consumption", machine.get("power", 0.0)))
-	var power_cap  := float(machine.get("power_budget", machine.get("power_limit", 0.0)))
-	var throttle   := float(machine.get("power_throttle", machine.get("throttle_multiplier", 1.0)))
-	var heat       := float(machine.get("heat", 0.0))
-	var cooling_eff := float(machine.get("cooling_efficiency", 1.0))
+	var power_cur  := float(machine.get("power_consumption", machine.get("power_consumed", machine.get("power", 0.0))))
+	var power_cap  := float(machine.get("power_budget", machine.get("power_capacity", machine.get("power_limit", 0.0))))
+	var throttle   := float(machine.get("power_throttle", machine.get("power_throttle_multiplier", machine.get("throttle_multiplier", 1.0))))
+	var heat       := float(machine.get("heat", machine.get("heat_generated", 0.0)))
+	var cooling_eff := float(machine.get("cooling_efficiency", machine.get("cooling_efficiency_multiplier", 1.0)))
 	var op_status  := str(machine.get("operation_status", machine.get("status", "idle")))
+	var profile_effective_hps := float(profile.get("effective_hashrate", eff_hps))
+	if eff_hps <= 0.0 and profile_effective_hps > 0.0:
+		eff_hps = profile_effective_hps
 	var upgrade: Dictionary = machine.get("upgrade_state", {}) as Dictionary
 
 	if _machine_name:
@@ -81,7 +84,7 @@ func _apply_status_badge(op_status: String, throttle: float, heat: float) -> voi
 	var colour: Color = GmnUiTokens.TEXT_SECONDARY
 
 	match status:
-		"MINING", "ACTIVE", "RUNNING":
+		"MINING", "ACTIVE", "RUNNING", "STARTED", "ALREADY_RUNNING":
 			status = "● MINING"
 			colour = GmnUiTokens.ACCENT_SUCCESS
 		"UPGRADING":

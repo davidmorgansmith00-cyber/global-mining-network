@@ -38,15 +38,15 @@ controller_path = NodePath("../../../GameplayShellController")
 [node name="HeaderSurface" type="Panel" parent="."]
 layout_mode = 0
 offset_right = 1280.0
-offset_bottom = 76.0
+offset_bottom = 96.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_header")
 
 [node name="HeaderTitle" type="Label" parent="."]
 layout_mode = 0
 offset_left = 16.0
-offset_top = 70.0
+offset_top = 78.0
 offset_right = 360.0
-offset_bottom = 92.0
+offset_bottom = 94.0
 text = "GLOBAL NETWORK / LIVE OPERATION"
 theme_override_colors/font_color = Color(0.48, 0.8, 0.78, 1)
 theme_override_font_sizes/font_size = 12
@@ -54,18 +54,29 @@ theme_override_font_sizes/font_size = 12
 [node name="ConnectionState" type="Label" parent="."]
 layout_mode = 0
 offset_left = 1030.0
-offset_top = 70.0
+offset_top = 78.0
 offset_right = 1260.0
-offset_bottom = 92.0
+offset_bottom = 94.0
 text = "NETWORK / CONNECTING"
 horizontal_alignment = 2
 theme_override_colors/font_color = Color(0.95, 0.74, 0.32, 1)
 theme_override_font_sizes/font_size = 12
 
+[node name="SyncMeta" type="Label" parent="."]
+layout_mode = 0
+offset_left = 520.0
+offset_top = 78.0
+offset_right = 820.0
+offset_bottom = 94.0
+text = "SYNC / WAITING FOR AUTHORITATIVE SNAPSHOT"
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(0.45, 0.56, 0.58, 1)
+theme_override_font_sizes/font_size = 11
+
 [node name="OperationSurface" type="Panel" parent="."]
 layout_mode = 0
 offset_left = 12.0
-offset_top = 124.0
+offset_top = 136.0
 offset_right = 592.0
 offset_bottom = 400.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
@@ -73,7 +84,7 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 [node name="NetworkSurface" type="Panel" parent="."]
 layout_mode = 0
 offset_left = 604.0
-offset_top = 124.0
+offset_top = 136.0
 offset_right = 1268.0
 offset_bottom = 300.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
@@ -81,7 +92,7 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 [node name="OperationTitle" type="Label" parent="."]
 layout_mode = 0
 offset_left = 36.0
-offset_top = 138.0
+offset_top = 150.0
 offset_right = 320.0
 offset_bottom = 160.0
 text = "YOUR OPERATION"
@@ -91,7 +102,7 @@ theme_override_font_sizes/font_size = 12
 [node name="NetworkTitle" type="Label" parent="."]
 layout_mode = 0
 offset_left = 628.0
-offset_top = 138.0
+offset_top = 150.0
 offset_right = 980.0
 offset_bottom = 160.0
 text = "YOU VS THE NETWORK"
@@ -220,13 +231,13 @@ grow_horizontal = 0
 grow_vertical = 0
 
 [node name="ResourceStrip" parent="." instance=ExtResource("3_resources")]
-position = Vector2(0, 82)
+position = Vector2(0, 100)
 
 [node name="PlayerOperationPanel" parent="." instance=ExtResource("4_operation")]
-position = Vector2(24, 164)
+position = Vector2(24, 176)
 
 [node name="PlayerVsNetworkPanel" parent="." instance=ExtResource("5_network")]
-position = Vector2(616, 164)
+position = Vector2(616, 176)
 
 [node name="GMNNavBar" parent="." instance=ExtResource("6_nav")]
 position = Vector2(0, 660)

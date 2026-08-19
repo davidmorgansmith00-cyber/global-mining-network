@@ -16,9 +16,9 @@ class_name GmnResourceStrip
 
 ## Update from server-provided balance/inventory payload.
 func update_from_payload(payload: Dictionary) -> void:
-	var balance: Variant = payload.get("balance", payload.get("credits", 0.0))
+	var balance: Variant = payload.get("reward_balance", payload.get("balance", payload.get("credits", 0.0)))
 	if _credits:
-		_credits.text = "CREDITS: %s Ƀ" % _fmt_balance(float(balance))
+		_credits.text = "CREDITS AVAILABLE: %s" % _fmt_balance(float(balance))
 	var resources: Array = payload.get("resources", [])
 	if resources.size() > 0 and _resource_a:
 		var r: Dictionary = resources[0] as Dictionary

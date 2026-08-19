@@ -22,6 +22,9 @@ var latest_events_payload: Dictionary = {}
 var latest_pools_payload: Dictionary = {}
 var latest_leaderboard_payload: Dictionary = {}
 var latest_position_payload: Dictionary = {}
+var latest_operation_payload: Dictionary = {}
+var tracked_operation_id: String = "op_client_1"
+var last_authoritative_refresh_unix_seconds: int = 0
 var ui_state := GameplayShellUiState.new()
 var _refresh_in_progress := false
 
@@ -95,7 +98,8 @@ func refresh_authoritative_views() -> Dictionary:
 			"history": {"ok": false, "error": "missing_player_id", "status_code": 401},
 			"events": {"ok": false, "error": "missing_player_id", "status_code": 401},
 		}
-	ui_state.set_loading()
+	if latest_status_payload.is_empty():
+		ui_state.set_loading()
 	var status_response: Dictionary = await api_client.fetch_status(status_recent_limit)
 	var snapshot_response: Dictionary = await api_client.fetch_snapshot(status_recent_limit)
 	var rewards_response: Dictionary = await api_client.fetch_rewards(player_id, rewards_recent_limit)
@@ -106,6 +110,7 @@ func refresh_authoritative_views() -> Dictionary:
 	var pools_response: Dictionary = await api_client.fetch_pools()
 	var leaderboard_response: Dictionary = await api_client.fetch_hashrate_leaderboard()
 	var position_response: Dictionary = await api_client.fetch_player_leaderboard_position(player_id)
+	var operation_response: Dictionary = await api_client.fetch_operation_status(tracked_operation_id)
 	var successful_response_count := 0
 
 	if status_response.get("ok", false):
@@ -134,9 +139,14 @@ func refresh_authoritative_views() -> Dictionary:
 		latest_leaderboard_payload = leaderboard_response.get("payload", {})
 	if position_response.get("ok", false):
 		latest_position_payload = position_response.get("payload", {})
+	if operation_response.get("ok", false):
+		latest_operation_payload = operation_response.get("payload", {}) as Dictionary
 
 	if successful_response_count == 4:
 		ui_state.set_ready()
+		last_authoritative_refresh_unix_seconds = int(Time.get_unix_time_from_system())
+		if not stream_client.is_stream_open():
+			stream_client.connect_global_events(player_id, session_id, stream_limit)
 	elif successful_response_count > 0:
 		ui_state.set_stale("Some authoritative views could not be refreshed")
 	else:
@@ -160,6 +170,36 @@ func refresh_authoritative_views() -> Dictionary:
 		"pools": pools_response,
 		"leaderboard": leaderboard_response,
 		"position": position_response,
+	}
+
+func refresh_primary_authoritative_views() -> Dictionary:
+	if _refresh_in_progress or player_id == "":
+		return {"ok": false, "skipped": true}
+	_refresh_in_progress = true
+	var status_response: Dictionary = await api_client.fetch_status(status_recent_limit)
+	var snapshot_response: Dictionary = await api_client.fetch_snapshot(status_recent_limit)
+	var profile_response: Dictionary = await api_client.fetch_player_profile(player_id)
+	var operation_response: Dictionary = await api_client.fetch_operation_status(tracked_operation_id)
+	if status_response.get("ok", false):
+		latest_status_payload = status_response.get("payload", {})
+	if snapshot_response.get("ok", false):
+		latest_snapshot_payload = snapshot_response.get("payload", {})
+		stream_client.set_cursor(max(stream_client.reconnect_cursor, int(latest_snapshot_payload.get("reconnect_cursor", 0))))
+	if profile_response.get("ok", false):
+		latest_profile_payload = profile_response.get("payload", {})
+	if operation_response.get("ok", false):
+		latest_operation_payload = operation_response.get("payload", {}) as Dictionary
+	if status_response.get("ok", false) and snapshot_response.get("ok", false) and profile_response.get("ok", false):
+		ui_state.set_ready()
+		last_authoritative_refresh_unix_seconds = int(Time.get_unix_time_from_system())
+	else:
+		ui_state.set_stale("Primary authoritative state is reconnecting")
+	_refresh_in_progress = false
+	return {
+		"status": status_response,
+		"snapshot": snapshot_response,
+		"profile": profile_response,
+		"operation": operation_response,
 	}
 
 func get_ui_state() -> Dictionary:
@@ -231,7 +271,11 @@ func send_start_operation_intent(operation_id: String, base_hashrate_hps: float)
 			"ok": false,
 			"error": "missing_player_id",
 		}
-	return await api_client.send_operation_start_intent(operation_id, base_hashrate_hps)
+	tracked_operation_id = operation_id
+	var response: Dictionary = await api_client.send_operation_start_intent(operation_id, base_hashrate_hps)
+	if response.get("ok", false):
+		latest_operation_payload = response.get("payload", {}) as Dictionary
+	return response
 
 func send_stop_operation_intent(operation_id: String) -> Dictionary:
 	if player_id == "":
@@ -239,4 +283,8 @@ func send_stop_operation_intent(operation_id: String) -> Dictionary:
 			"ok": false,
 			"error": "missing_player_id",
 		}
-	return await api_client.send_operation_stop_intent(operation_id)
+	tracked_operation_id = operation_id
+	var response: Dictionary = await api_client.send_operation_stop_intent(operation_id)
+	if response.get("ok", false):
+		latest_operation_payload = response.get("payload", {}) as Dictionary
+	return response

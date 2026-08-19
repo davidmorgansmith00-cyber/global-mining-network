@@ -13,6 +13,7 @@ const REWARDS_PATH_TEMPLATE := "/api/v1/blockchain/players/%s/rewards"
 const CHECKPOINT_PATH_TEMPLATE := "/api/v1/blockchain/checkpoints/%s"
 const OPERATION_START_INTENT_PATH := "/api/v1/blockchain/operations/intents/start"
 const OPERATION_STOP_INTENT_PATH := "/api/v1/blockchain/operations/intents/stop"
+const OPERATION_STATUS_PATH_TEMPLATE := "/api/v1/blockchain/operations/%s"
 const MARKET_PURCHASE_PATH := "/api/v1/market/purchase"
 const CLIENT_TELEMETRY_PATH := "/api/v1/telemetry/client"
 const EXPLORER_BLOCKS_PATH := "/api/v1/explorer/blocks"
@@ -198,6 +199,10 @@ func send_operation_stop_intent(operation_id: String) -> Dictionary:
 		url,
 		payload,
 	)
+
+func fetch_operation_status(operation_id: String) -> Dictionary:
+	var url := "%s%s?session_id=%s" % [base_url, OPERATION_STATUS_PATH_TEMPLATE % operation_id, session.session_id]
+	return await _request_json(HTTPClient.METHOD_GET, url)
 
 func build_market_purchase_url() -> String:
 	return "%s%s?session_id=%s" % [base_url, MARKET_PURCHASE_PATH, session.session_id]

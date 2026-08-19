@@ -71,3 +71,4 @@ class PlayerProfileResponse(BaseModel):
     current_hardware: CurrentHardwareInfo | None
     next_recommended_upgrade: NextUpgradeRecommendation | None
     upgrade_progression: list[UpgradeProgressionEntry]
+    reward_balance: Decimal = Decimal("0")

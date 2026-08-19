@@ -27,23 +27,20 @@ class_name GmnGlobalBlockHeader
 ## Never called with locally-computed values.
 func update_from_block_status(payload: Dictionary) -> void:
 	var active: Dictionary = payload.get("active_block", payload) as Dictionary
-	var block_number: int = int(active.get("block_number", 0))
-	var difficulty: float = float(active.get("difficulty", 0.0))
-	var global_hashrate: float = float(
-		payload.get("global_hashrate", active.get("global_hashrate", 0.0))
-	)
-	var progress: float = float(active.get("progress_percent", 0.0))
-	var state: String = str(active.get("state", "unknown"))
+	var block_number: int = int(payload.get("active_block_number", active.get("block_number", 0)))
+	var required_work: float = float(payload.get("active_required_work", active.get("required_work", 0.0)))
+	var progress_ratio: float = float(payload.get("active_progress_ratio", active.get("progress_ratio", 0.0)))
+	var global_hashrate: Variant = payload.get("global_hashrate", active.get("global_hashrate", null))
+	var state: String = str(payload.get("state", active.get("state", "active")))
 
 	if _block_number_label:
 		_block_number_label.text = "BLOCK #%d" % block_number
 	if _difficulty_label:
-		_difficulty_label.text = "DIFFICULTY %.2f TH" % (difficulty / 1_000_000_000_000.0) \
-			if difficulty >= 1_000_000_000_000.0 else "DIFFICULTY %.2f" % difficulty
+		_difficulty_label.text = "REQUIRED WORK %s" % str(payload.get("active_required_work", required_work))
 	if _global_hashrate_label:
-		_global_hashrate_label.text = _format_hashrate(global_hashrate)
+		_global_hashrate_label.text = _format_hashrate(float(global_hashrate)) if global_hashrate != null else "GLOBAL — SERVER FIELD PENDING"
 	if _progress_bar:
-		_progress_bar.value = clampf(progress, 0.0, 100.0)
+		_progress_bar.value = clampf(progress_ratio * 100.0, 0.0, 100.0)
 	if _state_label:
 		_state_label.text = state.to_upper()
 

@@ -32,9 +32,12 @@ class_name GmnHUDRoot
 @onready var _purchase_button: Button                    = $SurfacePanel/PurchaseButton
 @onready var _surface_details: Label                    = $SurfacePanel/SurfaceDetails
 @onready var _connection_state: Label                   = $ConnectionState
+@onready var _sync_meta: Label                          = $SyncMeta
 
 var _controller: GameplayShellController
 var _action_in_progress := false
+var _last_rendered_block_number := -1
+var _last_rendered_reward_balance := -1.0
 
 func _ready() -> void:
 	_controller = get_node_or_null(controller_path)
@@ -46,12 +49,18 @@ func _ready() -> void:
 	if _controller == null or _controller.session_id == "" or _controller.latest_status_payload.is_empty():
 		_show_session_gate()
 	_render_connection_state()
+	if _controller != null and _controller.player_id != "" and _operation_id_input.text == "op_client_1":
+		_operation_id_input.text = "op_%s" % _controller.player_id.left(8)
+	_render_sync_meta()
 
 ## Call after GameplayShellController.refresh_authoritative_views() completes.
 func refresh_from_controller() -> void:
 	if _controller == null:
 		return
+	if _controller.player_id != "" and _operation_id_input.text == "op_client_1":
+		_operation_id_input.text = "op_%s" % _controller.player_id.left(8)
 	_render_connection_state()
+	_render_sync_meta()
 	if _controller.session_id == "" or _controller.latest_status_payload.is_empty():
 		_show_session_gate()
 		return
@@ -65,20 +74,34 @@ func refresh_from_controller() -> void:
 
 	# Refresh global block header
 	_global_block_header.update_from_block_status(status)
+	var active_block_number := int(status.get("active_block_number", 0))
+	if _last_rendered_block_number > 0 and active_block_number > _last_rendered_block_number:
+		_notifications.push_critical("BLOCK #%d FINALIZED  NETWORK ADVANCED TO #%d" % [_last_rendered_block_number, active_block_number])
+	_last_rendered_block_number = active_block_number
 
 	# Refresh player operation panel — machine state from snapshot or status
-	var machine_state: Dictionary = snapshot.get("machine_state", {})
+	var machine_state: Dictionary = snapshot.get("machine_state", {}) as Dictionary
+	if machine_state.is_empty():
+		machine_state = profile.duplicate()
+	if not _controller.latest_operation_payload.is_empty():
+		machine_state["operation_status"] = str(_controller.latest_operation_payload.get("status", "idle"))
 	_player_op.update_from_payloads(profile, machine_state)
 
 	# Refresh player vs network
-	var eff_hps := float(machine_state.get("effective_hashrate", 0.0))
-	var global_hps := float(status.get("global_hashrate", 0.0))
+	var eff_hps := float(profile.get("effective_hashrate", machine_state.get("effective_hashrate", 0.0)))
+	var global_hashrate: Variant = status.get("global_hashrate", null)
+	var global_hps := float(global_hashrate) if global_hashrate != null else 0.0
 	var contribution: Variant = machine_state.get("contribution_percent", null)
 	_vs_network.update_from_payloads(eff_hps, global_hps, contribution)
 
 	# Refresh resource strip
 	var economy: Dictionary = profile.get("economy", profile) as Dictionary
 	_resource_strip.update_from_payload(economy)
+	var reward_balance := float(profile.get("reward_balance", 0.0))
+	_resource_strip.update_from_payload({"reward_balance": reward_balance})
+	if _last_rendered_reward_balance >= 0.0 and reward_balance > _last_rendered_reward_balance:
+		_notifications.push_block_reward(reward_balance - _last_rendered_reward_balance)
+	_last_rendered_reward_balance = reward_balance
 	_render_surface(_nav_bar.get_active_section())
 	_render_connection_state()
 
@@ -100,6 +123,16 @@ func _render_connection_state() -> void:
 	elif state_code == GameplayShellUiState.STALE.to_upper() or state_code == GameplayShellUiState.MAINTENANCE.to_upper():
 		colour = GmnUiTokens.ACCENT_WARNING
 	_connection_state.add_theme_color_override("font_color", colour)
+
+func _render_sync_meta() -> void:
+	if _sync_meta == null or _controller == null:
+		return
+	var refreshed_at := _controller.last_authoritative_refresh_unix_seconds
+	var cursor := _controller.stream_client.reconnect_cursor if _controller.stream_client != null else 0
+	if refreshed_at <= 0:
+		_sync_meta.text = "SYNC / WAITING FOR AUTHORITATIVE SNAPSHOT"
+		return
+	_sync_meta.text = "SYNC / LIVE   CURSOR %d   REFRESHED %s" % [cursor, Time.get_datetime_string_from_unix_time(refreshed_at)]
 
 func handle_stream_message(message: Dictionary) -> void:
 	var event_type := str(message.get("type", message.get("event_type", "network_event")))
@@ -218,10 +251,19 @@ func _render_surface(surface_id: String) -> void:
 				str(machine.get("operation_status", "idle")).to_upper(),
 				str(machine.get("effective_hashrate", profile.get("effective_hashrate", "—"))),
 			]
+			_surface_details.text = "OPERATION  %s    SERVER BASE HASHRATE  %s" % [
+				str(machine.get("operation_status", "idle")).to_upper(),
+				str(profile.get("base_hashrate", "—")),
+			]
 		"HARDWARE":
 			readout = "MACHINE  %s    BASE HASHRATE  %s" % [
 				str(hardware.get("name", profile.get("hardware_id", "—"))),
 				str(hardware.get("base_hashrate", profile.get("base_hashrate", "—"))),
+			]
+			_surface_details.text = "TIER  %s    CURRENT HARDWARE  %s    NEXT UPGRADE  %s" % [
+				str(profile.get("player_tier", "—")),
+				str(profile.get("hardware_id", "—")),
+				str((profile.get("next_recommended_upgrade", {}) as Dictionary).get("name", "None available")),
 			]
 		"POWER":
 			readout = "POWER  %s / %s    THROTTLE  %s" % [
@@ -229,18 +271,22 @@ func _render_surface(surface_id: String) -> void:
 				str(profile.get("power_capacity", machine.get("power_budget", "—"))),
 				str(profile.get("power_throttle_multiplier", machine.get("power_throttle", "—"))),
 			]
+			_surface_details.text = "AVAILABLE HEADROOM  %s    POWER STATE  Server-authoritative" % str(profile.get("power_available", "—"))
 		"STORAGE":
 			readout = "BALANCE  %s    RESOURCES  %s" % [
 				str(economy.get("balance", economy.get("credits", "—"))),
 				str((economy.get("resources", []) as Array).size()),
 			]
+			_surface_details.text = "INVENTORY ITEMS  %s    BALANCE SOURCE  Economy ledger" % str((profile.get("inventory", []) as Array).size())
 		"MARKET":
 			readout = "CATALOG ITEMS  %s    STOCK AND PRICES  SERVER-OWNED" % str((status.get("market_catalog", []) as Array).size())
 			_surface_details.text = "CATALOG  %s items    PURCHASES  Session-bound server intent" % str((status.get("market_catalog", []) as Array).size())
 		"NETWORK":
-			readout = "BLOCK  #%s    GLOBAL HASHRATE  %s" % [
+			readout = "BLOCK  #%s    WORK  %s / %s    PROGRESS  %s%%" % [
 				str(status.get("active_block_number", "—")),
-				str(status.get("global_hashrate", "—")),
+				str(status.get("active_accumulated_work", "—")),
+				str(status.get("active_required_work", "—")),
+				str(float(status.get("active_progress_ratio", 0.0)) * 100.0),
 			]
 			_surface_details.text = "BLOCK HISTORY  %s    EVENTS  %s    POOLS  %s    LEADERBOARD ENTRIES  %s    YOUR RANK  %s" % [
 				str((blocks.get("items", []) as Array).size()),

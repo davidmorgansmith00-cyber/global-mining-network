@@ -251,6 +251,7 @@ class PlayerProfileService:
                         current_hardware=current_hardware,
                         next_recommended_upgrade=next_recommended,
                         upgrade_progression=progression,
+                        reward_balance=current_balance,
                     )
 
         return self._default_profile(player_id=player_id)
@@ -357,6 +358,7 @@ class PlayerProfileService:
             current_hardware=current_hardware,
             next_recommended_upgrade=next_recommended,
             upgrade_progression=progression,
+            reward_balance=Decimal("0"),
         )
 
     def _build_upgrade_fields(

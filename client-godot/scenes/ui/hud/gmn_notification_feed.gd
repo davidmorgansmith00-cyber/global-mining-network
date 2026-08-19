@@ -30,7 +30,9 @@ func _ready() -> void:
 	for i in range(MAX_VISIBLE):
 		var lbl := Label.new()
 		lbl.visible = false
-		lbl.autowrap_mode = TextServer.AUTOWRAP_OFF
+		lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		lbl.custom_minimum_size = Vector2(304.0, 24.0)
+		lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		if _container:
 			_container.add_child(lbl)
 		_labels.append(lbl)

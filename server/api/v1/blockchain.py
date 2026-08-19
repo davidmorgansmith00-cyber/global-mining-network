@@ -3,6 +3,7 @@ import time
 from datetime import UTC, datetime
 from decimal import Decimal
 from threading import Lock
+from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Query, Request, status
 from fastapi import HTTPException
@@ -19,6 +20,7 @@ from domain.blockchain.schemas import (
     CleanupResponse,
     MaintenanceMetricsResponse,
     OperationIntentResponse,
+    OperationRuntimeStatusResponse,
     OperationStartIntentRequest,
     OperationStopIntentRequest,
     NetworkEventsResponse,
@@ -32,6 +34,8 @@ from domain.economy.ledger import PostgresLedgerPoster
 from domain.economy.read_models import project_player_reward_balances
 from domain.genesis.service import get_genesis_service
 from domain.mining.service import MiningSimulationService
+from domain.mining.contracts import SimulationBoundaryEvent
+from psycopg.types.json import Jsonb
 from shared.database import database_is_configured, open_connection
 from shared.logging import get_logger
 from shared.settings import settings
@@ -69,14 +73,114 @@ _operation_intent_transport_requests_total: dict[str, int] = {}
 _runtime_mining_service = _build_runtime_mining_service()
 _operation_runtime_lock = Lock()
 _genesis_service = get_genesis_service()
+_runtime_recovery_complete = False
+
+
+def recover_runtime_operations() -> None:
+    """Replay durable operation history before serving runtime state."""
+    _recover_runtime_operations()
+
+
+def _persist_operation_runtime_event(
+    *,
+    operation_id: str,
+    player_id: str,
+    event_type: str,
+    occurred_at: datetime,
+    base_hashrate_hps: Decimal | None = None,
+    payload: dict[str, object] | None = None,
+) -> None:
+    if not database_is_configured():
+        return
+    with open_connection() as connection:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                INSERT INTO mining_operation_runtime_events (
+                    event_id, operation_id, player_id, event_type,
+                    base_hashrate_hps, payload, occurred_at
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s)
+                """,
+                (
+                    uuid4(),
+                    operation_id,
+                    UUID(player_id),
+                    event_type,
+                    base_hashrate_hps,
+                    Jsonb(payload or {}),
+                    occurred_at,
+                ),
+            )
+
+
+def _recover_runtime_operations() -> None:
+    global _runtime_recovery_complete
+    if _runtime_recovery_complete or not database_is_configured():
+        return
+    with _operation_runtime_lock:
+        if _runtime_recovery_complete:
+            return
+        with open_connection() as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    SELECT operation_id, player_id::text, event_type,
+                           base_hashrate_hps, payload, occurred_at
+                    FROM mining_operation_runtime_events
+                    ORDER BY occurred_at, created_at, event_id
+                    """
+                )
+                events = cursor.fetchall()
+
+        for operation_id, player_id, event_type, base_hashrate, payload, occurred_at in events:
+            try:
+                if event_type == "mining.operation.start.v1":
+                    if operation_id not in _runtime_mining_service.operations:
+                        if base_hashrate is None or Decimal(str(base_hashrate)) <= 0:
+                            continue
+                        _runtime_mining_service.register_operation(
+                            operation_id=operation_id,
+                            player_id=player_id,
+                            base_hashrate_hps=Decimal(str(base_hashrate)),
+                            started_at=occurred_at,
+                        )
+                elif event_type == "mining.operation.stop.v1":
+                    _runtime_mining_service.stop_operation(operation_id=operation_id)
+                elif operation_id in _runtime_mining_service.operations:
+                    _runtime_mining_service.apply_boundary_event(
+                        SimulationBoundaryEvent(
+                            event_type=event_type,
+                            player_id=player_id,
+                            operation_id=operation_id,
+                            occurred_at=occurred_at,
+                            payload=payload or {},
+                        )
+                    )
+            except (ValueError, TypeError):
+                # Malformed histories stay offline; recovery never invents work.
+                _runtime_mining_service.stop_operation(operation_id=operation_id)
+        _runtime_recovery_complete = True
 
 
 def _advance_operation_runtime_once() -> None:
+    _recover_runtime_operations()
     with _operation_runtime_lock:
         operation_ids = list(_runtime_mining_service.operations.keys())
         for operation_id in operation_ids:
             # Process each active operation using authoritative server time.
             _runtime_mining_service.process_tick(operation_id=operation_id)
+
+
+def _get_runtime_global_hashrate() -> Decimal:
+    with _operation_runtime_lock:
+        return sum(
+            (
+                operation.base_hashrate_hps * operation.current_multiplier
+                for operation in _runtime_mining_service.operations.values()
+                if not operation.current_paused
+            ),
+            Decimal("0"),
+        )
 
 
 def _extract_request_source_ip(request: Request) -> str:
@@ -222,6 +326,7 @@ def reset_blockchain_runtime_counters_for_tests(
     global _cleanup_rate_limit_rejections_total
     global _maintenance_auth_scope_requests_total
     global _operation_intent_transport_requests_total
+    global _runtime_recovery_complete
 
     with _metrics_lock:
         _cleanup_runs_total = 0
@@ -241,12 +346,19 @@ def reset_blockchain_runtime_counters_for_tests(
 
     if include_operation_runtime_state:
         _runtime_mining_service.operations.clear()
+        _runtime_recovery_complete = False
+        if database_is_configured():
+            with open_connection() as connection:
+                with connection.cursor() as cursor:
+                    cursor.execute("DELETE FROM mining_operation_runtime_events")
+                connection.commit()
 
 
 @router.get("/status", response_model=BlockchainStatusResponse, status_code=status.HTTP_200_OK)
 def get_blockchain_status(recent_limit: int = Query(default=10, ge=1, le=100)) -> BlockchainStatusResponse:
     _advance_operation_runtime_once()
-    return service.get_status(recent_limit=recent_limit)
+    response = service.get_status(recent_limit=recent_limit)
+    return response.model_copy(update={"global_hashrate": _get_runtime_global_hashrate()})
 
 
 @router.get("/genesis/status", status_code=status.HTTP_200_OK)
@@ -400,6 +512,7 @@ def start_operation_intent(
     if player_id is None:
         raise HTTPException(status_code=401, detail="Invalid session binding")
 
+    _recover_runtime_operations()
     existing = _runtime_mining_service.get_operation_state(operation_id=payload.operation_id)
     if existing is not None:
         if existing.player_id != player_id:
@@ -412,10 +525,24 @@ def start_operation_intent(
             detail="Operation intent accepted; operation is already active",
         )
 
+    started_at = datetime.now(UTC)
+    try:
+        _persist_operation_runtime_event(
+            operation_id=payload.operation_id,
+            player_id=player_id,
+            event_type="mining.operation.start.v1",
+            occurred_at=started_at,
+            base_hashrate_hps=payload.base_hashrate_hps,
+        )
+    except Exception as exc:
+        logger.exception("operation_start_persistence_failed operation_id=%s", payload.operation_id)
+        raise HTTPException(status_code=503, detail="Operation could not be durably started") from exc
+
     _runtime_mining_service.register_operation(
         operation_id=payload.operation_id,
         player_id=player_id,
         base_hashrate_hps=payload.base_hashrate_hps,
+        started_at=started_at,
     )
     return OperationIntentResponse(
         operation_id=payload.operation_id,
@@ -441,11 +568,24 @@ def stop_operation_intent(
     if player_id is None:
         raise HTTPException(status_code=401, detail="Invalid session binding")
 
+    _recover_runtime_operations()
     existing = _runtime_mining_service.get_operation_state(operation_id=payload.operation_id)
     if existing is None:
         raise HTTPException(status_code=404, detail="operation_id not found")
     if existing.player_id != player_id:
         raise HTTPException(status_code=409, detail="operation_id is bound to a different player")
+
+    stopped_at = datetime.now(UTC)
+    try:
+        _persist_operation_runtime_event(
+            operation_id=payload.operation_id,
+            player_id=player_id,
+            event_type="mining.operation.stop.v1",
+            occurred_at=stopped_at,
+        )
+    except Exception as exc:
+        logger.exception("operation_stop_persistence_failed operation_id=%s", payload.operation_id)
+        raise HTTPException(status_code=503, detail="Operation could not be durably stopped") from exc
 
     _runtime_mining_service.stop_operation(operation_id=payload.operation_id)
     return OperationIntentResponse(
@@ -454,6 +594,36 @@ def stop_operation_intent(
         accepted=True,
         status="stopped",
         detail="Operation stop intent accepted",
+    )
+
+
+@router.get(
+    "/operations/{operation_id}",
+    response_model=OperationRuntimeStatusResponse,
+    status_code=status.HTTP_200_OK,
+)
+def get_operation_runtime_status(
+    operation_id: str,
+    request: Request,
+    session_id: str | None = Query(default=None),
+) -> OperationRuntimeStatusResponse:
+    resolved_session_id = _resolve_operation_intent_session_id(request=request, session_id_query=session_id)
+    player_id = client_sessions.resolve_player_id_from_session(session_id=resolved_session_id)
+    if player_id is None:
+        raise HTTPException(status_code=401, detail="Invalid session binding")
+    _recover_runtime_operations()
+    existing = _runtime_mining_service.get_operation_state(operation_id=operation_id)
+    if existing is None:
+        raise HTTPException(status_code=404, detail="operation_id not found")
+    if existing.player_id != player_id:
+        raise HTTPException(status_code=403, detail="operation_id is bound to a different player")
+    return OperationRuntimeStatusResponse(
+        operation_id=existing.operation_id,
+        player_id=existing.player_id,
+        accepted=True,
+        status="paused" if existing.current_paused else "running",
+        detail="Operation runtime status is authoritative",
+        base_hashrate_hps=existing.base_hashrate_hps,
     )
 
 
