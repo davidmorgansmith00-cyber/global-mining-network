@@ -296,6 +296,8 @@ The UI should feel like the player's command center itself becomes more sophisti
 
 ## 11. Scene Architecture
 
+> **Note on `UIStateController`:** This component is shown in the scene tree below as the planned V2 state management layer. It is **not yet implemented** in the codebase. Current client code binds authoritative state through `GameplayShellController` (see `docs/world-scene-v1-asset-pack-and-implementation-plan.md §15.1 OQ-01`). Any new scene component — including world scene controllers — must bind to `GameplayShellController.latest_profile_payload` and `get_ui_state()` until `UIStateController` is introduced. Mark `UIStateController` as `[planned — not yet implemented]` in any scene annotation you add.
+
 ```
 scenes/
   ui/
@@ -387,6 +389,8 @@ The UI should feel like:
 
 It should **not** feel like a crypto trading site, generic sci-fi greeble, mobile idle game, or survival HUD.
 
+**The world scene background layer is a visual extension of the same design language — not a separate retro aesthetic.** Where the world scene and HUD share visual elements (state colours, icon vocabulary, any in-world label typography), they use the same design tokens from §12 and `docs/ui-v2-plan.md §11`. Even the starter property environment must feel like part of the same premium network system. The V1 pixel-art constraint in the world scene doc is a production-velocity decision for iteration speed, not a permanent brand commitment. As the art direction matures toward a higher-fidelity command-center visual, the world scene background evolves to match.
+
 ---
 
 ## 13. Implementation Order (Vertical Slices)
@@ -395,10 +399,12 @@ Work vertically. Each slice is shippable.
 
 ### Slice 1 — Foundation + Global Block Header
 1. Freeze / document all V1 server data bindings in use.
-2. Establish V2 `UIRoot`, `UITheme.tres`, `ui_tokens.gd`, `UIStateController`.
-3. Build `GlobalBlockHeader.tscn` — block number, difficulty, global hashrate, progress bar.
-4. Wire to existing `BlockStatus` WebSocket feed.
-5. Verify: block number and progress bar update live from server.
+2. Create `UIRoot.tscn` with `BackgroundLayer`, `HUDLayer`, `ModalLayer`, `NotificationLayer`, `DebugLayer` nodes in that order. Migrate or stub `client-godot/scenes/gameplay_shell.tscn` so existing V1 tests pass against the new root. This unblocks world scene integration (world scene `WorldRoot` parented under `BackgroundLayer`).
+3. Establish V2 `UITheme.tres`, `ui_tokens.gd`. Add `debug_toggle` input action to `client-godot/project.godot` if not yet present (prerequisite for `DebugLayer` toggle — see `docs/world-scene-v1-asset-pack-and-implementation-plan.md §15.2 OQ-02`).
+4. Stub `UIStateController` as a placeholder autoload node (no logic yet); annotate it `[planned — not yet implemented]`. Current bindings remain on `GameplayShellController`.
+5. Build `GlobalBlockHeader.tscn` — block number, difficulty, global hashrate, progress bar.
+6. Wire to existing `BlockStatus` WebSocket feed.
+7. Verify: block number and progress bar update live from server.
 
 ### Slice 2 — Player Operation Panel
 1. Build `PlayerOperationPanel.tscn` — hardware, tier, hashrate, power, heat, cooling, throttle, status, upgrade state.

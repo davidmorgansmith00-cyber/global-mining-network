@@ -35,6 +35,15 @@ Starter location: **a worn shack in the woods** with a basic “rusty old comput
 
 This scene is not a detached decorative room; it is the physical context for the network-first HUD.
 
+### Visual Coherence with the HUD
+
+The world scene background layer is a visual extension of the same design language as the HUD panels above it — it is not a separate retro aesthetic. Even the starter property must feel like part of the same premium network system. Concretely:
+
+- **Ambient palette:** The world scene uses the same dark background palette (`bg_base: #0B0F14`) as a baseline. The interior may depart toward warmer or more industrial browns for environmental storytelling, but the overall screen luminance and contrast remain consistent with HUD panels.
+- **State icon vocabulary:** All world-scene state icons use the same design tokens as `GMNStatusBadge` in the HUD. A THROTTLED warning is the same amber (`accent_warning: #F2C14E`) whether it appears in the HUD or on the world rig icon — there is one colour language.
+- **Bridging the pixel art and the HUD panels:** The `LightingOverlay (CanvasModulate)` inside `WorldRoot` is the primary knob for harmonizing the world atmosphere with the HUD. Default tint is neutral (`#FFFFFF`). If a future art pass adds a colour grade or vignette, it is applied here, not by touching `HUDLayer` nodes or `UITheme.tres`.
+- **Art style and iteration tier:** The "2D pixel-art-first" constraint in §5 is a V1 production-velocity decision. The 16-colour and nearest-neighbour rules apply for V1 speed of delivery. They are not permanent. When a final concept art direction is approved, §5.3.1 constraints may be revised toward higher fidelity without changing any server-authoritative logic. See §5.3.1 for explicit V1/V2 tiers.
+
 ---
 
 ## 3) Architectural Constraints (Must Follow)
@@ -144,16 +153,18 @@ This section gives a coding or design agent everything needed to create V1 asset
 
 ### 5.3.1 Art Style Constraints (V1)
 
+> **V1 iteration vs final direction:** The constraints below are production-velocity rules for the V1 first-pass. The 16-colour cap, nearest-neighbour filter, and no-gradient rule are designed for fast iteration, not as a permanent brand commitment. When a final concept art direction is approved (high-fidelity command-center visual style), the constraints marked **[V1 iteration]** may be revised upward — to higher colour counts, linear filtering, and richer shading — without changing any server-authoritative logic. Constraints not marked **[V1 iteration]** (contrast ratios, state readability, V2 palette alignment) are permanent requirements that carry forward to any art pass.
+
 | Constraint | Rule |
 |---|---|
 | **Base unit** | 16×16 px grid; multi-tile objects snap to multiples (e.g. 48×32 = 3×2 tiles) |
 | **Silhouette first** | Every object must read as a distinct silhouette at 100% zoom; overlapping silhouettes are a failure |
-| **Limited palette** | Maximum **16 colours per asset file** (can share colours across files); use palette file `assets/pixel/palette_v1.png` (a 16×1 strip) |
+| **Limited palette** *[V1 iteration]* | Maximum **16 colours per asset file** (can share colours across files); use palette file `assets/pixel/palette_v1.png` (a 16×1 strip). Revise this cap when final art direction is confirmed. |
 | **Contrast rule** | World tiles and props: foreground ≥3.0:1 against the background tile they sit on. State icons: ≥4.5:1 against `bg_base #0B0F14` (WCAG AA — enforced at §10.3 gate). |
 | **Outline rule** | 1-px dark outline on interactive/important objects; background environment objects may use inset shading instead |
-| **Shading** | 2-level shading only — base colour + 1 darker shadow; no gradients, no anti-aliasing, no sub-pixel rendering |
+| **Shading** *[V1 iteration]* | 2-level shading only — base colour + 1 darker shadow; no gradients, no anti-aliasing, no sub-pixel rendering. Revise when final art direction is confirmed. |
 | **State readability** | At least two visual cues differentiate each state (colour change **and** shape/animation change) — never colour alone |
-| **V2 palette alignment** | State colours must map to V2 tokens: success → `#4ECCA3`, warning → `#F5A623`, danger → `#E84855`, info → `#5B9BD5`; these are the only non-neutral accent colours allowed |
+| **V2 palette alignment** | State colours **must** match the canonical V2 tokens in `docs/ui-v2-plan.md §11` exactly. World assets must not introduce new accent hex values. Current mapping: success → `#56D364`, warning → `#F2C14E`, danger → `#FF6B6B`, upgrade/info → `#4CC9F0` (`accent_primary`). The palette file `assets/pixel/palette_v1.png` must use these exact hex values for the four accent slots. |
 | **No transparency except** | Sprite sheets use a transparent background; solid colour fill is forbidden as a background substitute |
 
 ### 5.3.2 Required Source Files
@@ -301,13 +312,13 @@ The icon strip is 112×16 px; icons are 16×16, ordered left-to-right as follows
 
 | Index | State | Rect (x,y,w,h) | Colour token |
 |---|---|---|---|
-| 0 | `online` | `(0,0,16,16)` | `accent_success` `#4ECCA3` |
-| 1 | `throttled` | `(16,0,16,16)` | `accent_warning` `#F5A623` |
-| 2 | `overheating` | `(32,0,16,16)` | `accent_danger` `#E84855` |
+| 0 | `online` | `(0,0,16,16)` | `accent_success` `#56D364` |
+| 1 | `throttled` | `(16,0,16,16)` | `accent_warning` `#F2C14E` |
+| 2 | `overheating` | `(32,0,16,16)` | `accent_danger` `#FF6B6B` |
 | 3 | `offline` | `(48,0,16,16)` | neutral dark `#3A3F47` |
-| 4 | `upgrading` | `(64,0,16,16)` | `accent_info` `#5B9BD5` |
-| 5 | `upgrade_complete` | `(80,0,16,16)` | `accent_success` `#4ECCA3` |
-| 6 | `stale_data` | `(96,0,16,16)` | `accent_warning` `#F5A623` |
+| 4 | `upgrading` | `(64,0,16,16)` | `accent_primary` `#4CC9F0` |
+| 5 | `upgrade_complete` | `(80,0,16,16)` | `accent_success` `#56D364` |
+| 6 | `stale_data` | `(96,0,16,16)` | `accent_warning` `#F2C14E` |
 
 **In GDScript**, set an icon region with:
 ```gdscript
@@ -404,12 +415,14 @@ scenes/world/
 
 `scenes/world/world_root.tscn` is loaded as a **child of `UIRoot`'s `BackgroundLayer`** (see `docs/ui-v2-plan.md` §9.1 scene tree). It renders behind `HUDLayer`. The persistent V2 HUD (`GlobalBlockHeader`, `PlayerOperationPanel`, `GMNNavBar`) remains on top and is not part of the world scene.
 
+> **If `UIRoot.tscn` does not yet exist at W1 kickoff:** insert `WorldRoot` as a child of the `BackgroundLayer`-equivalent node inside `client-godot/scenes/gameplay_shell.tscn`. A migration shim or adapter node is acceptable. Do not block W1 on creating `UIRoot.tscn` — implement there first, then migrate when `UIRoot.tscn` is built as part of V2 Slice 1 (`docs/client-ui-roadmap-v2.md` §13 Slice 1).
+
 **Layer order (bottom to top):**
 1. `BackgroundLayer` → `WorldRoot` (world scene, pixel world)
 2. `HUDLayer` → `HUDRoot` (persistent V2 HUD overlays)
 3. `ModalLayer` / `NotificationLayer` / `DebugLayer`
 
-> **Constraint:** The world scene must not add any `CanvasLayer` with a higher `layer` value than `HUDLayer`. Use `CanvasModulate` inside `WorldRoot` for lighting effects only.
+> **Constraint:** The world scene must not add any `CanvasLayer` with a higher `layer` value than `HUDLayer`. Use `CanvasModulate` inside `WorldRoot` for lighting effects only. The `CanvasModulate` tint is set to neutral (`#FFFFFF`) by default. If a future art pass adds a colour grade or vignette effect, it must be applied here — not by modifying `HUDLayer` nodes or `UITheme.tres`.
 
 ## 6.3 Suggested Node Layout (first_property_shack.tscn)
 
@@ -684,7 +697,7 @@ Use this checklist before starting each slice to confirm prerequisites are met.
 - [ ] Engineering owner assigned
 - [ ] Art owner assigned
 - [ ] Godot 4.x project confirmed available and loadable in repo
-- [ ] `UIRoot.tscn` and `BackgroundLayer` node exist and are confirmed accessible (check `client-godot/scenes/gameplay_shell.tscn` and the V2 `UIRoot.tscn` once created)
+- [ ] `UIRoot.tscn` and `BackgroundLayer` node exist **or** a migration plan is agreed: if `UIRoot.tscn` is not yet created, confirm that `WorldRoot` will be parented under `gameplay_shell.tscn`'s background-equivalent node for W1, migrating to `UIRoot.tscn`'s `BackgroundLayer` when V2 Slice 1 creates it (see §6.2 and `docs/client-ui-roadmap-v2.md` §13 Slice 1)
 - [ ] Developer debug hotkey confirmed — add a `debug_toggle` action (or agreed name) to `client-godot/project.godot` and record the action name in §15.2 OQ-02 before W1 merge (see §15.2 for resolution path)
 - [x] **State binding source confirmed:** Current client state model is `GameplayShellController` (node) + `GameplayShellUiState` (class). `UIStateController` does not yet exist as a named autoload; world visuals bind to `GameplayShellController.latest_profile_payload` and `get_ui_state()`. See §7.2.
 - [x] **`OperationIntent.status` enum confirmed:** `running`, `idle`, `starting`, `stopping`, `rejected`, `stale`. Use this set; extend if server adds values.
