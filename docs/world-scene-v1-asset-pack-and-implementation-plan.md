@@ -14,6 +14,14 @@
 
 Define a production-usable plan for the first in-game world scene and its supporting pixel asset pack, without breaking current authoritative contracts or existing V1/V2 client architecture.
 
+This document preserves the existing world-scene implementation plan, but frames it inside the unified UI migration path:
+
+- **V1** provides the base UI foundation, contracts, and debug parity.
+- **V2** provides the upgraded network-first HUD / control layer and persistent screen hierarchy.
+- **World UI** is the final intended premium visual target, where the world scene and HUD are presented as one cohesive command-center experience.
+
+The world-scene work in this document is therefore not a parallel aesthetic track. It is the environment-facing part of that final world UI target, delivered in a V1-friendly execution tier first and aligned to V2's shared tokens and layering rules from day one.
+
 This document delivers:
 1. A clear first-scene world direction (starter property: shack in the woods).
 2. A modular pixel asset pack specification using blank bases + skin overlays.
@@ -33,16 +41,16 @@ The first property should communicate:
 
 Starter location: **a worn shack in the woods** with a basic “rusty old computer” mining setup.
 
-This scene is not a detached decorative room; it is the physical context for the network-first HUD.
+This scene is not a detached decorative room; it is the physical context for the network-first HUD and the final world UI presentation.
 
 ### Visual Coherence with the HUD
 
-The world scene background layer is a visual extension of the same design language as the HUD panels above it — it is not a separate retro aesthetic. Even the starter property must feel like part of the same premium network system. Concretely:
+The world scene background layer applies the same design language as the HUD panels above it, so the full screen reads as one premium network system. Even the starter property must feel like part of that same command-center presentation. Concretely:
 
 - **Ambient palette:** The world scene uses the same dark background palette (`bg_base: #0B0F14`) as a baseline. The interior may depart toward warmer or more industrial browns for environmental storytelling, but the overall screen luminance and contrast remain consistent with HUD panels.
 - **State icon vocabulary:** All world-scene state icons use the same design tokens as `GMNStatusBadge` in the HUD. A THROTTLED warning is the same amber (`accent_warning: #F2C14E`) whether it appears in the HUD or on the world rig icon — there is one colour language.
 - **Bridging the pixel art and the HUD panels:** The `LightingOverlay (CanvasModulate)` inside `WorldRoot` is the primary knob for harmonizing the world atmosphere with the HUD. Default tint is neutral (`#FFFFFF`). If a future art pass adds a colour grade or vignette, it is applied here, not by touching `HUDLayer` nodes or `UITheme.tres`.
-- **Art style and iteration tier:** The "2D pixel-art-first" constraint in §5 is a V1 production-velocity decision. The 16-colour and nearest-neighbour rules apply for V1 speed of delivery. They are not permanent. When a final concept art direction is approved, §5.3.1 constraints may be revised toward higher fidelity without changing any server-authoritative logic. See §5.3.1 for explicit V1/V2 tiers.
+- **Art style and iteration tier:** The "2D pixel-art-first" constraint in §5 is a V1 production-velocity decision. The 16-colour and nearest-neighbour rules apply for V1 speed of delivery. They are not permanent. When a final concept art direction is approved, §5.3.1 constraints may be revised toward higher fidelity without changing any server-authoritative logic. The destination remains the final world UI standard shared with the V2 HUD/control layer; this document simply defines the first production tier on that path.
 
 ---
 
@@ -72,7 +80,7 @@ Reference alignment:
 - Simple ambient motion (fan spin, monitor flicker, subtle environmental life).
 
 ## 4.2 Excluded from V1
-- Final high-detail art pass.
+- Final premium world UI art pass.
 - Complex NPC/world simulation.
 - New gameplay calculations.
 - New progression mechanics created solely for world visuals.
@@ -142,7 +150,7 @@ Path: `assets/pixel/fx/`
 Path: `assets/pixel/ui/`
 - `world_state_icons_v1.png`
 - States (one icon each, 16x16): online, throttled, overheating, offline, upgrading, upgrade-complete, stale-data
-- These icons must use the V2 color palette tokens (`accent_success`, `accent_warning`, `accent_danger`) — confirm with art before delivery.
+- These icons must use the canonical shared UI palette tokens (`accent_success`, `accent_warning`, `accent_danger`) so world icons and HUD badges read as one state language — confirm with art before delivery.
 - **Delivered by (Slice):** W4
 
 ---
@@ -153,18 +161,18 @@ This section gives a coding or design agent everything needed to create V1 asset
 
 ### 5.3.1 Art Style Constraints (V1)
 
-> **V1 iteration vs final direction:** The constraints below are production-velocity rules for the V1 first-pass. The 16-colour cap, nearest-neighbour filter, and no-gradient rule are designed for fast iteration, not as a permanent brand commitment. When a final concept art direction is approved (high-fidelity command-center visual style), the constraints marked **[V1 iteration]** may be revised upward — to higher colour counts, linear filtering, and richer shading — without changing any server-authoritative logic. Constraints not marked **[V1 iteration]** (contrast ratios, state readability, V2 palette alignment) are permanent requirements that carry forward to any art pass.
+> **V1 production constraints and world UI evolution:** The constraints below enable fast V1 delivery while still applying the same command-center design language as the HUD. The rules marked **[V1 iteration]** (16-colour cap, nearest-neighbour filter, no-gradient shading) are tactical production constraints inside that shared visual system. When the final world UI art direction is approved, those marked constraints may evolve toward richer fidelity — higher colour counts, smoother filtering, and deeper shading — without changing any server-authoritative logic. Constraints not marked **[V1 iteration]** (contrast ratios, state readability, canonical palette usage) are permanent requirements that carry forward to every art pass.
 
 | Constraint | Rule |
 |---|---|
 | **Base unit** | 16×16 px grid; multi-tile objects snap to multiples (e.g. 48×32 = 3×2 tiles) |
 | **Silhouette first** | Every object must read as a distinct silhouette at 100% zoom; overlapping silhouettes are a failure |
-| **Limited palette** *[V1 iteration]* | Maximum **16 colours per asset file** (can share colours across files); use palette file `assets/pixel/palette_v1.png` (a 16×1 strip). Revise this cap when final art direction is confirmed. |
+| **Limited palette** *[V1 iteration]* | Maximum **16 colours per asset file** (can share colours across files); use palette file `assets/pixel/palette_v1.png` (a 16×1 strip). Expand this cap only when the final world UI art direction is approved. |
 | **Contrast rule** | World tiles and props: foreground ≥3.0:1 against the background tile they sit on. State icons: ≥4.5:1 against `bg_base #0B0F14` (WCAG AA — enforced at §10.3 gate). |
 | **Outline rule** | 1-px dark outline on interactive/important objects; background environment objects may use inset shading instead |
-| **Shading** *[V1 iteration]* | 2-level shading only — base colour + 1 darker shadow; no gradients, no anti-aliasing, no sub-pixel rendering. Revise when final art direction is confirmed. |
+| **Shading** *[V1 iteration]* | 2-level shading only — base colour + 1 darker shadow; no gradients, no anti-aliasing, no sub-pixel rendering. Increase fidelity only when the final world UI art direction is approved. |
 | **State readability** | At least two visual cues differentiate each state (colour change **and** shape/animation change) — never colour alone |
-| **V2 palette alignment** | State colours **must** match the canonical V2 tokens in `docs/ui-v2-plan.md §11` exactly. World assets must not introduce new accent hex values. Current mapping: success → `#56D364`, warning → `#F2C14E`, danger → `#FF6B6B`, upgrade/info → `#4CC9F0` (`accent_primary`). The palette file `assets/pixel/palette_v1.png` must use these exact hex values for the four accent slots. |
+| **Canonical palette alignment** | State colours **must** match the canonical shared UI tokens in `docs/ui-v2-plan.md §11` exactly so world assets, HUD badges, overlays, and notifications all reinforce one visual language. Current mapping: success → `#56D364`, warning → `#F2C14E`, danger → `#FF6B6B`, upgrade/info → `#4CC9F0` (`accent_primary`). The palette file `assets/pixel/palette_v1.png` must use these exact hex values for the four accent slots. |
 | **No transparency except** | Sprite sheets use a transparent background; solid colour fill is forbidden as a background substitute |
 
 ### 5.3.2 Required Source Files
@@ -414,6 +422,8 @@ scenes/world/
 ## 6.2 Scene Integration with UIRoot
 
 `scenes/world/world_root.tscn` is loaded as a **child of `UIRoot`'s `BackgroundLayer`** (see `docs/ui-v2-plan.md` §9.1 scene tree). It renders behind `HUDLayer`. The persistent V2 HUD (`GlobalBlockHeader`, `PlayerOperationPanel`, `GMNNavBar`) remains on top and is not part of the world scene.
+
+Together, `WorldRoot`, `HUDLayer`, `ModalLayer`, `NotificationLayer`, and `DebugLayer` form the complete world UI stack. The world scene provides the in-world stage; V2 provides the upgraded network-first control layer above it; both must read as one visual system.
 
 > **If `UIRoot.tscn` does not yet exist at W1 kickoff:** insert `WorldRoot` as a child of the `BackgroundLayer`-equivalent node inside `client-godot/scenes/gameplay_shell.tscn`. A migration shim or adapter node is acceptable. Do not block W1 on creating `UIRoot.tscn` — implement there first, then migrate when `UIRoot.tscn` is built as part of V2 Slice 1 (`docs/client-ui-roadmap-v2.md` §13 Slice 1).
 

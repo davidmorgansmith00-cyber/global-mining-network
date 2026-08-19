@@ -34,7 +34,17 @@ V2 is built **on top of** V1. Do not break:
 - Ledger-style read models.
 - Time-based simulation results arriving from server.
 
-### 1.2 Server Authority Non-Negotiables
+### 1.2 Unified UI Progression
+
+The repository should describe a single UI system with a clear migration path:
+
+- **V1** = the base UI foundation. It proves authoritative contracts, debug parity, and scene/data-flow stability.
+- **V2** = the upgraded network-first HUD and control layer. It adds the persistent screen hierarchy, shared component library, navigation language, and player-facing presentation that sit on top of V1's contracts.
+- **World UI** = the final intended premium visual standard. The world scene, HUD, modal stack, and overlays must read as one cohesive command-center experience using the same visual vocabulary, token palette, state language, iconography, and layer hierarchy.
+
+V2 is therefore the bridge from V1 to the world UI target, establishing the upgraded control layer and screen hierarchy that the final world presentation builds on.
+
+### 1.3 Server Authority Non-Negotiables
 
 The client **never** calculates or authors:
 
@@ -389,7 +399,7 @@ The UI should feel like:
 
 It should **not** feel like a crypto trading site, generic sci-fi greeble, mobile idle game, or survival HUD.
 
-**The world scene background layer is a visual extension of the same design language — not a separate retro aesthetic.** Where the world scene and HUD share visual elements (state colours, icon vocabulary, any in-world label typography), they use the same design tokens from §12 and `docs/ui-v2-plan.md §11`. Even the starter property environment must feel like part of the same premium network system. The V1 pixel-art constraint in the world scene doc is a production-velocity decision for iteration speed, not a permanent brand commitment. As the art direction matures toward a higher-fidelity command-center visual, the world scene background evolves to match.
+**The world scene background layer carries the same design language as the HUD and overlays.** Where the world scene and HUD share visual elements (state colours, icon vocabulary, badge states, in-world label typography, overlay framing), they use the same design tokens from §12 and `docs/ui-v2-plan.md §11`. Even the starter property environment must feel like part of the same premium network system. The V1 pixel-art constraint in the world scene doc is a production-velocity decision for iteration speed, while the shared visual language remains the long-term standard. The final world UI look-and-feel is the target standard for the whole screen, and V2 is the control-layer bridge that gets the repository there without changing server-authoritative gameplay logic.
 
 ---
 
@@ -440,7 +450,7 @@ Work vertically. Each slice is shippable.
 3. Verify player-facing screens contain no debug artifacts.
 
 ### Slice 8 — Visual Hierarchy and Responsive Pass
-1. Apply final token pass across all surfaces.
+1. Apply final token pass across all surfaces so HUD, overlays, and world scene read as one world UI system.
 2. Verify at 1080p, 1440p, and UI scale options.
 3. Accessibility pass: focus graph, WCAG AA contrast, font scale.
 
