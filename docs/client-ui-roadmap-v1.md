@@ -14,6 +14,45 @@
 **Owner:** Gameplay and UX  
 **Client:** Godot 4.x / GDScript
 
+---
+
+## ✅ UI V1 SIGN-OFF (2026-08-19)
+
+**Sign-off Date:** 2026-08-19  
+**PR:** #23 — `feat(ui): implement UI V2 HUD, shared design tokens, UIRoot layer hierarchy, and debug toggle`  
+**Status:** ✅ COMPLETE AND SIGNED OFF
+
+### What UI V1 Proved
+
+UI V1 established the authoritative data-flow path from the server to the Godot client. It is now complete and replaced by the V2 HUD foundation delivered in PR #23.
+
+| Deliverable | Status |
+|---|---|
+| `GameplayShellController` + `GameplayShellViewModel` scene path | ✅ Done |
+| `GmnApiClient` + `GmnSession` auth and session state | ✅ Done |
+| WebSocket event stream, snapshot, and reconnect cursor | ✅ Done |
+| Operation-intent session binding (corrected URL construction) | ✅ Done |
+| `GameplayShellUiState` (loading / ready / stale / error / unauthorized / maintenance) | ✅ Done |
+| Reward timeline panel | ✅ Done |
+| V1 debug surfaces (all behind developer `DebugLayer` toggle in V2) | ✅ Done |
+| All M1 Slice 2 smoke tests (61/61 passing) | ✅ Done |
+| Server-authoritative boundary enforced throughout | ✅ Done |
+
+### Non-Negotiables Verified
+
+- ✅ No client-authored balances, effective hashrate, or block calculations.
+- ✅ One logical global chain maintained.
+- ✅ Time-based simulation results delivered by server.
+- ✅ All V1 data contracts preserved and carried forward into V2.
+
+### Transition
+
+V2 is built on top of V1 — all working server bindings, event buses, and read models are preserved. V1 debug surfaces are accessible behind the `debug_toggle` developer action. The V1 scene path (`scenes/gameplay_shell.tscn`) remains in the codebase for regression coverage.
+
+**This document is now archived. No further updates expected.**
+
+---
+
 ## 1. Purpose
 
 This roadmap turns the existing Godot gameplay shell into a usable, expandable client for Global Mining Network. It is ordered around the current backend capabilities and the product's core fantasy:
