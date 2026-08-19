@@ -1,0 +1,59 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes/ui/hud/gmn_global_block_header.gd" id="1"]
+
+[node name="GlobalBlockHeader" type="Control"]
+layout_mode = 3
+anchors_preset = 3
+anchor_right = 1.0
+anchor_bottom = 0.0
+offset_bottom = 72.0
+grow_horizontal = 2
+grow_vertical = 1
+script = ExtResource("1")
+block_number_label_path = NodePath("BlockNumberLabel")
+difficulty_label_path = NodePath("DifficultyLabel")
+global_hashrate_label_path = NodePath("GlobalHashrateLabel")
+progress_bar_path = NodePath("BlockProgressBar")
+state_label_path = NodePath("BlockStateLabel")
+
+[node name="BlockNumberLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 8.0
+offset_right = 420.0
+offset_bottom = 40.0
+text = "BLOCK #0"
+
+[node name="DifficultyLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 440.0
+offset_top = 8.0
+offset_right = 820.0
+offset_bottom = 40.0
+text = "DIFFICULTY —"
+
+[node name="GlobalHashrateLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 840.0
+offset_top = 8.0
+offset_right = 1264.0
+offset_bottom = 40.0
+text = "GLOBAL — H/s"
+
+[node name="BlockProgressBar" type="ProgressBar" parent="."]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 46.0
+offset_right = 1280.0
+offset_bottom = 66.0
+max_value = 100.0
+value = 0.0
+
+[node name="BlockStateLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 46.0
+offset_right = 200.0
+offset_bottom = 66.0
+text = "CONNECTING"

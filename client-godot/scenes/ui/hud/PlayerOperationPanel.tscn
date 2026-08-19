@@ -1,0 +1,93 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes/ui/hud/gmn_player_operation_panel.gd" id="1"]
+
+[node name="PlayerOperationPanel" type="Control"]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 580.0
+offset_bottom = 220.0
+script = ExtResource("1")
+machine_name_label_path = NodePath("MachineNameLabel")
+status_badge_label_path = NodePath("StatusBadgeLabel")
+hashrate_label_path = NodePath("HashrateLabel")
+effective_hashrate_label_path = NodePath("EffectiveHashrateLabel")
+power_label_path = NodePath("PowerLabel")
+throttle_label_path = NodePath("ThrottleLabel")
+heat_label_path = NodePath("HeatLabel")
+cooling_label_path = NodePath("CoolingLabel")
+upgrade_label_path = NodePath("UpgradeLabel")
+
+[node name="MachineNameLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 8.0
+offset_right = 560.0
+offset_bottom = 36.0
+text = "—"
+
+[node name="StatusBadgeLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 40.0
+offset_right = 300.0
+offset_bottom = 62.0
+text = "◌ IDLE"
+
+[node name="HashrateLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 68.0
+offset_right = 300.0
+offset_bottom = 90.0
+text = "BASE  0.00 H/s"
+
+[node name="EffectiveHashrateLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 96.0
+offset_right = 300.0
+offset_bottom = 118.0
+text = "EFFECTIVE  0.00 H/s"
+
+[node name="PowerLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 310.0
+offset_top = 68.0
+offset_right = 560.0
+offset_bottom = 90.0
+text = "POWER  0 W"
+
+[node name="ThrottleLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 310.0
+offset_top = 96.0
+offset_right = 560.0
+offset_bottom = 118.0
+text = "THROTTLE  100%"
+
+[node name="HeatLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 126.0
+offset_right = 300.0
+offset_bottom = 148.0
+text = "HEAT  0.0°C"
+
+[node name="CoolingLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 310.0
+offset_top = 126.0
+offset_right = 560.0
+offset_bottom = 148.0
+text = "COOLING  100%"
+
+[node name="UpgradeLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 160.0
+offset_right = 560.0
+offset_bottom = 182.0
+text = "UPGRADE IN PROGRESS"
+visible = false
