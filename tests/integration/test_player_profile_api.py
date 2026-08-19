@@ -51,7 +51,7 @@ class PlayerProfileApiIntegrationTests(unittest.TestCase):
                 cursor.execute("DELETE FROM players WHERE player_id = %s", (player_id,))
             connection.commit()
 
-    def test_profile_endpoint_returns_v15_offline_progression_contract(self) -> None:
+    def test_profile_endpoint_returns_v16_offline_progression_contract(self) -> None:
         email = f"profile_contract_{uuid4().hex[:10]}@example.com"
         password = "password123"
 
@@ -90,6 +90,10 @@ class PlayerProfileApiIntegrationTests(unittest.TestCase):
                 self.assertEqual(payload["offline_cap_status_message"], "Offline work earned: 0 of 1000 (tier: 1)")
                 self.assertEqual(payload["inventory"], [])
                 self.assertEqual(payload["available_for_purchase"], [])
+                self.assertIsNotNone(payload["current_hardware"])
+                self.assertIsNotNone(payload["next_recommended_upgrade"])
+                self.assertGreaterEqual(len(payload["upgrade_progression"]), 1)
+                self.assertEqual(Decimal(payload["reward_balance"]), Decimal("0"))
                 self.assertEqual(
                     set(payload.keys()),
                     {
@@ -115,6 +119,10 @@ class PlayerProfileApiIntegrationTests(unittest.TestCase):
                         "offline_cap_status_message",
                         "inventory",
                         "available_for_purchase",
+                        "current_hardware",
+                        "next_recommended_upgrade",
+                        "upgrade_progression",
+                        "reward_balance",
                     },
                 )
         finally:

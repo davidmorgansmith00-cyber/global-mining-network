@@ -65,17 +65,18 @@ class HardwareUpgradeIntegrationTests(unittest.TestCase):
                 )
             conn.commit()
 
-    def _register_and_get_player_id(self, *, client: TestClient, email: str) -> str:
+    def _register_and_get_player_and_session(self, *, client: TestClient, email: str) -> tuple[str, str]:
         resp = client.post("/api/v1/auth/register", json={
             "email": email,
             "password": "Passw0rd!",
             "player_name": email.split("@")[0],
         })
         self.assertEqual(resp.status_code, 200)
-        player_id = resp.json()["player_id"]
+        payload = resp.json()
+        player_id = payload["player_id"]
         # Ensure profile row is created by fetching profile once
         client.get("/api/v1/players/profile", params={"player_id": player_id})
-        return player_id
+        return player_id, payload["session_id"]
 
     # ------------------------------------------------------------------
     # Upgrade service unit-level integration
@@ -120,11 +121,10 @@ class HardwareUpgradeIntegrationTests(unittest.TestCase):
         self._cleanup_player(email=email)
         try:
             with TestClient(app) as client:
-                player_id = self._register_and_get_player_id(client=client, email=email)
+                player_id, session_id = self._register_and_get_player_and_session(client=client, email=email)
                 self._seed_reward_balance(player_id=player_id, amount=Decimal("5000"))
 
-                resp = client.post("/api/v1/market/purchase", json={
-                    "player_id": player_id,
+                resp = client.post("/api/v1/market/purchase", params={"session_id": session_id}, json={
                     "item_id": "improved_workstation",
                     "quantity": 1,
                 })
@@ -151,11 +151,10 @@ class HardwareUpgradeIntegrationTests(unittest.TestCase):
         self._cleanup_player(email=email)
         try:
             with TestClient(app) as client:
-                player_id = self._register_and_get_player_id(client=client, email=email)
+                player_id, session_id = self._register_and_get_player_and_session(client=client, email=email)
                 self._seed_reward_balance(player_id=player_id, amount=Decimal("5000"))
 
-                client.post("/api/v1/market/purchase", json={
-                    "player_id": player_id,
+                client.post("/api/v1/market/purchase", params={"session_id": session_id}, json={
                     "item_id": "improved_workstation",
                     "quantity": 1,
                 })
@@ -180,11 +179,10 @@ class HardwareUpgradeIntegrationTests(unittest.TestCase):
         self._cleanup_player(email=email)
         try:
             with TestClient(app) as client:
-                player_id = self._register_and_get_player_id(client=client, email=email)
+                player_id, session_id = self._register_and_get_player_and_session(client=client, email=email)
                 self._seed_reward_balance(player_id=player_id, amount=Decimal("5000"))
 
-                client.post("/api/v1/market/purchase", json={
-                    "player_id": player_id,
+                client.post("/api/v1/market/purchase", params={"session_id": session_id}, json={
                     "item_id": "improved_workstation",
                     "quantity": 1,
                 })
@@ -214,15 +212,14 @@ class HardwareUpgradeIntegrationTests(unittest.TestCase):
         self._cleanup_player(email=email)
         try:
             with TestClient(app) as client:
-                player_id = self._register_and_get_player_id(client=client, email=email)
+                player_id, session_id = self._register_and_get_player_and_session(client=client, email=email)
                 self._seed_reward_balance(player_id=player_id, amount=Decimal("5000"))
 
                 before = client.get("/api/v1/players/profile", params={"player_id": player_id})
                 self.assertEqual(before.status_code, 200)
                 before_hashrate = before.json()["effective_hashrate"]
 
-                client.post("/api/v1/market/purchase", json={
-                    "player_id": player_id,
+                client.post("/api/v1/market/purchase", params={"session_id": session_id}, json={
                     "item_id": "improved_workstation",
                     "quantity": 1,
                 })
@@ -240,11 +237,10 @@ class HardwareUpgradeIntegrationTests(unittest.TestCase):
         self._cleanup_player(email=email)
         try:
             with TestClient(app) as client:
-                player_id = self._register_and_get_player_id(client=client, email=email)
+                player_id, session_id = self._register_and_get_player_and_session(client=client, email=email)
                 self._seed_reward_balance(player_id=player_id, amount=Decimal("5000"))
 
-                client.post("/api/v1/market/purchase", json={
-                    "player_id": player_id,
+                client.post("/api/v1/market/purchase", params={"session_id": session_id}, json={
                     "item_id": "improved_workstation",
                     "quantity": 1,
                 })
@@ -265,7 +261,7 @@ class HardwareUpgradeIntegrationTests(unittest.TestCase):
         self._cleanup_player(email=email)
         try:
             with TestClient(app) as client:
-                player_id = self._register_and_get_player_id(client=client, email=email)
+                player_id, _session_id = self._register_and_get_player_and_session(client=client, email=email)
 
                 resp = client.get("/api/v1/players/profile", params={"player_id": player_id})
                 self.assertEqual(resp.status_code, 200)
@@ -285,7 +281,7 @@ class HardwareUpgradeIntegrationTests(unittest.TestCase):
         self._cleanup_player(email=email)
         try:
             with TestClient(app) as client:
-                player_id = self._register_and_get_player_id(client=client, email=email)
+                player_id, _session_id = self._register_and_get_player_and_session(client=client, email=email)
 
                 resp = client.get("/api/v1/players/profile", params={"player_id": player_id})
                 self.assertEqual(resp.status_code, 200)
@@ -295,7 +291,7 @@ class HardwareUpgradeIntegrationTests(unittest.TestCase):
                 self.assertIsNotNone(rec)
                 assert rec is not None
                 self.assertEqual(rec["tier"], 2)
-                self.assertGreater(rec["cost"], 0)
+                self.assertGreater(Decimal(rec["cost"]), Decimal("0"))
                 self.assertGreater(rec["eta_seconds"], 0)
                 self.assertFalse(rec["unlock_blocked"])
         finally:
@@ -306,11 +302,10 @@ class HardwareUpgradeIntegrationTests(unittest.TestCase):
         self._cleanup_player(email=email)
         try:
             with TestClient(app) as client:
-                player_id = self._register_and_get_player_id(client=client, email=email)
+                player_id, session_id = self._register_and_get_player_and_session(client=client, email=email)
                 self._seed_reward_balance(player_id=player_id, amount=Decimal("20000"))
 
-                resp = client.post("/api/v1/market/purchase", json={
-                    "player_id": player_id,
+                resp = client.post("/api/v1/market/purchase", params={"session_id": session_id}, json={
                     "item_id": "professional_mining_rig",
                     "quantity": 1,
                 })
@@ -326,7 +321,7 @@ class HardwareUpgradeIntegrationTests(unittest.TestCase):
         self._cleanup_player(email=email)
         try:
             with TestClient(app) as client:
-                player_id = self._register_and_get_player_id(client=client, email=email)
+                player_id, _session_id = self._register_and_get_player_and_session(client=client, email=email)
                 # Seed enough to afford tier 2
                 service = HardwareUpgradeService()
                 tier2_def = service.get_definition("improved_workstation")
@@ -350,15 +345,14 @@ class HardwareUpgradeIntegrationTests(unittest.TestCase):
         self._cleanup_player(email=email)
         try:
             with TestClient(app) as client:
-                player_id = self._register_and_get_player_id(client=client, email=email)
+                player_id, session_id = self._register_and_get_player_and_session(client=client, email=email)
                 self._seed_reward_balance(player_id=player_id, amount=Decimal("5000"))
 
                 profile_before = client.get("/api/v1/players/profile", params={"player_id": player_id}).json()
                 self.assertEqual(profile_before["hardware_id"], "starter_rusty_home_computer")
                 self.assertIsNotNone(profile_before["next_recommended_upgrade"])
 
-                purchase_resp = client.post("/api/v1/market/purchase", json={
-                    "player_id": player_id,
+                purchase_resp = client.post("/api/v1/market/purchase", params={"session_id": session_id}, json={
                     "item_id": "improved_workstation",
                     "quantity": 1,
                 })
