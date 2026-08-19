@@ -23,6 +23,8 @@ Global Chain → Current Block → Network → Player Contribution → Mining Op
 
 **Rule:** V2 extends V1. Do not break working V1 server bindings, events, or read models.
 
+**Visual scope:** "Network-first HUD" encompasses the entire screen composition — including the world scene `BackgroundLayer` that renders beneath the HUD panels. The world scene background is designed in the same visual vocabulary (design tokens, colour palette, state icon language) as the HUD control layers above it. It is not a separate aesthetic. See `docs/world-scene-v1-asset-pack-and-implementation-plan.md §2` for how the world scene integrates into this design language.
+
 ---
 
 ## 2. Non-Negotiables (Carry Over from V1)
@@ -318,9 +320,13 @@ Use Godot Container nodes for responsive layout. This is a design intent diagram
 
 ### 9.1 UIRoot.tscn
 
+> **`UIRoot.tscn` does not yet exist in the codebase.** Current entry point is `client-godot/scenes/gameplay_shell.tscn`. Create `UIRoot.tscn` in V2 Slice 1 and migrate or stub the existing scene so V1 integration tests pass. See `docs/client-ui-roadmap-v2.md §13 Slice 1` for steps.
+
+> **`UIStateController` is planned, not yet implemented.** Scene components — including world scene visual controllers — must bind authoritative state through `GameplayShellController` until `UIStateController` is introduced. See `docs/world-scene-v1-asset-pack-and-implementation-plan.md §15.1 OQ-01`.
+
 ```
 UIRoot (CanvasLayer)
-├── BackgroundLayer (Control)
+├── BackgroundLayer (Control)   ← WorldRoot (world scene) parented here
 ├── ScreenStack (Control)
 │   ├── MainMenu
 │   ├── SettingsMenu (hidden)
@@ -429,11 +435,13 @@ scenes/
 | `line_subtle` | `#2A3A4A` | Grid, separators |
 | `text_primary` | `#E8F0F7` | Headings, values |
 | `text_secondary` | `#A9BACB` | Labels, secondary |
-| `accent_primary` | `#4CC9F0` | Active state, network motif |
+| `accent_primary` | `#4CC9F0` | Active state, network motif; also used for `upgrading` state (world scene icons and `GMNStatusBadge`) |
 | `accent_success` | `#56D364` | Healthy, online, reward |
 | `accent_warning` | `#F2C14E` | Throttle, heat warning |
 | `accent_danger` | `#FF6B6B` | Overheat, offline, error |
 | `accent_network` | `#6E40C9` | Network highlights |
+
+> **Palette is the single source of truth.** All world-scene pixel art state colours must match these hex values exactly. The world scene document's `accent_info` token is resolved as `accent_primary` (`#4CC9F0`). No separate accent hex values may be introduced for world assets. The palette file `assets/pixel/palette_v1.png` must use these four accent slots.
 
 ### Typography Scale
 
@@ -496,7 +504,7 @@ scenes/
 ## 13. Debug vs Player Mode
 
 - `DebugLayer` hidden by default in release and normal play.
-- Developer hotkey exposes debug layer.
+- Developer hotkey exposes debug layer. The hotkey is wired via a **`debug_toggle` input action** in `client-godot/project.godot`. This action must be added before Slice 7 (Debug Layer Migration) — and before Slice 1 world-scene W1 merge. See `docs/world-scene-v1-asset-pack-and-implementation-plan.md §15.2 OQ-02` for status and resolution path.
 - V1 debug values remain visible in debug mode for parity comparison with V2.
 - Player-facing screens contain no debug artifacts.
 
@@ -528,6 +536,10 @@ Work vertically — each slice is shippable:
 | Block completion feels anticlimactic | Dedicated block-solve event flow in `GlobalBlockHeader` |
 | UI scope creep | Lock V2 core to slices 1–4 before expanding to 5–8 |
 | Controller navigation gaps | Explicit focus graph test pass per screen |
+| World scene pixel art colours diverge from HUD palette | Resolved: `ui-v2-plan.md §11` palette is canonical; world scene doc §5.3.1 and §5.4.4 updated to match. `assets/pixel/palette_v1.png` must use V2 hex values. |
+| `UIStateController` does not exist when world scene ships | Resolved: world scene controllers bind `GameplayShellController` until `UIStateController` is introduced; annotated in §9.1 and `docs/world-scene-v1-asset-pack-and-implementation-plan.md §15.1 OQ-01`. |
+| `UIRoot.tscn` does not exist at W1 kickoff | Resolved: world scene uses `gameplay_shell.tscn` background-equivalent node as temporary parent; migrates to `UIRoot.tscn` `BackgroundLayer` in Slice 1. See §9.1 note and `client-ui-roadmap-v2.md §13 Slice 1`. |
+| `debug_toggle` input action missing from `project.godot` | Resolved: add action before Slice 1 / W1 merge; tracked in `docs/world-scene-v1-asset-pack-and-implementation-plan.md §15.2 OQ-02`. |
 
 ---
 
