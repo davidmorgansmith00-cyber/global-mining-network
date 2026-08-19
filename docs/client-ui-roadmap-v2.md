@@ -1,8 +1,8 @@
 # Global Mining Network — Client UI Roadmap V2
 
-**Status:** Active  
-**Version:** 2.0  
-**Date:** 2026-08-18  
+**Status:** ✅ Slices 1–7 Delivered (PR #23) — Slice 8 Pending  
+**Version:** 2.1  
+**Date:** 2026-08-19 (updated from 2026-08-18)  
 **Supersedes:** `docs/client-ui-roadmap-v1.md` (historical context only)  
 **Owner:** Gameplay and UX  
 **Client:** Godot 4.x / GDScript  
@@ -407,7 +407,21 @@ It should **not** feel like a crypto trading site, generic sci-fi greeble, mobil
 
 Work vertically. Each slice is shippable.
 
-### Slice 1 — Foundation + Global Block Header
+> **Delivery status (as of PR #23, merged 2026-08-19):**
+> Slices 1–7 are ✅ complete. Slice 8 is the remaining pass before the world UI build begins.
+
+| Slice | Status |
+|---|---|
+| Slice 1 — Foundation + Global Block Header | ✅ Done (PR #23) |
+| Slice 2 — Player Operation Panel | ✅ Done (PR #23) |
+| Slice 3 — Resources, Notifications, Economy Events | ✅ Done (PR #23) |
+| Slice 4 — GMN Navigation | ✅ Done (PR #23) |
+| Slice 5 — Incremental Read-Model Surface Integration | ✅ Done (PR #23) |
+| Slice 6 — Main Menu, Pause, Settings | ✅ Done (PR #23) |
+| Slice 7 — Debug Layer Migration | ✅ Done (PR #23) |
+| Slice 8 — Visual Hierarchy and Responsive Pass | ⏳ Pending (world UI phase) |
+
+### Slice 1 — Foundation + Global Block Header ✅
 1. Freeze / document all V1 server data bindings in use.
 2. Create `UIRoot.tscn` with `BackgroundLayer`, `HUDLayer`, `ModalLayer`, `NotificationLayer`, `DebugLayer` nodes in that order. Migrate or stub `client-godot/scenes/gameplay_shell.tscn` so existing V1 tests pass against the new root. This unblocks world scene integration (world scene `WorldRoot` parented under `BackgroundLayer`).
 3. Establish V2 `UITheme.tres`, `ui_tokens.gd`. Add `debug_toggle` input action to `client-godot/project.godot` if not yet present (prerequisite for `DebugLayer` toggle — see `docs/world-scene-v1-asset-pack-and-implementation-plan.md §15.2 OQ-02`).
@@ -416,35 +430,35 @@ Work vertically. Each slice is shippable.
 6. Wire to existing `BlockStatus` WebSocket feed.
 7. Verify: block number and progress bar update live from server.
 
-### Slice 2 — Player Operation Panel
+### Slice 2 — Player Operation Panel ✅
 1. Build `PlayerOperationPanel.tscn` — hardware, tier, hashrate, power, heat, cooling, throttle, status, upgrade state.
 2. Wire to existing player profile and machine state endpoints.
 3. Build `PlayerVsNetworkPanel.tscn` with placeholder for contribution share.
 4. Verify: panel reflects authoritative server values, warnings appear correctly.
 
-### Slice 3 — Resources, Notifications, Economy Events
+### Slice 3 — Resources, Notifications, Economy Events ✅
 1. Build `ResourceStrip.tscn` — credits + key resources.
 2. Build `NotificationFeed.tscn` with priority queuing.
 3. Wire block reward, purchase, upgrade, and market events.
 4. Verify: rewards appear in notification feed after block solve.
 
-### Slice 4 — GMN Navigation
+### Slice 4 — GMN Navigation ✅
 1. Build `GMNNavBar.tscn` with `MINE | HARDWARE | POWER | STORAGE | MARKET | RESEARCH | NETWORK`.
 2. Implement surface switching with locked-state display for unbuilt sections.
 3. Apply focus/keyboard/controller navigation rules.
 
-### Slice 5 — Incremental Read-Model Surface Integration
+### Slice 5 — Incremental Read-Model Surface Integration ✅
 1. Wire `MarketSurface.tscn` to NPC market purchase flow (GMN-EC-05 contracts).
 2. Wire `HardwareSurface.tscn` to upgrade loop (GMN-EC-06 contracts).
 3. Wire `PowerSurface.tscn` to power/cooling state.
 4. Wire `NetworkSurface.tscn` to block explorer and history read models.
 
-### Slice 6 — Main Menu, Pause, Settings
+### Slice 6 — Main Menu, Pause, Settings ✅
 1. Build `MainMenu.tscn` with GMN network identity (not isolated save-game feel).
 2. Build `PauseMenu.tscn`, `SettingsMenu.tscn` using shared component library.
 3. Verify full screen state machine: boot → menu → game → pause → menu.
 
-### Slice 7 — Debug Layer Migration
+### Slice 7 — Debug Layer Migration ✅
 1. Move all V1 debug surfaces under `DebugLayer.tscn`.
 2. Confirm developer toggle works; V1 and V2 values comparable during dev.
 3. Verify player-facing screens contain no debug artifacts.

@@ -64,7 +64,7 @@ It is the working execution board for milestones, workstreams, blockers, risks, 
 | Marketplace and Trading | **In Progress - M3 Slice 1** | Economy Lead | Player marketplace listing/settlement added on top of ledger-backed inventory and balance rules |
 | Research, Manufacturing, Automation | Planned | Economy Lead | Starts after content and economy baseline |
 | Pools, Social, Notifications | **In Progress - M3 Slice 1** | Gameplay Lead | Pool creation/membership and pool leaderboard surfaces are now part of active implementation |
-| Client Gameplay and UX | **In Progress - UI V2 (Slices 1–7 in flight)** | Gameplay Lead | UI V1 foundation complete; V2 Slices 1–7 delivered: UIRoot with layer hierarchy, canonical token palette, GlobalBlockHeader, PlayerOperationPanel, PlayerVsNetworkPanel, ResourceStrip, NotificationFeed, GMNNavBar, shared widgets (GMNStatusBadge, GMNStatChip), surface and menu stubs, DebugLayer behind debug_toggle, UIStateController stub autoload, smoke test suite updated |
+| Client Gameplay and UX | **✅ UI V1 Complete + UI V2 Slices 1–7 Complete** | Gameplay Lead | UI V1 signed off (2026-08-19); V2 Slices 1–7 delivered via PR #23: UIRoot with layer hierarchy, canonical token palette, GlobalBlockHeader, PlayerOperationPanel, PlayerVsNetworkPanel, ResourceStrip, NotificationFeed, GMNNavBar, shared widgets (GMNStatusBadge, GMNStatChip), surface and menu stubs, DebugLayer behind debug_toggle, UIStateController stub autoload, smoke test suite updated. Slice 8 (visual hierarchy/responsive/accessibility pass) pending before world UI build. |
 | WebSocket and Realtime Delivery | **In Progress - M2 Start** | Backend Lead | Event stream websocket service implemented in M1; M2 aggregated updates ticket (GMN-EC-07) queued |
 | Content Pipeline and Data Ops | **In Progress - M5 Slice 1** | Content Lead | M5-CONTENT-01 draft-7 schemas, content-pack validation, review/rollout scaffolding, and rollback coverage added |
 | Launcher, Installer, Patcher | **In Progress - M4 Slice 1** | Platform Lead | Windows launcher WPF skeleton, patcher service, account UX flows and accessibility baseline created |
@@ -272,7 +272,51 @@ Whenever meaningful progress changes:
 
 ---
 
-## 17. UI Roadmap Transition to V2 (2026-08-18)
+## 18. UI V2 Delivery Archive (PR #23)
+
+**Delivery Date:** 2026-08-19  
+**PR:** #23 — `feat(ui): implement UI V2 HUD, shared design tokens, UIRoot layer hierarchy, and debug toggle`  
+**Status:** ✅ Slices 1–7 Complete and Merged
+
+### Summary
+
+PR #23 delivered the full V2 HUD foundation and control layer on top of the V1 server-authoritative contracts. All non-negotiables preserved.
+
+| Slice | Deliverable | Status |
+|---|---|---|
+| Slice 1 | UIRoot layer hierarchy, UITheme.tres, ui_tokens.gd, GlobalBlockHeader, debug_toggle, UIStateController stub | ✅ Done |
+| Slice 2 | PlayerOperationPanel, PlayerVsNetworkPanel | ✅ Done |
+| Slice 3 | ResourceStrip, NotificationFeed | ✅ Done |
+| Slice 4 | GMNNavBar (MINE/HARDWARE/POWER/STORAGE/MARKET/RESEARCH/NETWORK) | ✅ Done |
+| Slice 5 | Surface stubs (Mine, Hardware, Power, Storage, Market, Network) | ✅ Done |
+| Slice 6 | Menu stubs (MainMenu, PauseMenu, SettingsMenu) | ✅ Done |
+| Slice 7 | DebugLayer migration; all V1 debug surfaces behind developer toggle | ✅ Done |
+| Slice 8 | Visual hierarchy, responsive, accessibility pass | ⏳ Pending (world UI phase) |
+
+### Architecture Validation
+
+- ✅ Server authoritative throughout — no client-authored values
+- ✅ One logical global chain maintained
+- ✅ Time-based simulation results from server only
+- ✅ V1 data contracts (BlockStatus, PlayerContribution, PlayerProfile, etc.) all preserved
+- ✅ debug_toggle gates DebugLayer; no debug artifacts in player-facing screens
+- ✅ UIStateController stub annotated as [planned — not yet implemented]; bindings remain on GameplayShellController
+
+### Files Changed (PR #23)
+41 files, 1,942 additions / 6 deletions. Key paths:
+- `client-godot/scenes/ui/UIRoot.tscn`
+- `client-godot/scenes/ui/theme/ui_tokens.gd`, `UITheme.tres`
+- `client-godot/scenes/ui/hud/` (GlobalBlockHeader, PlayerOperationPanel, PlayerVsNetworkPanel, ResourceStrip, NotificationFeed, GMNNavBar, HUDRoot)
+- `client-godot/scenes/ui/widgets/` (GMNStatusBadge, GMNStatChip)
+- `client-godot/scenes/ui/surfaces/`, `client-godot/scenes/ui/menus/`
+- `client-godot/scripts/ui/gmn_ui_state_controller.gd`
+- `client-godot/project.godot` (debug_toggle input action added)
+
+### Next Step
+
+Slice 8 (visual hierarchy, responsive, accessibility pass) is the final V2 step before the world UI build phase begins. See `docs/client-ui-roadmap-v2.md §13 Slice 8` and `docs/world-scene-v1-asset-pack-and-implementation-plan.md` for the world UI dependency chain.
+
+---
 
 **Date:** 2026-08-18  
 **Type:** Documentation / Design Phase Transition  
@@ -313,5 +357,5 @@ V2 is built on top of V1. All working server bindings, event buses, and read mod
 ---
 
 **Version:** 2.4 (UI V2 Roadmap Transition)
-**Status:** Active — UI V2 Slice 1 ready for execution
-**Next Review Date:** After Slice 1 (Global Block Header) delivered
+**Status:** ✅ Complete — V2 Slices 1–7 delivered (PR #23); see Section 18 for archive details
+**Next Review Date:** After Slice 8 (visual hierarchy/responsive/accessibility pass)
