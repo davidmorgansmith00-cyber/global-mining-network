@@ -11,7 +11,15 @@
 
 ## 1. Mission
 
-UI V1 proved data can flow from the server into the Godot UI. V2 replaces placeholder debug presentation with a player-facing interface that communicates the actual identity of Global Mining Network.
+UI V1 proved data can flow from the server into the Godot UI. V2 upgrades that base into a player-facing, network-first HUD and control layer that communicates the actual identity of Global Mining Network.
+
+The intended progression is:
+
+- **V1** = base UI foundation, authoritative bindings, and debug parity.
+- **V2** = upgraded HUD / network-first control layer / persistent screen hierarchy.
+- **World UI** = final intended premium look and feel for the full experience, where the world scene, HUD, overlays, and menus all fit together as one cohesive system.
+
+V2 is the bridge from V1 to that world UI target, establishing the player-facing control layer and persistent hierarchy that the final world presentation grows around.
 
 **V2 principle: THE NETWORK IS THE HEARTBEAT OF THE SCREEN.**
 
@@ -23,7 +31,7 @@ Global Chain → Current Block → Network → Player Contribution → Mining Op
 
 **Rule:** V2 extends V1. Do not break working V1 server bindings, events, or read models.
 
-**Visual scope:** "Network-first HUD" encompasses the entire screen composition — including the world scene `BackgroundLayer` that renders beneath the HUD panels. The world scene background is designed in the same visual vocabulary (design tokens, colour palette, state icon language) as the HUD control layers above it. It is not a separate aesthetic. See `docs/world-scene-v1-asset-pack-and-implementation-plan.md §2` for how the world scene integrates into this design language.
+**Visual scope:** "Network-first HUD" encompasses the entire screen composition — including the world scene `BackgroundLayer` that renders beneath the HUD panels. The world scene background is designed in the same visual vocabulary (design tokens, colour palette, state icon language, badge states, layer hierarchy) as the HUD control layers above it, so the full screen reads as one cohesive system. See `docs/world-scene-v1-asset-pack-and-implementation-plan.md §2` for how the world scene integrates into this design language and into the final world UI standard.
 
 ---
 
@@ -442,6 +450,8 @@ scenes/
 | `accent_network` | `#6E40C9` | Network highlights |
 
 > **Palette is the single source of truth.** All world-scene pixel art state colours must match these hex values exactly. The world scene document's `accent_info` token is resolved as `accent_primary` (`#4CC9F0`). No separate accent hex values may be introduced for world assets. The palette file `assets/pixel/palette_v1.png` must use these four accent slots.
+
+> **These tokens define one shared UI system.** V1 debug parity surfaces, V2 HUD widgets, and the final world UI presentation all inherit this palette, icon language, and state semantics. World-scene art may gain fidelity over time, but it must continue to fit this same token system.
 
 ### Typography Scale
 
