@@ -4,6 +4,9 @@
 **Scope:** Visual hierarchy pass, widget completion, responsive verification, accessibility verification  
 **Status:** ✅ Approved for UI V2 closure
 
+**Owner:** David Morgan-Smith + Copilot
+**Sign-off:** Approved for UI V2 closure
+
 ## Verification Summary
 
 - Final token pass is applied through `GmnUiTokens` and HUD token styling hooks (`gmn_hud_root.gd`, HUD widgets).
