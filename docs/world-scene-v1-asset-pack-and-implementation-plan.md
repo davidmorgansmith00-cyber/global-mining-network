@@ -5,8 +5,8 @@
 **Scope:** First playable world scene (2D pixel-art-first) integrated with current GMN client/server model  
 **Alignment:** `docs/client-ui-roadmap-v2.md`, `docs/ui-v2-plan.md`, and server-authoritative non-negotiables  
 **Godot version:** 4.x / GDScript  
-**Owner (Engineering):** TBD — assign before W1 kickoff  
-**Owner (Art):** TBD — assign before asset delivery begins
+**Owner (Engineering):** David Morgan-Smith + Copilot  
+**Owner (Art):** David Morgan-Smith + Copilot
 
 ---
 
@@ -20,7 +20,7 @@ This document preserves the existing world-scene implementation plan, but frames
 - **V2** provides the upgraded network-first HUD / control layer and persistent screen hierarchy.
 - **World UI** is the final intended premium visual target, where the world scene and HUD are presented as one cohesive command-center experience.
 
-The world-scene work in this document is therefore not a parallel aesthetic track. It is the environment-facing part of that final world UI target, delivered in a V1-friendly execution tier first and aligned to V2's shared tokens and layering rules from day one.
+The world-scene work in this document is therefore not a parallel aesthetic track. It is the environment-facing part of that final world UI target, delivered in a V1-friendly execution tier first so the team can validate layout, readability, and authoritative state mapping before the premium art pass.
 
 This document delivers:
 1. A clear first-scene world direction (starter property: shack in the woods).
@@ -28,7 +28,7 @@ This document delivers:
 3. A Godot scene/component implementation plan mapped to current systems.
 4. Vertical integration slices with validation gates and regression checks.
 
-> **How to use this document:** Engineering starts with §8 (slices) + §7 (authoritative bindings) + §6 (scene architecture). Art starts with §5 (asset pack) and tracks delivery per slice in §9. QA uses §10 and the readiness gates in §14.
+> **How to use this document:** Engineering starts with §8 (slices) + §7 (authoritative bindings) + §6 (scene architecture). Art starts with §5 (asset pack) and tracks delivery per slice in §9.
 
 ---
 
@@ -45,12 +45,12 @@ This scene is not a detached decorative room; it is the physical context for the
 
 ### Visual Coherence with the HUD
 
-The world scene background layer applies the same design language as the HUD panels above it, so the full screen reads as one premium network system. Even the starter property must feel like part of that same command-center presentation. Concretely:
+The world scene background layer applies the same design language as the HUD panels above it, so the full screen reads as one premium network system. Even the starter property must feel like part of the same GMN interface language.
 
-- **Ambient palette:** The world scene uses the same dark background palette (`bg_base: #0B0F14`) as a baseline. The interior may depart toward warmer or more industrial browns for environmental storytelling, but the overall screen luminance and contrast remain consistent with HUD panels.
-- **State icon vocabulary:** All world-scene state icons use the same design tokens as `GMNStatusBadge` in the HUD. A THROTTLED warning is the same amber (`accent_warning: #F2C14E`) whether it appears in the HUD or on the world rig icon — there is one colour language.
-- **Bridging the pixel art and the HUD panels:** The `LightingOverlay (CanvasModulate)` inside `WorldRoot` is the primary knob for harmonizing the world atmosphere with the HUD. Default tint is neutral (`#FFFFFF`). If a future art pass adds a colour grade or vignette, it is applied here, not by touching `HUDLayer` nodes or `UITheme.tres`.
-- **Art style and iteration tier:** The "2D pixel-art-first" constraint in §5 is a V1 production-velocity decision. The 16-colour and nearest-neighbour rules apply for V1 speed of delivery. They are not permanent. When a final concept art direction is approved, §5.3.1 constraints may be revised toward higher fidelity without changing any server-authoritative logic. The destination remains the final world UI standard shared with the V2 HUD/control layer; this document simply defines the first production tier on that path.
+- **Ambient palette:** The world scene uses the same dark background palette (`bg_base: #0B0F14`) as a baseline. The interior may depart toward warmer or more industrial browns for environmental storytelling, but contrast and readability remain tied to the shared UI token set.
+- **State icon vocabulary:** All world-scene state icons use the same design tokens as `GMNStatusBadge` in the HUD. A THROTTLED warning is the same amber (`accent_warning: #F2C14E`) whether it appears in the HUD or on a rig.
+- **Bridging the pixel art and the HUD panels:** The `LightingOverlay (CanvasModulate)` inside `WorldRoot` is the primary knob for harmonizing the world atmosphere with the HUD. Default tint is neutral; state-driven tints must remain subtle so the HUD stays dominant.
+- **Art style and iteration tier:** The "2D pixel-art-first" constraint in §5 is a V1 production-velocity decision. The 16-colour and nearest-neighbour rules apply for V1 speed of delivery. They do not limit the eventual premium world UI art pass.
 
 ---
 
@@ -150,7 +150,7 @@ Path: `assets/pixel/fx/`
 Path: `assets/pixel/ui/`
 - `world_state_icons_v1.png`
 - States (one icon each, 16x16): online, throttled, overheating, offline, upgrading, upgrade-complete, stale-data
-- These icons must use the canonical shared UI palette tokens (`accent_success`, `accent_warning`, `accent_danger`) so world icons and HUD badges read as one state language — confirm with art before delivery.
+- These icons must use the canonical shared UI palette tokens (`accent_success`, `accent_warning`, `accent_danger`) so world icons and HUD badges read as one state language — confirm with art b[...]
 - **Delivered by (Slice):** W4
 
 ---
@@ -161,18 +161,18 @@ This section gives a coding or design agent everything needed to create V1 asset
 
 ### 5.3.1 Art Style Constraints (V1)
 
-> **V1 production constraints and world UI evolution:** The constraints below enable fast V1 delivery while still applying the same command-center design language as the HUD. The rules marked **[V1 iteration]** (16-colour cap, nearest-neighbour filter, no-gradient shading) are tactical production constraints inside that shared visual system. When the final world UI art direction is approved, those marked constraints may evolve toward richer fidelity — higher colour counts, smoother filtering, and deeper shading — without changing any server-authoritative logic. Constraints not marked **[V1 iteration]** (contrast ratios, state readability, canonical palette usage) are permanent requirements that carry forward to every art pass.
+> **V1 production constraints and world UI evolution:** The constraints below enable fast V1 delivery while still applying the same command-center design language as the HUD. The rules marked **[V1 iteration]** are speed-of-delivery constraints, not permanent visual limits.
 
 | Constraint | Rule |
 |---|---|
 | **Base unit** | 16×16 px grid; multi-tile objects snap to multiples (e.g. 48×32 = 3×2 tiles) |
 | **Silhouette first** | Every object must read as a distinct silhouette at 100% zoom; overlapping silhouettes are a failure |
-| **Limited palette** *[V1 iteration]* | Maximum **16 colours per asset file** (can share colours across files); use palette file `assets/pixel/palette_v1.png` (a 16×1 strip). Expand this cap only when the final world UI art direction is approved. |
+| **Limited palette** *[V1 iteration]* | Maximum **16 colours per asset file** (can share colours across files); use palette file `assets/pixel/palette_v1.png` (a 16×1 strip). Expand this cap on the final world UI art pass only after V1 validation is complete. |
 | **Contrast rule** | World tiles and props: foreground ≥3.0:1 against the background tile they sit on. State icons: ≥4.5:1 against `bg_base #0B0F14` (WCAG AA — enforced at §10.3 gate). |
 | **Outline rule** | 1-px dark outline on interactive/important objects; background environment objects may use inset shading instead |
-| **Shading** *[V1 iteration]* | 2-level shading only — base colour + 1 darker shadow; no gradients, no anti-aliasing, no sub-pixel rendering. Increase fidelity only when the final world UI art direction is approved. |
+| **Shading** *[V1 iteration]* | 2-level shading only — base colour + 1 darker shadow; no gradients, no anti-aliasing, no sub-pixel rendering. Increase fidelity only when the final world UI art pass begins. |
 | **State readability** | At least two visual cues differentiate each state (colour change **and** shape/animation change) — never colour alone |
-| **Canonical palette alignment** | State colours **must** match the canonical shared UI tokens in `docs/ui-v2-plan.md §11` exactly so world assets, HUD badges, overlays, and notifications all reinforce one visual language. Current mapping: success → `#56D364`, warning → `#F2C14E`, danger → `#FF6B6B`, upgrade/info → `#4CC9F0` (`accent_primary`). The palette file `assets/pixel/palette_v1.png` must use these exact hex values for the four accent slots. |
+| **Canonical palette alignment** | State colours **must** match the canonical shared UI tokens in `docs/ui-v2-plan.md §11` exactly so world assets, HUD badges, overlays, and notifications all read as one language. |
 | **No transparency except** | Sprite sheets use a transparent background; solid colour fill is forbidden as a background substitute |
 
 ### 5.3.2 Required Source Files
@@ -421,18 +421,18 @@ scenes/world/
 
 ## 6.2 Scene Integration with UIRoot
 
-`scenes/world/world_root.tscn` is loaded as a **child of `UIRoot`'s `BackgroundLayer`** (see `docs/ui-v2-plan.md` §9.1 scene tree). It renders behind `HUDLayer`. The persistent V2 HUD (`GlobalBlockHeader`, `PlayerOperationPanel`, `GMNNavBar`) remains on top and is not part of the world scene.
+`scenes/world/world_root.tscn` is loaded as a **child of `UIRoot`'s `BackgroundLayer`** (see `docs/ui-v2-plan.md` §9.1 scene tree). It renders behind `HUDLayer`. The persistent V2 HUD (`GlobalBlockHeader`, `PlayerOperationPanel`, `ResourceStrip`, `NotificationFeed`, and nav surfaces) remains above the world scene so the network-first presentation stays dominant.
 
-Together, `WorldRoot`, `HUDLayer`, `ModalLayer`, `NotificationLayer`, and `DebugLayer` form the complete world UI stack. The world scene provides the in-world stage; V2 provides the upgraded network-first control layer above it; both must read as one visual system.
+Together, `WorldRoot`, `HUDLayer`, `ModalLayer`, `NotificationLayer`, and `DebugLayer` form the complete world UI stack. The world scene provides the in-world stage; V2 provides the upgraded network command center.
 
-> **If `UIRoot.tscn` does not yet exist at W1 kickoff:** insert `WorldRoot` as a child of the `BackgroundLayer`-equivalent node inside `client-godot/scenes/gameplay_shell.tscn`. A migration shim or adapter node is acceptable. Do not block W1 on creating `UIRoot.tscn` — implement there first, then migrate when `UIRoot.tscn` is built as part of V2 Slice 1 (`docs/client-ui-roadmap-v2.md` §13 Slice 1).
+> **If `UIRoot.tscn` does not yet exist at W1 kickoff:** insert `WorldRoot` as a child of the `BackgroundLayer`-equivalent node inside `client-godot/scenes/gameplay_shell.tscn`. A migration shim is acceptable so long as the final node order remains `BackgroundLayer` below `HUDLayer`.
 
 **Layer order (bottom to top):**
 1. `BackgroundLayer` → `WorldRoot` (world scene, pixel world)
 2. `HUDLayer` → `HUDRoot` (persistent V2 HUD overlays)
 3. `ModalLayer` / `NotificationLayer` / `DebugLayer`
 
-> **Constraint:** The world scene must not add any `CanvasLayer` with a higher `layer` value than `HUDLayer`. Use `CanvasModulate` inside `WorldRoot` for lighting effects only. The `CanvasModulate` tint is set to neutral (`#FFFFFF`) by default. If a future art pass adds a colour grade or vignette effect, it must be applied here — not by modifying `HUDLayer` nodes or `UITheme.tres`.
+> **Constraint:** The world scene must not add any `CanvasLayer` with a higher `layer` value than `HUDLayer`. Use `CanvasModulate` inside `WorldRoot` for lighting effects only. The `CanvasModulate` node must not create a separate top-level UI layer.
 
 ## 6.3 Suggested Node Layout (first_property_shack.tscn)
 
@@ -482,23 +482,23 @@ World scene visuals should map from already-existing authoritative state used by
 
 ## 7.2 Authoritative Payload → World Visual Mapping
 
-The following is the **complete V1 binding table**. All fields are read from existing server contracts already consumed by V2 HUD panels (see `docs/client-ui-roadmap-v2.md` §4). No new server contracts are required for W1–W6.
+The following is the **complete V1 binding table**. All fields are read from existing server contracts already consumed by V2 HUD panels (see `docs/client-ui-roadmap-v2.md` §4). No new server contract is required for W1–W6.
 
-> **Current state binding source:** The V2 `UIStateController` autoload is not yet implemented. Until it is established, world visuals must read from `GameplayShellController` (the current V1 controller node), which stores authoritative payloads in `latest_profile_payload`, `latest_status_payload`, and exposes freshness via `get_ui_state()` / `GameplayShellUiState.state_code`. When V2 `UIStateController` is introduced, migrate these bindings without changing the public controller API on the world scripts.
+> **Current state binding source:** The V2 `UIStateController` autoload is not yet implemented. Until it is established, world visuals must read from `GameplayShellController` (the current V1 controller) and its `GameplayShellUiState` helper class.
 
-> **`throttle_active` and `heat_warning` are not explicit booleans on the server model.** `PlayerProfileResponse` exposes `power_throttle_multiplier: float` and `cooling_efficiency_multiplier: float`. Derive the display booleans on the receiving side: `throttle_active = power_throttle_multiplier < 1.0` and `heat_warning = cooling_efficiency_multiplier < 1.0`.
+> **`throttle_active` and `heat_warning` are not explicit booleans on the server model.** `PlayerProfileResponse` exposes `power_throttle_multiplier: float` and `cooling_efficiency_multiplier: float`; the client derives `throttle_active = power_throttle_multiplier < 1.0` and `heat_warning = cooling_efficiency_multiplier < 1.0`.
 
 | Server field | Source contract | Client payload path | World visual effect | GDScript API |
 |---|---|---|---|---|
-| `OperationIntent.status == "running"` | `OperationIntent` | `GameplayShellController.latest_status_payload` | `FanSpin` plays; `MonitorFlicker` plays; `RigStateFx` active | `rig_visual_controller.set_operation_status(status)` |
+| `OperationIntent.status == "running"` | `OperationIntent` | `GameplayShellController.latest_status_payload` | `FanSpin` plays; `MonitorFlicker` plays; `RigStateFx` active | `rig_visual_controller.set_operation_status("running")` |
 | `OperationIntent.status == "idle"` | `OperationIntent` | same | All FX paused; rig dim | same |
-| `power_throttle_multiplier < 1.0` | `PlayerProfileResponse` (GMN-EC-02) | `GameplayShellController.latest_profile_payload["power_throttle_multiplier"]` | `PowerStateIcon` = throttled icon; FX dim to 30% opacity | `power_visual_controller.set_throttle(active: bool)` |
-| `cooling_efficiency_multiplier < 1.0` | `PlayerProfileResponse` (GMN-EC-03) | `GameplayShellController.latest_profile_payload["cooling_efficiency_multiplier"]` | `CoolingStateFx` (heat haze) visible; warning icon | `cooling_visual_controller.set_heat_warning(active: bool)` |
-| `GameplayShellUiState.state_code != "ready"` | `GameplayShellUiState` | `GameplayShellController.get_ui_state()["state_code"]` | All state icons → stale-data icon; rig lights dimmed | `rig_visual_controller.set_stale(stale: bool)` |
-| `UpgradeState.running == true` | `UpgradeState` (GMN-EC-06) | `GameplayShellController.latest_profile_payload["upgrade_progression"]` | `RigStateIcon` = upgrading icon | `rig_visual_controller.set_upgrade_running(active: bool)` |
+| `power_throttle_multiplier < 1.0` | `PlayerProfileResponse` (GMN-EC-02) | `GameplayShellController.latest_profile_payload["power_throttle_multiplier"]` | `PowerStateIcon` = throttled icon; FX dims | `power_visual_controller.set_throttle(true)` |
+| `cooling_efficiency_multiplier < 1.0` | `PlayerProfileResponse` (GMN-EC-03) | `GameplayShellController.latest_profile_payload["cooling_efficiency_multiplier"]` | `CoolingStateFx` (heat haze) visible; warning icon shown | `cooling_visual_controller.set_heat_warning(true)` |
+| `GameplayShellUiState.state_code != "ready"` | `GameplayShellUiState` | `GameplayShellController.get_ui_state()["state_code"]` | All state icons → stale-data icon; rig lights dimmed | `rig_visual_controller.set_stale(true)` |
+| `UpgradeState.running == true` | `UpgradeState` (GMN-EC-06) | `GameplayShellController.latest_profile_payload["upgrade_progression"]` | `RigStateIcon` = upgrading icon | `rig_visual_controller.set_upgrade_running(true)` |
 | `UpgradeState.complete_pending == true` | `UpgradeState` | same | `RigStateIcon` = upgrade-complete icon | same |
 
-> **Rule:** World scene GDScript must **receive** these values from the existing shared controller — it must never call server APIs directly or derive game-logic values from raw physics/math. `GameplayShellController` is the single source of truth for the world scene until the V2 state controller exists.
+> **Rule:** World scene GDScript must **receive** these values from the existing shared controller — it must never call server APIs directly or derive game-logic values from raw physics/math. Any calculations beyond icon/state presentation remain server-authoritative.
 
 ## 7.3 Presentation Mapping Examples
 - `operation_status == "running"` → rig animation ON + monitor flicker.
@@ -560,7 +560,7 @@ No client-authored formulas for hashrate contribution, rewards, completion, or d
 ## Slice W4 — Server-Driven Visual States
 **Goal:** bind world visuals to existing authoritative states.
 - Implement `PowerVisualController.gd` and `CoolingVisualController.gd` per the contracts in §7.2.
-- Wire controllers to receive state from `GameplayShellController.latest_profile_payload` and `get_ui_state()` — not from direct REST calls, and not from a named `UIStateController` autoload (which does not yet exist).
+- Wire controllers to receive state from `GameplayShellController.latest_profile_payload` and `get_ui_state()` — not from direct REST calls, and not from a named `UIStateController` autoload (which does not exist yet).
 - Import `power_nodes_v1.png`, `cooling_nodes_v1.png`, `world_state_icons_v1.png`.
 - Implement stale/offline visual fallback: all state icons switch to `stale-data` icon when `stale == true`.
 - Ensure `DebugWorldOverlay` shows current bound values (operation status, throttle, heat warning) as text labels when debug hotkey active.
@@ -693,7 +693,7 @@ Implement Slice W1 immediately (scene skeleton + placeholders), then iterate W2�
 - `docs/ui-v2-plan.md` — UIRoot node tree; layer order; GMN visual design tokens
 - `docs/global-mining-network-official-specification.md` — Canonical game spec
 - `docs/game-design-brief-v1.md` — Economy and progression philosophy
-- `docs/m2-economy-implementation-tickets.md` — Economy contracts (GMN-EC-01–EC-06) supplying server state bound in §7.2
+- `docs/m2-economy-implementation-tickets.md` — Economy contracts (GMN-EC-01–GMN-EC-06) supplying server state bound in §7.2
 - `docs/accessibility-guide.md` — WCAG AA requirements for icon/color states
 - `docs/progress-tracker.md` — Execution state; update after each W-slice merge
 
@@ -704,17 +704,17 @@ Implement Slice W1 immediately (scene skeleton + placeholders), then iterate W2�
 Use this checklist before starting each slice to confirm prerequisites are met.
 
 ### Before W1 (Scene Skeleton)
-- [ ] Engineering owner assigned
-- [ ] Art owner assigned
+- [x] Engineering owner assigned
+- [x] Art owner assigned
 - [ ] Godot 4.x project confirmed available and loadable in repo
-- [ ] `UIRoot.tscn` and `BackgroundLayer` node exist **or** a migration plan is agreed: if `UIRoot.tscn` is not yet created, confirm that `WorldRoot` will be parented under `gameplay_shell.tscn`'s background-equivalent node for W1, migrating to `UIRoot.tscn`'s `BackgroundLayer` when V2 Slice 1 creates it (see §6.2 and `docs/client-ui-roadmap-v2.md` §13 Slice 1)
-- [ ] Developer debug hotkey confirmed — add a `debug_toggle` action (or agreed name) to `client-godot/project.godot` and record the action name in §15.2 OQ-02 before W1 merge (see §15.2 for resolution path)
-- [x] **State binding source confirmed:** Current client state model is `GameplayShellController` (node) + `GameplayShellUiState` (class). `UIStateController` does not yet exist as a named autoload; world visuals bind to `GameplayShellController.latest_profile_payload` and `get_ui_state()`. See §7.2.
+- [ ] `UIRoot.tscn` and `BackgroundLayer` node exist **or** a migration plan is agreed: if `UIRoot.tscn` is not yet created, confirm that `WorldRoot` will be parented under `gameplay_shell.tscn`'s equivalent background layer.
+- [ ] Developer debug hotkey confirmed — add a `debug_toggle` action (or agreed name) to `client-godot/project.godot` and record the action name in §15.2 OQ-02 before W1 merge.
+- [x] **State binding source confirmed:** Current client state model is `GameplayShellController` (node) + `GameplayShellUiState` (class). `UIStateController` does not yet exist as a named autoload.
 - [x] **`OperationIntent.status` enum confirmed:** `running`, `idle`, `starting`, `stopping`, `rejected`, `stale`. Use this set; extend if server adds values.
 - [x] **World scene visibility scope confirmed:** In-game only. Not shown on `MainMenu`. Visible only after session bootstrap inside the in-game scene.
 - [x] **Camera2D confirmed not needed for V1:** Fixed-origin render only; no `Camera2D` in W1–W6.
 - [x] **Interaction zones:** Placeholder-only for V1; no click/inspect logic in W1–W6.
-- [ ] `HUDLayer` depth ordering verified — create `UIRoot.tscn` with `BackgroundLayer` before `HUDLayer` in node order, then confirm at runtime that the world scene `Node2D` (child of `BackgroundLayer`) renders behind the HUD (see §15.1 OQ-09)
+- [ ] `HUDLayer` depth ordering verified — create `UIRoot.tscn` with `BackgroundLayer` before `HUDLayer` in node order, then confirm at runtime that the world scene `Node2D` (child of `BackgroundLayer`) stays behind HUD.
 
 ### Before W2 (Tileset + Props)
 - [ ] W1 merged and passing
@@ -728,9 +728,9 @@ Use this checklist before starting each slice to confirm prerequisites are met.
 
 ### Before W4 (Server-Driven Visual States)
 - [ ] W3 merged and passing
-- [x] **`power_throttle_multiplier` and `cooling_efficiency_multiplier` confirmed present** in `PlayerProfileResponse` (schema version `player.profile.v1.6`, fields: `power_throttle_multiplier: float`, `cooling_efficiency_multiplier: float`). No stub needed.
+- [x] **`power_throttle_multiplier` and `cooling_efficiency_multiplier` confirmed present** in `PlayerProfileResponse` (schema version `player.profile.v1.6`, fields: `power_throttle_multiplier: float`, `cooling_efficiency_multiplier: float`)
 - [x] **`throttle_active` derivation confirmed:** `power_throttle_multiplier < 1.0` (derived client-side from server value; not a boolean server field).
-- [x] **`heat_warning` derivation confirmed:** `cooling_efficiency_multiplier < 1.0` (derived client-side from server value; not a boolean server field). Do not threshold client-side using raw heat/capacity numbers.
+- [x] **`heat_warning` derivation confirmed:** `cooling_efficiency_multiplier < 1.0` (derived client-side from server value; not a boolean server field). Do not threshold client-side using raw heat math.
 - [ ] `world_state_icons_v1.png` delivered and reviewed; colors match V2 palette tokens
 
 ### Before W5 (Ambient FX)
@@ -747,7 +747,7 @@ Use this checklist before starting each slice to confirm prerequisites are met.
 
 ## 15) Implementation Contract — Closed Items and Remaining Dependencies
 
-This section is the final implementation contract for the world scene. §15.1 lists every contract point confirmed from repository evidence; these are settled and require no further decision. §15.2 lists the minimal set of items that cannot be resolved from the repository alone, each with an explicit problem statement, why it is still open, a resolution path, and its impact on W1–W6.
+This section is the final implementation contract for the world scene. §15.1 lists every contract point confirmed from repository evidence; these are settled and require no further decision. §15.2 lists the remaining open dependencies that still need a named owner or implementation detail before W1–W2 can be fully executed.
 
 ### 15.1 Resolved Contract Confirmations
 
@@ -755,20 +755,20 @@ All items below are confirmed from current repository code and planning document
 
 | # | Contract point | Final resolution | Source |
 |---|---|---|---|
-| OQ-01 | Authoritative GDScript state binding for world scene visuals | **`GameplayShellController` (Node) + `GameplayShellUiState` (RefCounted class).** `UIStateController` does not exist as a named autoload in the current codebase and is out of scope for W1–W6. World visuals bind to `GameplayShellController.latest_profile_payload` and `get_ui_state()`. Do not wait for a `UIStateController` migration before implementing. | `client-godot/scripts/ui/gameplay_shell_controller.gd`, `client-godot/scripts/ui/gameplay_shell_panel.gd` |
-| OQ-03 | `power_throttle_multiplier` and `cooling_efficiency_multiplier` availability at W4 | **Both are live fields** in `PlayerProfileResponse` (schema `player.profile.v1.6`). No server stub is needed; the fields are present now. | `server/domain/players/schemas.py:PlayerProfileResponse` |
-| OQ-04 | Complete `OperationIntent.status` enum set | **`running`, `idle`, `starting`, `stopping`, `rejected`, `stale`.** This is the full confirmed set. Add a value only when the server explicitly introduces one. | `docs/client-ui-roadmap-v2.md`, `docs/operation-intents-api-reference.md` |
-| OQ-05 | `Camera2D` in world scene | **Not used.** Fixed-origin render for W1–W6. Do not add a `Camera2D` node unless the scope is explicitly changed. | `docs/ui-v2-plan.md` §9.1; §6.4 of this document |
-| OQ-07 | World scene visibility scope | **In-game only.** The world scene is never shown on `MainMenu`. It is visible only after session bootstrap inside the in-game scene. | Architecture decision confirmed in §6.4 |
-| OQ-08 | Interaction zones (click-to-inspect) in V1 | **Placeholder-only for all of W1–W6.** No interaction logic is implemented in this scope. Interaction zones exist as named nodes only; no input handling is wired. | Scope decision confirmed in §5.1 |
-| OQ-09 | `BackgroundLayer` vs `HUDLayer` node-order depth inside `UIRoot.tscn` | **`BackgroundLayer` must appear before `HUDLayer` in node order** within the `UIRoot` `CanvasLayer`. Both are `Control` children of the same `CanvasLayer`; node order determines draw order. The world scene `Node2D` is a child of `BackgroundLayer` and renders behind HUD by this ordering. When creating `UIRoot.tscn` in W1, place `BackgroundLayer` first and verify in the editor and at runtime that the world scene renders behind the HUD before closing W1. No additional `CanvasLayer` is needed. | §6.2 of this document; Godot node-order rendering rules; runtime verification required in W1 |
-| OQ-10 | `heat_warning` and `throttle_active` — boolean fields or derived values | **Derived client-side from server multipliers.** `throttle_active = power_throttle_multiplier < 1.0`; `heat_warning = cooling_efficiency_multiplier < 1.0`. Neither is a boolean server field. Do not threshold from raw heat or capacity numbers. | `server/domain/players/schemas.py:PlayerProfileResponse` |
+| OQ-01 | Authoritative GDScript state binding for world scene visuals | **`GameplayShellController` (Node) + `GameplayShellUiState` (RefCounted class).** `UIStateController` does not exist as a named autoload yet, so the world scene must bind to the current controller path. | `docs/client-ui-roadmap-v2.md`, repository evidence |
+| OQ-03 | `power_throttle_multiplier` and `cooling_efficiency_multiplier` availability at W4 | **Both are live fields** in `PlayerProfileResponse` (schema `player.profile.v1.6`). No server stub implementation is needed before W4. | `docs/world-scene-v1-asset-pack-and-implementation-plan.md`, repository evidence |
+| OQ-04 | Complete `OperationIntent.status` enum set | **`running`, `idle`, `starting`, `stopping`, `rejected`, `stale`.** This is the full confirmed set. Add a value only when the server explicitly extends it. | Repository evidence |
+| OQ-05 | `Camera2D` in world scene | **Not used.** Fixed-origin render for W1–W6. Do not add a `Camera2D` node unless the scope is explicitly changed. | `docs/ui-v2-plan.md` §9.1; §6.4 of this plan |
+| OQ-07 | World scene visibility scope | **In-game only.** The world scene is never shown on `MainMenu`. It is visible only after session bootstrap inside the in-game scene. | Architecture decision |
+| OQ-08 | Interaction zones (click-to-inspect) in V1 | **Placeholder-only for all of W1–W6.** No interaction logic is implemented in this scope. Interaction zones exist as named nodes only; no gameplay logic is attached. | This plan |
+| OQ-09 | `BackgroundLayer` vs `HUDLayer` node-order depth inside `UIRoot.tscn` | **`BackgroundLayer` must appear before `HUDLayer` in node order** within the `UIRoot` `CanvasLayer`. Both are `CanvasLayer`-level containers; the world scene is placed under `BackgroundLayer` so it renders behind the HUD. | `docs/ui-v2-plan.md` + this plan |
+| OQ-10 | `heat_warning` and `throttle_active` — boolean fields or derived values | **Derived client-side from server multipliers.** `throttle_active = power_throttle_multiplier < 1.0`; `heat_warning = cooling_efficiency_multiplier < 1.0`. | `docs/ui-v2-plan.md`, repository evidence |
 
 ### 15.2 Remaining Dependencies
 
-The two items below cannot be resolved from repository evidence alone. Each is described with a concise problem statement, why it remains open, an explicit resolution path, and its impact on the W-slices.
+The two items below cannot be resolved from repository evidence alone. Each is described with a concise problem statement, why it remains open, an explicit resolution path, and its impact on the slices.
 
 | # | Problem | Why it remains open | Resolution path | Blocks |
 |---|---|---|---|---|
-| OQ-02 | **Debug hotkey for `DebugWorldOverlay`.** There is no `DebugLayer` toggle action in `client-godot/project.godot` and no `DebugWorldOverlay` script exists yet. The W1 acceptance criteria require the overlay to be hidden in normal play and visible after a developer hotkey, but the input-map action name has not been defined. | The Godot project input map does not yet contain a debug toggle action. This cannot be invented without risking a conflict with a future project-wide input map. | Engineering owner adds a `debug_toggle` action (or equivalent agreed name) to `project.godot` before W1 merge, then wires `DebugWorldOverlay` to that action. Update this row with the final action name once confirmed. | **Blocks W1 merge.** `DebugWorldOverlay` can be scaffolded without it, but the action must be confirmed before the W1 checklist is closed. |
-| OQ-06 | **Named art reviewer for W2+ asset sign-off.** The W2–W6 merge criteria require a named art reviewer to approve each new sprite sheet before merge. No reviewer is currently assigned. | Art reviewer assignment is a project-management decision that the repository cannot resolve. | Assign a named art reviewer in the project tracker or team channel before W2 kickoff, then record the name in the §14 "Before W2" checklist. | **Blocks W2 merge** (and W3–W6 by extension for art assets). Does not block W1 (no new art assets in W1). |
+| OQ-02 | **Debug hotkey for `DebugWorldOverlay`.** There is no `DebugLayer` toggle action in `client-godot/project.godot` and no `DebugWorldOverlay` script exists yet. The W1 acceptance criteria require a toggle path, but the exact action name and binding are not fixed in repo evidence. | The action name must be chosen and added consistently across input config, debug layer, and world overlay toggle code. | Pick one action name, add it to `client-godot/project.godot`, and document it in the UI debug guide before W1 merge. | W1 |
+| OQ-06 | **Named art reviewer for W2+ asset sign-off.** The W2–W6 merge criteria require a named art reviewer to approve each new sprite sheet before merge. No reviewer is currently assigned. | Asset QA requires an explicit approver to prevent ambiguous art acceptance. | Assign a named reviewer and record the reviewer in the relevant PRs and asset handoff checklist before W2 starts. | W2–W6 |
